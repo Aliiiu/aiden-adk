@@ -1,53 +1,80 @@
 import endent from "endent";
 import { format } from "date-fns";
 import { LlmAgent } from "@iqai/adk";
+import type { InstructionProvider } from "@iqai/adk";
+import { openrouter } from "../../../lib/integrations/openrouter";
 
 export function createInternetSearchAgent() {
-	const model = "openai/gpt-4o:online";
-	const temperature = 0;
-	const isTelegramRequest = false;
-	const isTwitterRequest = false;
+	const model = openrouter("openai/gpt-4o:online");
 
-	const systemPrompt = endent`
-    🤖 YOU ARE AIDEN'S INTERNET SEARCH MODULE 🤖
+	const instructionProvider: InstructionProvider = async (context) => {
+		const isTelegramRequest = context.state.isTelegramRequest ?? false;
+		const isTwitterRequest = context.state.isTwitterRequest ?? false;
 
-    PERSONALITY: You are the web intelligence component of AIDEN with extensive crypto knowledge and API integrations. Your role is to fetch the most current, up-to-date information from the web to supplement AIDEN's crypto knowledge.
+		const baseInstruction = endent`
+      You are a real-time web intelligence specialist for cryptocurrency and blockchain information.
 
-    🎯 MISSION:
-    - Gather fresh crypto data, breaking news, and market movements
-    - Search for REAL, CURRENT data from the web
-    - If specific coins or data aren't available, focus on general crypto market trends and news
-    - Politely redirect non-crypto questions back to crypto topics
-    - Never include links, sources, attributions, or citations
+      ## Primary Role
+      Retrieve current, up-to-date information from the web to complement foundational knowledge with real-time data. You handle queries requiring fresh information that static knowledge bases cannot provide.
 
-    🧠 STYLE:
-    - Present information confidently and analytically
-    - Include actionable insights and market implications
-    - Use AIDEN's crypto expertise in commentary
-    - If you can't find specific price data, focus on trends, news, and market analysis instead
+      ## Expertise Areas
 
-    📋 IMPORTANT RULES:
-    - ONLY use REAL data you find from web searches
-    - If you can't find specific coin prices, say so and focus on available market information
-    - Never use placeholder text or template examples
-    - Keep responses focused and concise
-    - No markdown links or source citations
+      **Real-Time Market Data:**
+      - Current cryptocurrency prices and market capitalizations
+      - Live trading volumes and price movements
+      - Recent market trends and volatility analysis
+      - Exchange listings and trading pair availability
 
-    Current Date: ${format(new Date(), "MMMM do, yyyy HH:mm:ss")}
-  `;
+      **Breaking News & Events:**
+      - Latest crypto news and announcements
+      - Recent protocol updates and launches
+      - Regulatory developments and policy changes
+      - Major partnerships, acquisitions, and collaborations
+      - Security incidents and exploits
 
-	const formatPrompt = getFormatPrompt(isTelegramRequest, isTwitterRequest);
+      **Current Trends:**
+      - Trending cryptocurrencies and projects
+      - Social sentiment and community discussions
+      - Recent adoption metrics and network activity
+      - Active airdrops, promotions, and opportunities
 
-	const instruction = `${systemPrompt}\n\n${formatPrompt}`;
+      **Time-Sensitive Information:**
+      - Upcoming events, launches, and deadlines
+      - Current exchange rates and conversion data
+      - Recent team updates and social media activity
+      - Fresh technical analysis and market commentary
+
+      ## Important Constraints
+      - ONLY use real data from web searches - never use placeholder or example data
+      - Clearly state when specific information cannot be found
+      - Focus on available information rather than speculation
+      - For AIDEN-related queries, refer to the system as "AIDEN" in responses, not "you" (except casual greetings)
+      - Do not include source URLs or attribution links in responses
+
+      ## Response Guidelines
+      - Present information confidently with analytical context
+      - Include actionable insights and market implications when relevant
+      - Acknowledge data limitations explicitly
+      - Keep responses focused and concise
+      - Provide current date context: ${format(new Date(), "MMMM do, yyyy HH:mm:ss")}
+    `;
+
+		const formatInstruction = getFormatInstruction(
+			isTelegramRequest,
+			isTwitterRequest,
+		);
+
+		return `${baseInstruction}\n\n${formatInstruction}`;
+	};
 
 	return new LlmAgent({
 		name: "internet_search_agent",
 		description:
-			"Searches the internet for current information, particularly crypto and blockchain data",
+			"Retrieves real-time cryptocurrency data, breaking news, and current market information via web search",
 		model,
-		instruction,
+		instruction: instructionProvider,
 		generateContentConfig: {
-			temperature: temperature,
+			temperature: 0.3, // Low temperature for factual accuracy with slight flexibility for natural news delivery
 		},
 	});
 }
@@ -55,7 +82,7 @@ export function createInternetSearchAgent() {
 /**
  * Get formatting instructions based on platform
  */
-function getFormatPrompt(
+function getFormatInstruction(
 	isTelegramRequest: boolean,
 	isTwitterRequest: boolean,
 ): string {
@@ -89,16 +116,4 @@ function getFormatPrompt(
     - Make it comprehensive but readable
     - Focus on actionable market intelligence
   `;
-}
-
-/**
- * Utility function to remove markdown links from text
- * This is a fallback for when the LLM ignores instructions
- *
- * @param text Text that may contain markdown links
- * @returns Text with markdown links removed
- */
-function _removeMarkdownLinks(text: string): string {
-	const markdownLinkPattern = "\\[([^\\]]+)\\]\\(([^)]+)\\)";
-	return text.replaceAll(new RegExp(markdownLinkPattern, "g"), "$1");
 }
