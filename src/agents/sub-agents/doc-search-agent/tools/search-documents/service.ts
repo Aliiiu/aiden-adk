@@ -4,40 +4,14 @@ import {
 	SEARCH_QUERY,
 	WIKI_GRAPHQL_ENDPOINT,
 } from "./constants";
-import { formatSearchResults } from "./formatter";
+import { formatSearchResults } from "./utils";
 import { searchResponseSchema } from "./schemas";
-
-interface Suggestion {
-	id: string;
-	title: string;
-	metadata?: Array<{
-		url: string;
-		title: string;
-	}> | null;
-}
-
-interface Source {
-	id: string;
-	title: string;
-	url: string;
-}
-
-interface SearchResult {
-	success: true;
-	content: string;
-	sources: Source[];
-	suggestionsCount: number;
-	wikiContentsCount: number;
-	learnDocsCount: number;
-}
-
-interface SearchError {
-	error: string;
-}
-
-interface ExecuteSearchOptions {
-	query: string;
-}
+import type {
+	ExecuteSearchOptions,
+	SearchError,
+	SearchResult,
+	Suggestion,
+} from "./types";
 
 /**
  * Execute the document search against the GraphQL API
