@@ -1,16 +1,16 @@
-import { AgentBuilder } from "@iqai/adk";
+import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../env";
 import { searchDocuments } from "./tools";
 
 export const getDocumentSearchAgent = () => {
-	return AgentBuilder.create("doc-search-agent")
-		.withTools(searchDocuments)
-		.withDescription(
+	return new LlmAgent({
+		name: "doc-search-agent",
+		description:
 			"Searches IQ.wiki knowledge base and IQ Learn documentation for cryptocurrency, blockchain, and Web3 information",
-		)
-		.withInstruction(
-			endent`
+		model: env.LLM_MODEL,
+		tools: [searchDocuments],
+		instruction: endent`
       You are a knowledge retrieval specialist for comprehensive crypto and blockchain information.
 
       ## Primary Expertise Areas
@@ -60,7 +60,5 @@ export const getDocumentSearchAgent = () => {
       - Provide structured, actionable information
       - Focus on foundational knowledge and analytical depth
       `,
-		)
-		.withModel(env.LLM_MODEL)
-		.build();
+	});
 };
