@@ -11,6 +11,9 @@ importers:
       '@iqai/adk':
         specifier: ^0.3.6
         version: 0.3.6(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))(@types/node@24.6.2)(@types/pg@8.15.5)(typescript@5.9.3)(ws@8.18.3)
+      '@openrouter/ai-sdk-provider':
+        specifier: ^1.2.0
+        version: 1.2.0(ai@5.0.60(zod@4.1.11))(zod@4.1.11)
       '@types/node':
         specifier: ^24.6.2
         version: 24.6.2
@@ -303,6 +306,13 @@ packages:
   '@modelcontextprotocol/sdk@1.19.1':
     resolution: {integrity: sha512-3Y2h3MZKjec1eAqSTBclATlX+AbC6n1LgfVzRMJLt3v6w0RCYgwLrjbxPDbhsYHt6Wdqc/aCceNJYgj448ELQQ==}
     engines: {node: '>=18'}
+
+  '@openrouter/ai-sdk-provider@1.2.0':
+    resolution: {integrity: sha512-stuIwq7Yb7DNmk3GuCtz+oS3nZOY4TXEV3V5KsknDGQN7Fpu3KRMQVWRc1J073xKdf0FC9EHOctSyzsACmp5Ag==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      ai: ^5.0.0
+      zod: ^3.24.1 || ^v4
 
   '@opentelemetry/api-logs@0.204.0':
     resolution: {integrity: sha512-DqxY8yoAaiBPivoJD4UtgrMS8gEmzZ5lnaxzPojzLVHBGqPxgWm4zcuvcUHZiqQ6kRX2Klel2r9y8cA2HAtqpw==}
@@ -2204,6 +2214,11 @@ snapshots:
       zod-to-json-schema: 3.24.6(zod@3.25.76)
     transitivePeerDependencies:
       - supports-color
+
+  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.60(zod@4.1.11))(zod@4.1.11)':
+    dependencies:
+      ai: 5.0.60(zod@4.1.11)
+      zod: 4.1.11
 
   '@opentelemetry/api-logs@0.204.0':
     dependencies:
