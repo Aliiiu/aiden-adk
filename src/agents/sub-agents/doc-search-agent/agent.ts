@@ -2,13 +2,14 @@ import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../env";
 import { searchDocuments } from "./tools";
+import { openrouter } from "../../../lib/integrations/openrouter";
 
 export const getDocumentSearchAgent = () => {
 	return new LlmAgent({
-		name: "doc-search-agent",
+		name: "doc_search_agent",
 		description:
 			"Searches IQ.wiki knowledge base and IQ Learn documentation for cryptocurrency, blockchain, and Web3 information",
-		model: env.LLM_MODEL,
+		model: openrouter(env.LLM_MODEL),
 		tools: [searchDocuments],
 		instruction: endent`
       You are a knowledge retrieval specialist for comprehensive crypto and blockchain information.
