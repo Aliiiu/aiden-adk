@@ -5,13 +5,7 @@ import { openrouter } from "../../../../../lib/integrations/openrouter";
 import { searchDocuments } from "./tools";
 
 export const getDocumentSearchAgent = () => {
-	return new LlmAgent({
-		name: "doc_search_agent",
-		description:
-			"Searches IQ.wiki knowledge base and IQ Learn documentation for cryptocurrency, blockchain, and Web3 information",
-		model: openrouter(env.LLM_MODEL),
-		tools: [searchDocuments],
-		instruction: endent`
+	const instruction = endent`
       You are a knowledge retrieval specialist for comprehensive crypto and blockchain information.
 
       ## Primary Expertise Areas
@@ -60,6 +54,14 @@ export const getDocumentSearchAgent = () => {
       - Be explicit when search results are insufficient or unavailable
       - Provide structured, actionable information
       - Focus on foundational knowledge and analytical depth
-      `,
+      `;
+
+	return new LlmAgent({
+		name: "doc_search_agent",
+		description:
+			"Searches IQ.wiki knowledge base and IQ Learn documentation for cryptocurrency, blockchain, and Web3 information",
+		model: openrouter(env.LLM_MODEL),
+		tools: [searchDocuments],
+		instruction,
 	});
 };
