@@ -13,7 +13,11 @@ async function main() {
 		const { runner } = await getRootAgent();
 		const response = await runner.ask(query);
 
-		console.log(`🤖 AIDEN:`, response);
+		const workflowAgentResponse = response.find(
+			(r) => r.agent === "workflow_agent",
+		)?.response;
+
+		console.log(`🤖 AIDEN:`, workflowAgentResponse);
 	} catch (error) {
 		console.error("❌ Error running AIDEN:", error);
 		process.exit(1);
