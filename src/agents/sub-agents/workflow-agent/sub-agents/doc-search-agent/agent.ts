@@ -62,6 +62,8 @@ export const getDocumentSearchAgent = () => {
 			"Searches IQ.wiki knowledge base and IQ Learn documentation for cryptocurrency, blockchain, and Web3 information",
 		model: openrouter(env.LLM_MODEL),
 		tools: [searchDocuments],
+		disallowTransferToParent: true,
+		disallowTransferToPeers: true,
 		instruction,
 	});
 };
