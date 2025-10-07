@@ -3,7 +3,7 @@ import endent from "endent";
 import { env } from "../../../env";
 import { openrouter } from "../../../lib/integrations/openrouter";
 
-export const getLanguageDetectorAgent = async () => {
+export const getLanguageDetectorAgent = () => {
 	const languageDetector = new LlmAgent({
 		name: "language_detector",
 		description:
