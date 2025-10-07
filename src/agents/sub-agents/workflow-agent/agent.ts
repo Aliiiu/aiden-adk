@@ -1,34 +1,26 @@
-import { AgentBuilder } from "@iqai/adk";
+import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
-import { env } from "../env";
+import { env } from "../../../env";
+import { openrouter } from "../../../lib/integrations/openrouter";
 import { getDocumentSearchAgent } from "./sub-agents/doc-search-agent/agent";
-import { createInternetSearchAgent } from "./sub-agents/internet-search-agent/agent";
-import { openrouter } from "../lib/integrations/openrouter";
+import { getInternetSearchAgent } from "./sub-agents/internet-search-agent/agent";
 
-const APP_NAME = "aiden";
-const USER_ID = "default_user";
-const SESSION_ID = "default_session";
+export const getWorkflowAgent = () => {
+	const docSearchAgent = getDocumentSearchAgent();
+	const internetSearchAgent = getInternetSearchAgent();
 
-const getInstructionWithLanguage = (detectedLanguage: string) => {
-	const languageMap: Record<string, string> = {
-		en: "English",
-		kr: "Korean",
-		zh: "Chinese",
-	};
-	const languageName = languageMap[detectedLanguage] || "English";
-
-	return endent`
+	const instruction = endent`
     You are AIDEN, an intelligent cryptocurrency and blockchain assistant with access to specialized knowledge retrieval systems.
 
     ## Language Instruction
-    **CRITICAL**: The user's language has been detected as **${languageName} (${detectedLanguage})**. You MUST respond in ${languageName}. All your responses, explanations, and synthesized answers should be in ${languageName}.
+    **CRITICAL**: The user's language has been detected as {detectedLanguage}. You MUST respond in {detectedLanguage}. All your responses, explanations, and synthesized answers should be in {detectedLanguage}.
 
     ## Your Architecture
     You orchestrate multiple specialized sub-agents, each with specific expertise. Your role is to:
     - Understand user queries and determine which sub-agent(s) can best answer them
     - Delegate tasks to the appropriate specialist(s)
     - Synthesize responses from multiple sources when needed
-    - Provide coherent, comprehensive answers to users in ${languageName}
+    - Provide coherent, comprehensive answers to users in {detectedLanguage}
 
     ## Available Sub-Agents
 
@@ -67,14 +59,14 @@ const getInstructionWithLanguage = (detectedLanguage: string) => {
     - Complex queries spanning historical context and recent developments
 
     ## Response Synthesis
-    - When using multiple agents, integrate their responses coherently in ${languageName}
+    - When using multiple agents, integrate their responses coherently in {detectedLanguage}
     - Present information in a unified voice as AIDEN
     - Cite which knowledge source provided specific information when relevant
     - If agents contradict, prioritize real-time data for current facts, foundational data for concepts
 
     ## Communication Style
     - Be professional, knowledgeable, and helpful
-    - Provide complete, accurate information in ${languageName}
+    - Provide complete, accurate information in {detectedLanguage}
     - Be transparent about limitations
     - Refer to yourself as "AIDEN" when discussing your capabilities
     - Adapt tone based on session state (Telegram/Twitter formatting if applicable)
@@ -83,34 +75,15 @@ const getInstructionWithLanguage = (detectedLanguage: string) => {
     - Always delegate to sub-agents rather than attempting to answer directly
     - If uncertain which agent to use, default to doc-search-agent for foundational queries
     - Never invent or hallucinate information - only use what sub-agents provide
-    - **Remember**: All final responses to the user MUST be in ${languageName}
+    - **Remember**: All final responses to the user MUST be in {detectedLanguage}
   `;
-};
 
-export const getRootAgent = (detectedLanguage: string = "en") => {
-	const initialState = {
-		query: null,
-		processedQuery: null,
-		documentContext: null,
-		isTelegramRequest: false,
-		isTwitterRequest: false,
-	};
-
-	const docSearchAgent = getDocumentSearchAgent();
-	const internetSearchAgent = createInternetSearchAgent();
-
-	return AgentBuilder.create("root_agent")
-		.withDescription(
-			"AIDEN - AI assistant orchestrating specialized sub-agents for cryptocurrency and blockchain intelligence",
-		)
-		.withInstruction(getInstructionWithLanguage(detectedLanguage))
-		.withQuickSession({
-			appName: APP_NAME,
-			userId: USER_ID,
-			sessionId: SESSION_ID,
-			state: initialState,
-		})
-		.withModel(openrouter(env.LLM_MODEL))
-		.withSubAgents([docSearchAgent, internetSearchAgent])
-		.build();
+	return new LlmAgent({
+		name: "workflow_agent",
+		description:
+			"AI assistant orchestrating specialized sub-agents for cryptocurrency and blockchain intelligence",
+		instruction,
+		model: openrouter(env.LLM_MODEL),
+		subAgents: [docSearchAgent, internetSearchAgent],
+	});
 };

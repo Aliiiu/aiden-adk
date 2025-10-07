@@ -1,8 +1,8 @@
 import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
-import { env } from "../../../env";
+import { env } from "../../../../../env";
+import { openrouter } from "../../../../../lib/integrations/openrouter";
 import { searchDocuments } from "./tools";
-import { openrouter } from "../../../lib/integrations/openrouter";
 
 export const getDocumentSearchAgent = () => {
 	return new LlmAgent({

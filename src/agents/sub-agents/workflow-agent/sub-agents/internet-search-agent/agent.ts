@@ -1,10 +1,10 @@
-import endent from "endent";
-import { format } from "date-fns";
-import { LlmAgent } from "@iqai/adk";
 import type { InstructionProvider } from "@iqai/adk";
-import { openrouter } from "../../../lib/integrations/openrouter";
+import { LlmAgent } from "@iqai/adk";
+import { format } from "date-fns";
+import endent from "endent";
+import { openrouter } from "../../../../../lib/integrations/openrouter";
 
-export function createInternetSearchAgent() {
+export function getInternetSearchAgent() {
 	const model = openrouter("openai/gpt-4o:online");
 
 	const instructionProvider: InstructionProvider = async (context) => {
