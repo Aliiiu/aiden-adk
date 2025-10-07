@@ -13,7 +13,7 @@ async function main() {
 		const { runner } = await getRootAgent();
 		const response = await runner.ask(query);
 
-		console.log(`🤖 AIDEN: ${response}\n`);
+		console.log(`🤖 AIDEN:`, response);
 	} catch (error) {
 		console.error("❌ Error running AIDEN:", error);
 		process.exit(1);
