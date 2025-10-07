@@ -23,6 +23,7 @@ export const getLanguageDetectorAgent = () => {
       You MUST respond only one string, either English, Korean or Chinese
     `,
 		outputKey: "detectedLanguage",
+		disallowTransferToPeers: true,
 	});
 
 	return languageDetector;
