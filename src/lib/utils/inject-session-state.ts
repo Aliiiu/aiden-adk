@@ -4,11 +4,11 @@ import type { ReadonlyContext } from "@iqai/adk";
  * Injects session state values into an instruction template.
  * Replaces {variable_name} placeholders with values from session state.
  */
-export async function injectSessionState(
+export function injectSessionState(
 	template: string,
 	readonlyContext: ReadonlyContext,
-): Promise<string> {
-	const invocationContext = (readonlyContext as any)._invocationContext;
+): string {
+	const sessionState = readonlyContext.state;
 
 	/**
 	 * Replaces a single template variable match
@@ -16,7 +16,6 @@ export async function injectSessionState(
 	function replaceMatch(match: string): string {
 		const varName = match.replace(/[{}]/g, "").trim();
 
-		const sessionState = invocationContext.session.state;
 		if (varName in sessionState) {
 			const value = String(sessionState[varName]);
 			return value;

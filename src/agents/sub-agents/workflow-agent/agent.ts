@@ -98,7 +98,7 @@ export const getWorkflowAgent = () => {
     - Remember: transfer_to_agent + your synthesized response = complete workflow
   `;
 
-		return await injectSessionState(instructionTemplate, context);
+		return injectSessionState(instructionTemplate, context);
 	};
 
 	return new LlmAgent({
