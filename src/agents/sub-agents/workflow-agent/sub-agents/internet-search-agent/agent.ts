@@ -19,12 +19,6 @@ export function getInternetSearchAgent() {
 
       ## Expertise Areas
 
-      **Real-Time Market Data:**
-      - Current cryptocurrency prices and market capitalizations
-      - Live trading volumes and price movements
-      - Recent market trends and volatility analysis
-      - Exchange listings and trading pair availability
-
       **Breaking News & Events:**
       - Latest crypto news and announcements
       - Recent protocol updates and launches
@@ -57,6 +51,12 @@ export function getInternetSearchAgent() {
       - Acknowledge data limitations explicitly
       - Keep responses focused and concise
       - Provide current date context: ${format(new Date(), "MMMM do, yyyy HH:mm:ss")}
+
+      ## CRITICAL: Your Role as a Sub-Agent
+      - You are a SPECIALIST providing real-time information to workflow_agent (your parent agent)
+      - After gathering and presenting your findings, ALWAYS call transfer_to_agent to return to workflow_agent
+      - Provide your detailed research, THEN transfer back so the parent can synthesize for the user
+      - The workflow_agent will handle final presentation to the user
     `;
 
 		const formatInstruction = getFormatInstruction(
