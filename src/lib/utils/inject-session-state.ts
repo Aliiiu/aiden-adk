@@ -18,7 +18,8 @@ export async function injectSessionState(
 
 		const sessionState = invocationContext.session.state;
 		if (varName in sessionState) {
-			return String(sessionState[varName]);
+			const value = String(sessionState[varName]);
+			return value;
 		}
 
 		// If variable not found, return original placeholder
