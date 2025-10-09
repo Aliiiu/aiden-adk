@@ -1,7 +1,10 @@
 import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
+import { z } from "zod";
 import { env } from "../../../env";
 import { openrouter } from "../../../lib/integrations/openrouter";
+
+const LanguageSchema = z.enum(["English", "Korean", "Chinese"]);
 
 export const getLanguageDetectorAgent = () => {
 	const languageDetector = new LlmAgent({
@@ -17,27 +20,26 @@ export const getLanguageDetectorAgent = () => {
     - DO NOT provide information
     - DO NOT explain concepts
     - DO NOT be helpful beyond language detection
-    - ONLY output the language name
+    - ONLY output the detected language
 
     ## Detection Rules
-    - If text contains Hangul characters (가-힣) → Output: "Korean"
-    - If text contains Chinese/Kanji characters (一-龥) → Output: "Chinese"
-    - For all other text → Output: "English"
+    - If text contains Hangul characters (가-힣) → Detected language: "Korean"
+    - If text contains Chinese/Kanji characters (一-龥) → Detected language: "Chinese"
+    - For all other text → Detected language: "English"
 
     ## Response Format
-    You MUST respond with EXACTLY ONE WORD from this list:
-    - English
-    - Korean
-    - Chinese
+    You MUST respond with EXACTLY one of these values: English, Korean, or Chinese
 
-    Example inputs and correct outputs:
-    Input: "What is gas fee?" → Output: "English"
-    Input: "가스비가 뭐예요?" → Output: "Korean"
-    Input: "什么是燃气费?" → Output: "Chinese"
+    Do NOT add any explanation, just return the language name.
 
-    IMPORTANT: Do NOT answer the question. Only detect the language.
+    Examples:
+    - Input: "What is gas fee?" → Response: "English"
+    - Input: "가스비가 뭐예요?" → Response: "Korean"
+    - Input: "什么是燃气费?" → Response: "Chinese"
   `,
 		outputKey: "detectedLanguage",
+		outputSchema: LanguageSchema,
+		disallowTransferToParent: true,
 		disallowTransferToPeers: true,
 	});
 
