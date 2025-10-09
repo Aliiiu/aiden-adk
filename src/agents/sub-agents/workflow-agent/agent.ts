@@ -1,9 +1,7 @@
-import type { InstructionProvider } from "@iqai/adk";
 import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../env";
 import { openrouter } from "../../../lib/integrations/openrouter";
-import { injectSessionState } from "../../../lib/utils/inject-session-state";
 import { getDocumentSearchAgent } from "./sub-agents/doc-search-agent/agent";
 import { getInternetSearchAgent } from "./sub-agents/internet-search-agent/agent";
 
@@ -11,8 +9,9 @@ export const getWorkflowAgent = () => {
 	const docSearchAgent = getDocumentSearchAgent();
 	const internetSearchAgent = getInternetSearchAgent();
 
-	const instructionProvider: InstructionProvider = async (context) => {
-		const instructionTemplate = endent`
+	// Static instruction with {detectedLanguage} placeholders
+	// ADK automatically injects session state values at runtime
+	const instruction = endent`
     You are AIDEN, an intelligent cryptocurrency and blockchain assistant.
 
     ## Language Requirement
@@ -98,14 +97,11 @@ export const getWorkflowAgent = () => {
     - Remember: transfer_to_agent + your synthesized response = complete workflow
   `;
 
-		return injectSessionState(instructionTemplate, context);
-	};
-
 	return new LlmAgent({
 		name: "workflow_agent",
 		description:
 			"AI assistant orchestrating specialized sub-agents for cryptocurrency and blockchain intelligence",
-		instruction: instructionProvider,
+		instruction,
 		model: openrouter(env.LLM_MODEL),
 		subAgents: [docSearchAgent, internetSearchAgent],
 	});
