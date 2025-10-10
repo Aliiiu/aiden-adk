@@ -8,12 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@ai-sdk/google':
-        specifier: ^2.0.17
-        version: 2.0.17(zod@4.1.11)
-      '@google/genai':
-        specifier: ^1.22.0
-        version: 1.22.0(@modelcontextprotocol/sdk@1.19.1)
       '@iqai/adk':
         specifier: ^0.3.6
         version: 0.3.6(@opentelemetry/core@2.1.0(@opentelemetry/api@1.9.0))(@types/node@24.6.2)(@types/pg@8.15.5)(typescript@5.9.3)(ws@8.18.3)
@@ -23,9 +17,6 @@ importers:
       '@types/node':
         specifier: ^24.6.2
         version: 24.6.2
-      ai:
-        specifier: ^5.0.61
-        version: 5.0.61(zod@4.1.11)
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -50,12 +41,6 @@ packages:
 
   '@ai-sdk/gateway@1.0.34':
     resolution: {integrity: sha512-Vc/4fGlAW2uGmz6DnbRB9b7kdkbk4DQYNDYNdr/NHJxoaLsdNF3CE8i172rZ47+jEU2hGibcn5yivbgvjMi8Ig==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/google@2.0.17':
-    resolution: {integrity: sha512-6LyuUrCZuiULg0rUV+kT4T2jG19oUntudorI4ttv1ARkSbwl8A39ue3rA487aDDy6fUScdbGFiV5Yv/o4gidVA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -1952,12 +1937,6 @@ snapshots:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.10(zod@4.1.11)
       '@vercel/oidc': 3.0.2
-      zod: 4.1.11
-
-  '@ai-sdk/google@2.0.17(zod@4.1.11)':
-    dependencies:
-      '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.10(zod@4.1.11)
       zod: 4.1.11
 
   '@ai-sdk/provider-utils@3.0.10(zod@4.1.11)':
