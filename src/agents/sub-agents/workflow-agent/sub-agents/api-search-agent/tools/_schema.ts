@@ -2,24 +2,11 @@ import z from "zod";
 
 export const agentInfoSchema = z.object({
   id: z.string(),
-  avatar: z.union([
-    z.string(),
-    z.object({
-      original: z.string(),
-      small: z.string(),
-      medium: z.string(),
-      large: z.string(),
-    }),
-  ]).optional(),
   ticker: z.string(),
   name: z.string(),
   bio: z.string().optional(),
   framework: z.string().optional(),
   socials: z.any().optional(),
-  discordPrompt: z.string().optional(),
-  telegramPrompt: z.string().optional(),
-  twitterPrompt: z.string().optional(),
-  creatorId: z.string().optional(),
   isActive: z.boolean().optional(),
   governanceContract: z.string().optional(),
   tokenContract: z.string(),
@@ -112,7 +99,6 @@ export const allAgentsSchema = z.object({
     inferenceCount: z.number().optional(),
     holdersCount: z.number().optional(),
     framework: z.string().optional(),
-    chainId: z.number().optional(),
     volumeAllTime: z.number().optional(),
   })),
   pagination: z.object({
@@ -122,13 +108,6 @@ export const allAgentsSchema = z.object({
     limit: z.number(),
     hasNextPage: z.boolean(),
     hasPreviousPage: z.boolean(),
-  }).optional(),
-  filters: z.object({
-    sort: z.string().nullable(),
-    order: z.string().nullable(),
-    category: z.string().nullable(),
-    status: z.string().nullable(),
-    chainId: z.number().nullable(),
   }).optional(),
 }).loose();
 

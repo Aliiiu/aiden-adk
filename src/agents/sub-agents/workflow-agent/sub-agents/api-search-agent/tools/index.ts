@@ -114,7 +114,6 @@ export const getAgentInfoTool = createTool({
 
 Returns complete profile including:
 - Identity: name, ticker, bio, avatar (multiple sizes)
-- Contracts: token, governance, manager, pool, agent
 - AI config: framework, model, category, knowledge base
 - Social: Discord/Telegram/Twitter prompts
 - Status: verification status, active state, creator info
@@ -159,8 +158,6 @@ Use this for: profile pages, agent cards, detailed views, social bot configurati
         return result;
       }
 
-      const avatar = typeof response.avatar === 'object' ? response.avatar.original : response.avatar;
-
       const headers = ["field", "value"];
       const rows = [
         ["name", response.name],
@@ -170,11 +167,6 @@ Use this for: profile pages, agent cards, detailed views, social bot configurati
         ["framework", response.framework || "N/A"],
         ["verified", response.isVerified ? "Yes" : "No"],
         ["active", response.isActive ? "Yes" : "No"],
-        ["avatar", avatar || "N/A"],
-        ["tokenContract", response.tokenContract],
-        ["agentContract", response.agentContract || "N/A"],
-        ["governanceContract", response.governanceContract || "N/A"],
-        ["creatorId", response.creatorId || "N/A"],
         ["createdAt", response.createdAt || "N/A"],
         ["explorerUrl", `https://app.iqai.com/agents/${response.tokenContract}`],
       ];
