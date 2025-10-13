@@ -7,5 +7,5 @@ import { loadCoingeckoMcpTools } from "./coingecko";
 export const loadAllMcpTools = async (): Promise<BaseTool[]> => {
 	const coingeckoMcpTools = await loadCoingeckoMcpTools();
 
-	return [...coingeckoMcpTools];
+	return coingeckoMcpTools
 };

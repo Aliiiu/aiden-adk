@@ -22,11 +22,11 @@ const coingeckoMcpToolset = new McpToolset({
 	},
 });
 
-let cachedTools: BaseTool[] | null = null;
+let cachedTools: Promise<BaseTool[]> | null = null;
 
-export const loadCoingeckoMcpTools = async (): Promise<BaseTool[]> => {
+export const loadCoingeckoMcpTools = (): Promise<BaseTool[]> => {
 	if (!cachedTools) {
-		cachedTools = await coingeckoMcpToolset.getTools();
+		cachedTools = coingeckoMcpToolset.getTools();
 	}
 
 	return cachedTools;
