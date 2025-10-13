@@ -1,8 +1,8 @@
-import { LlmAgent, McpToolset } from "@iqai/adk";
+import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
 import { openrouter } from "../../../../../lib/integrations/openrouter";
-import { loadAllMcpTools } from "./mcps";
+import { getCoingeckoTools } from "./tools";
 
 export const getApiSearchAgent = async () => {
 	const instruction = endent`
@@ -33,23 +33,14 @@ export const getApiSearchAgent = async () => {
     - Provide detailed data + transfer_to_agent = your complete job
   `;
 
-	const coingeckoToolset = new McpToolset({
-		name: "Coingecko MCP",
-		description: "mcp for coingecko",
-		transport: {
-			mode: "stdio",
-			command: "npx",
-			args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
-		},
-	});
-	const tools = await coingeckoToolset.getTools();
+	const coingeckoTools = await getCoingeckoTools();
 
 	return new LlmAgent({
 		name: "api_search_agent",
 		description:
 			"Fetches real-time cryptocurrency prices, DeFi metrics, and blockchain data via MCP APIs including CoinGecko, DefiLlama, Frax Tools, and IQ AI Tools",
 		model: openrouter(env.LLM_MODEL),
-		tools,
+		tools: [...coingeckoTools],
 		instruction,
 	});
 };
