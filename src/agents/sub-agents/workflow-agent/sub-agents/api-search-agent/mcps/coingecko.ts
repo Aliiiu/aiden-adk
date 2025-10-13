@@ -11,23 +11,19 @@ const coingeckoMcpToolset = new McpToolset({
 	name: "Coingecko MCP Tools",
 	description:
 		"Tools to fetch real-time cryptocurrency prices, market caps, and trading volumes from CoinGecko",
-	cacheConfig: {
-		enabled: true,
-	},
 	transport: {
 		mode: "stdio",
 		command: "npx",
-		args: ["mcp-remote",
-        "https://mcp.api.coingecko.com/mcp"],
+		args: [
+			"mcp-remote",
+			"https://mcp.api.coingecko.com/mcp",
+		],
 	},
 });
 
-let cachedTools: Promise<BaseTool[]> | null = null;
+let cachedTools: BaseTool[] | null = null;
 
-export const loadCoingeckoMcpTools = (): Promise<BaseTool[]> => {
-	if (!cachedTools) {
-		cachedTools = coingeckoMcpToolset.getTools();
-	}
+export const loadCoingeckoMcpTools = async (): Promise<BaseTool[]> => {
 
-	return cachedTools;
-};
+	return await coingeckoMcpToolset.getTools();
+}

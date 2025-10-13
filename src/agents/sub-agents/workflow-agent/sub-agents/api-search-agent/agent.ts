@@ -1,4 +1,4 @@
-import { LlmAgent } from "@iqai/adk";
+import { LlmAgent, McpToolset } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
 import { openrouter } from "../../../../../lib/integrations/openrouter";
@@ -9,15 +9,7 @@ export const getApiSearchAgent = async () => {
     You are an API intelligence specialist for real-time cryptocurrency and DeFi data.
 
     ## Primary Expertise Areas
-
-    **Price & Market Data (CoinGecko):**
-    - Current cryptocurrency prices and market caps
-    - Trading volumes and price changes
-    - Market rankings and trending tokens
-    - Historical price data and charts
-
-    ## Data Sources
-    - **CoinGecko MCP**: Real-time price and market data
+    - Process user requests related to cryptocurrency data and utilize the Coingecko MCP tools for accurate information retrieval.
 
     ## Important Constraints
     - ONLY use real data from MCP tool calls - never fabricate or estimate data
@@ -33,13 +25,6 @@ export const getApiSearchAgent = async () => {
     4. IMMEDIATELY call transfer_to_agent(agent_name="workflow_agent") to return control
     5. DO NOT end your response without calling transfer_to_agent
 
-    ## Response Guidelines
-    - Present numerical data accurately with proper units
-    - Include percentage changes and trends when available
-    - Provide context for metrics (e.g., "This represents X% of total market cap")
-    - Format large numbers clearly (e.g., $1.5B instead of $1500000000)
-    - Compare current data to historical averages when relevant
-
     ## CRITICAL: YOU MUST TRANSFER BACK
     - You are a SUB-AGENT, not the final responder
     - After providing your data analysis, you MUST call transfer_to_agent to return to workflow_agent
@@ -48,7 +33,16 @@ export const getApiSearchAgent = async () => {
     - Provide detailed data + transfer_to_agent = your complete job
   `;
 
-	const tools = await loadAllMcpTools();
+	const coingeckoToolset = new McpToolset({
+		name: "Coingecko MCP",
+		description: "mcp for coingecko",
+		transport: {
+			mode: "stdio",
+			command: "npx",
+			args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
+		},
+	});
+	const tools = await coingeckoToolset.getTools();
 
 	return new LlmAgent({
 		name: "api_search_agent",
