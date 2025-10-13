@@ -17,13 +17,8 @@ const coingeckoMcpToolset = new McpToolset({
 	transport: {
 		mode: "stdio",
 		command: "npx",
-		args: ["-y", "@coingecko/coingecko-mcp"],
-		env: {
-			...(env.COINGECKO_PRO_API_KEY && {
-				COINGECKO_PRO_API_KEY: env.COINGECKO_PRO_API_KEY,
-			}),
-			COINGECKO_ENVIRONMENT: env.COINGECKO_ENVIRONMENT,
-		},
+		args: ["mcp-remote",
+        "https://mcp.api.coingecko.com/mcp"],
 	},
 });
 
