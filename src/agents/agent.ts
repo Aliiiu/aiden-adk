@@ -2,9 +2,9 @@ import { AgentBuilder } from "@iqai/adk";
 import { getLanguageDetectorAgent } from "./sub-agents/language-detector-agent/agent";
 import { getWorkflowAgent } from "./sub-agents/workflow-agent/agent";
 
-export const getRootAgent = () => {
+export const getRootAgent = async () => {
 	const languageDetectorAgent = getLanguageDetectorAgent();
-	const workflowAgent = getWorkflowAgent();
+	const workflowAgent = await getWorkflowAgent();
 
 	const initialState = {
 		query: null,
