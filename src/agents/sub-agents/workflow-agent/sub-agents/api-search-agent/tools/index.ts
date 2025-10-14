@@ -131,7 +131,6 @@ Use this for: profile pages, agent cards, detailed views, social bot configurati
         return "Error: Provide either 'address' or 'ticker' parameter.";
       }
 
-
       const response = await callIqAiApi(
         "/api/agents/info",
         { address, ticker },
