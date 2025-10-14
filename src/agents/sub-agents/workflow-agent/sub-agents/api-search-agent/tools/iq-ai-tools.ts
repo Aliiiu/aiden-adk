@@ -62,7 +62,6 @@ Use this for: agent discovery dashboards, browsing interfaces, market overviews,
   },
 });
 
-
 export const getTopAgentsTool = createTool({
   name: "get_top_agents",
   description: `Retrieve the top-performing IQ AI agents ranked by market cap, holders, or inferences.
