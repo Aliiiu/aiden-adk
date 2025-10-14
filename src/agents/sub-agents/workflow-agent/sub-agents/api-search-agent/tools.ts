@@ -1,4 +1,5 @@
 import { type BaseTool, McpToolset } from "@iqai/adk";
+import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
 
 /**
  * Wraps an MCP tool to catch errors and return them as safe objects
@@ -42,4 +43,13 @@ export const getCoingeckoTools = async () => {
 
 	// Wrap all tools with error handling
 	return tools.map((tool) => wrapToolWithErrorHandling(tool));
+};
+
+/**
+ * Get DefiLlama tools (local MCP implementation)
+ */
+export const getDefillamaToolsWrapped = () => {
+	const tools = getDefillamaTools();
+	// Wrap all tools with error handling
+	return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
 };
