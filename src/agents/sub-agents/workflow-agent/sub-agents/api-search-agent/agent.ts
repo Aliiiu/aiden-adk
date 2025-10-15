@@ -2,7 +2,7 @@ import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
 import { openrouter } from "../../../../../lib/integrations/openrouter";
-import { getCoingeckoTools, getDefillamaToolsWrapped } from "./tools";
+import { getCoingeckoTools, getDefillamaToolsViaMcp } from "./tools";
 
 export const getApiSearchAgent = async () => {
 	const instruction = endent`
@@ -36,7 +36,7 @@ export const getApiSearchAgent = async () => {
   `;
 
 	const coingeckoTools = await getCoingeckoTools();
-	const defillamaTools = getDefillamaToolsWrapped();
+	const defillamaTools = await getDefillamaToolsViaMcp();
 
 	return new LlmAgent({
 		name: "api_search_agent",
