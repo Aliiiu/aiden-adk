@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { FastMCP } from "fastmcp";
-import { getDefillamaTools } from "./tools.js";
+import { defillamaTools } from "./tools";
 
 /**
  * Initializes and starts the DefiLlama MCP (Model Context Protocol) Server.
@@ -17,18 +17,8 @@ async function main() {
 		version: "1.0.0",
 	});
 
-	// Register all DefiLlama tools
-	const tools = getDefillamaTools();
-	for (const tool of tools) {
-		server.addTool({
-			name: tool.name,
-			description: tool.description,
-			parameters: tool.getDeclaration()?.parameters || {},
-			execute: async (params: any) => {
-				const result = await tool.safeExecute(params, {} as any);
-				return result;
-			},
-		});
+	for (const tool of defillamaTools) {
+		server.addTool(tool as any); // Type cast to avoid union type issues
 	}
 
 	try {
@@ -37,7 +27,7 @@ async function main() {
 		});
 		console.log("✅ DefiLlama MCP Server started successfully over stdio.");
 		console.log("   You can now connect to it using an MCP client.");
-		console.log("   Available tools:", tools.length);
+		console.log(`   Available tools: ${defillamaTools.length}`);
 	} catch (error) {
 		console.error("❌ Failed to start DefiLlama MCP Server:", error);
 		process.exit(1);
