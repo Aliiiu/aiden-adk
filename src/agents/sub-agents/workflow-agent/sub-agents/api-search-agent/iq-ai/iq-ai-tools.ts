@@ -274,7 +274,6 @@ Use this for: price displays, market analytics, performance tracking, trading da
   },
 });
 
-
 export const getAgentLogsTool = createTool({
   name: "get_agent_logs",
   description: `Retrieve paginated activity logs for an IQ AI agent.
