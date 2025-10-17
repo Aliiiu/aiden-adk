@@ -6,14 +6,10 @@ import {
 	getDexsData,
 	getFeesAndRevenue,
 	getStableCoin,
-	getBridgeVolume,
 	getHistoricalChainTvl,
 	getPricesCurrentCoins,
-	getAllTransactions,
 	getBatchHistorical,
 	getBlockChainTimestamp,
-	getBridgeDayStats,
-	getBridgeTotalVolume,
 	getChartCoins,
 	getHistoricalPoolData,
 	getHistoricalPricesByContractAddress,
@@ -24,8 +20,13 @@ import {
 	getStableCoinChains,
 	getStableCoinCharts,
 	getStableCoinPrices,
-	listAllBridges,
 } from "./handlers";
+
+const unixTimestampArg = () =>
+	z.union([z.number().int().nonnegative(), z.string().min(1)]);
+
+const optionalSearchWidthArg = () =>
+	z.union([z.string().min(1), z.number().positive()]).optional();
 
 /**
  * Tool definitions for FastMCP (MCP Server usage)
@@ -54,8 +55,9 @@ export const defillamaTools = [
 				.describe("Specific protocol name to fetch"),
 			sortCondition: z
 				.enum(["change_1h", "change_1d", "change_7d", "tvl"])
-				.describe("Field to sort by"),
-			order: z.enum(["asc", "desc"]).describe("Sort order"),
+				.describe("Field to sort by")
+				.default("tvl"),
+			order: z.enum(["asc", "desc"]).describe("Sort order").default("desc"),
 		}),
 		execute: async (args: {
 			protocol?: string;
@@ -83,16 +85,20 @@ export const defillamaTools = [
 		parameters: z.object({
 			excludeTotalDataChart: z
 				.boolean()
-				.optional()
 				.default(true)
 				.describe("Exclude total data chart"),
 			excludeTotalDataChartBreakdown: z
 				.boolean()
-				.optional()
 				.default(true)
 				.describe("Exclude chart breakdown"),
-			chain: z.string().optional().describe("Filter by specific chain"),
-			protocol: z.string().optional().describe("Filter by specific protocol"),
+			chain: z
+				.string()
+				.optional()
+				.describe("Filter by specific chain (slug from /overview/dexs)"),
+			protocol: z
+				.string()
+				.optional()
+				.describe("Filter by specific protocol slug"),
 			sortCondition: z
 				.enum([
 					"total24h",
@@ -102,12 +108,10 @@ export const defillamaTools = [
 					"change_7d",
 					"change_1m",
 				])
-				.optional()
 				.default("total24h")
 				.describe("Sort field"),
 			order: z
 				.enum(["asc", "desc"])
-				.optional()
 				.default("desc")
 				.describe("Sort order"),
 		}),
@@ -122,14 +126,14 @@ export const defillamaTools = [
 		parameters: z.object({
 			excludeTotalDataChart: z
 				.boolean()
-				.optional()
+				.default(true)
 				.describe("Exclude total data chart"),
 			excludeTotalDataChartBreakdown: z
 				.boolean()
-				.optional()
+				.default(true)
 				.describe("Exclude chart breakdown"),
 			dataType: z
-				.string()
+				.enum(["dailyFees", "dailyRevenue", "dailyHoldersRevenue"])
 				.default("dailyFees")
 				.describe("Type of data to retrieve"),
 			chain: z.string().optional().describe("Filter by chain"),
@@ -139,13 +143,16 @@ export const defillamaTools = [
 					"change_1d",
 					"change_7d",
 					"change_1m",
+					"total24h",
+					"total7d",
+					"total30d",
 					"dailyUserFees",
 					"dailyHoldersRevenue",
 					"dailySupplySideRevenue",
 					"holdersRevenue30d",
 				])
 				.describe("Sort field"),
-			order: z.enum(["asc", "desc"]).describe("Sort order"),
+			order: z.enum(["asc", "desc"]).describe("Sort order").default("desc"),
 		}),
 		execute: async (args: any) => await getFeesAndRevenue(args),
 	},
@@ -179,9 +186,13 @@ export const defillamaTools = [
 			"Fetches stablecoin market cap charts. Can filter by chain or stablecoin ID. Returns last 10 data points",
 		parameters: z.object({
 			chain: z.string().optional().describe("Filter by chain"),
-			stablecoinId: z.number().optional().describe("Filter by stablecoin ID"),
+			stablecoin: z
+				.number()
+				.int()
+				.optional()
+				.describe("Stablecoin ID from /stablecoins"),
 		}),
-		execute: async (args: { chain?: string; stablecoinId?: number }) =>
+		execute: async (args: { chain?: string; stablecoin?: number }) =>
 			await getStableCoinCharts(args),
 	},
 
@@ -191,94 +202,6 @@ export const defillamaTools = [
 			"Fetches historical stablecoin price data. Returns last 3 data points",
 		parameters: z.object({}),
 		execute: async () => await getStableCoinPrices({}),
-	},
-
-	// Bridges
-	{
-		name: "defillama_get_bridge_volume",
-		description:
-			"Fetches bridge volume data for a specific chain. Returns last 10 data points with timestamps in ISO format",
-		parameters: z.object({
-			id: z.string().optional().describe("Bridge ID"),
-			chain: z.string().describe("Chain name"),
-		}),
-		execute: async (args: { id?: string; chain: string }) =>
-			await getBridgeVolume(args),
-	},
-
-	{
-		name: "defillama_get_all_transactions",
-		description:
-			"Fetches all transactions for a given bridge ID with optional filtering by time range and chain",
-		parameters: z.object({
-			id: z.string().describe("Bridge ID"),
-			limit: z.number().optional().describe("Limit number of results (max 10)"),
-			address: z.string().optional().describe("Filter by address"),
-			sourcechain: z.string().optional().describe("Filter by source chain"),
-			starttimestamp: z
-				.string()
-				.optional()
-				.describe("Start timestamp in ISO format"),
-			endtimestamp: z
-				.string()
-				.optional()
-				.describe("End timestamp in ISO format"),
-		}),
-		execute: async (args: any) => await getAllTransactions(args),
-	},
-
-	{
-		name: "defillama_get_bridge_day_stats",
-		description: "Fetches bridge statistics for a specific day and chain",
-		parameters: z.object({
-			timestamp: z.string().describe("Timestamp in ISO format"),
-			chain: z.string().describe("Chain name"),
-			id: z.string().optional().describe("Bridge ID"),
-		}),
-		execute: async (args: { timestamp: string; chain: string; id?: string }) =>
-			await getBridgeDayStats(args),
-	},
-
-	{
-		name: "defillama_get_bridge_total_volume",
-		description:
-			"Calculates total volume for all bridges for a specified time period",
-		parameters: z.object({
-			timePeriod: z
-				.string()
-				.describe(
-					"Time period key (e.g., 'volumePrevDay', 'weeklyVolume', 'monthlyVolume')",
-				),
-		}),
-		execute: async (args: { timePeriod: string }) =>
-			await getBridgeTotalVolume(args),
-	},
-
-	{
-		name: "defillama_list_all_bridges",
-		description:
-			"Lists all bridges with optional chain data and custom sorting",
-		parameters: z.object({
-			order: z.enum(["asc", "desc"]).describe("Sort order"),
-			includeChains: z
-				.boolean()
-				.optional()
-				.default(true)
-				.describe("Include chain breakdown"),
-			sortConditions: z
-				.enum([
-					"volumePrevDay",
-					"volumePre2Day",
-					"weeklyVolume",
-					"monthlyVolume",
-					"lastHourVolume",
-					"currentDayVolume",
-					"lastDailyVolume",
-					"dayBeforeLastVolume",
-				])
-				.describe("Sort field"),
-		}),
-		execute: async (args: any) => await listAllBridges(args),
 	},
 
 	// Prices
@@ -291,9 +214,11 @@ export const defillamaTools = [
 				.describe(
 					"Comma-separated list of coin identifiers (e.g., 'ethereum:0x...,bsc:0x...')",
 				),
-			searchWidth: z.string().optional().describe("Search width parameter"),
+			searchWidth: optionalSearchWidthArg().describe(
+				"Time range to find price data (e.g., '4h' or 600 seconds)",
+			).default("4h"),
 		}),
-		execute: async (args: { coins: string; searchWidth?: string }) =>
+		execute: async (args: { coins: string; searchWidth?: string | number }) =>
 			await getPricesCurrentCoins(args),
 	},
 
@@ -310,11 +235,34 @@ export const defillamaTools = [
 		name: "defillama_get_batch_historical",
 		description: "Fetches historical price data for a batch of coins",
 		parameters: z.object({
-			coins: z.string().describe("Comma-separated list of coin identifiers"),
-			searchWidth: z.string().optional().describe("Search width parameter"),
+			coins: z
+				.union([
+					z.string().min(1),
+					z.record(
+						z.string(),
+						z
+							.array(z.union([z.number().int().nonnegative(), z.string().min(1)]))
+							.min(1),
+					),
+				])
+				.describe(
+					"Either a pre-encoded coins query string or an object mapping {chain}:{address} to an array of timestamps",
+				),
+			searchWidth: optionalSearchWidthArg().describe(
+				"Time range to find price data (e.g., '4h' or 600 seconds)",
+			).default('6h'),
 		}),
-		execute: async (args: { coins: string; searchWidth?: string }) =>
-			await getBatchHistorical(args),
+		execute: async (args: {
+			coins: string | Record<string, Array<number | string>>;
+			searchWidth?: string | number;
+		}) =>
+			await getBatchHistorical({
+				coins:
+					typeof args.coins === "string"
+						? args.coins
+						: encodeURIComponent(JSON.stringify(args.coins)),
+				searchWidth: args.searchWidth,
+			}),
 	},
 
 	{
@@ -322,14 +270,18 @@ export const defillamaTools = [
 		description:
 			"Fetches historical prices for coins at a specific timestamp by contract address",
 		parameters: z.object({
-			coins: z.string().describe("Comma-separated list of coin identifiers"),
-			timestamp: z.string().describe("Timestamp in ISO format"),
-			searchWidth: z.string().optional().describe("Search width parameter"),
+			coins: z.string().describe("set of comma-separated tokens defined as {chain}:{address}. example: 'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878"),
+			timestamp: unixTimestampArg().describe(
+				"Timestamp to query (Unix seconds or ISO 8601)",
+			),
+			searchWidth: optionalSearchWidthArg().describe(
+				"Time range to find price data (e.g., '4h' or 600 seconds)",
+			).default('6h'),
 		}),
 		execute: async (args: {
 			coins: string;
-			timestamp: string;
-			searchWidth?: string;
+			timestamp: number | string;
+			searchWidth?: string | number;
 		}) => await getHistoricalPricesByContractAddress(args),
 	},
 
@@ -338,21 +290,20 @@ export const defillamaTools = [
 		description:
 			"Fetches percentage change data for specified coins over a time period",
 		parameters: z.object({
-			coins: z.string().describe("Comma-separated list of coin identifiers"),
+			coins: z.string().describe("set of comma-separated tokens defined as {chain}:{address}. example: 'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878,ethereum:0xdB25f211AB05b1c97D595516F45794528a807ad8'"),
 			period: z
 				.string()
 				.optional()
 				.default("1d")
-				.describe("Time period for percentage calculation"),
+				.describe("duration between data points. example: '1h', '8h', '2d'"),
 			lookForward: z
 				.boolean()
 				.optional()
 				.default(false)
-				.describe("Look forward in time"),
-			timestamp: z
-				.union([z.string(), z.number()])
+				.describe("whether you want the duration after your given timestamp or not, defaults to false (looking back)"),
+			timestamp: unixTimestampArg()
 				.optional()
-				.describe("Reference timestamp (ISO format or Unix)"),
+				.describe("timestamp (Unix seconds or ISO 8601) of data point requested, defaults to time now."),
 		}),
 		execute: async (args: any) => await getPercentageCoins(args),
 	},
@@ -363,11 +314,22 @@ export const defillamaTools = [
 			"Fetches historical chart data for specified coins with customizable time range and span",
 		parameters: z.object({
 			coins: z.string().describe("set of comma-separated tokens defined as {chain}:{address}. example: 'ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1,coingecko:ethereum,bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878,ethereum:0xdB25f211AB05b1c97D595516F45794528a807ad8'"),
-			start: z.string().optional().describe("unix timestamp of earliest data point requested"),
-			end: z.string().optional().describe("unix timestamp of latest data point requested"),
-			span: z.number().optional().describe("number of data points returned, defaults to 0. example: 10"),
+			start: unixTimestampArg()
+				.optional()
+				.describe("Unix timestamp in seconds for earliest data point"),
+			end: unixTimestampArg()
+				.optional()
+				.describe("Unix timestamp in seconds for latest data point"),
+			span: z
+				.number()
+				.int()
+				.nonnegative()
+				.optional()
+				.describe("Number of data points requested (defaults to 0). example: 10"),
 			period: z.string().optional().describe("duration between data points, defaults to 24 hours. example: '1h', '8h', '2d'"),
-			searchWidth: z.string().optional().describe("time range on either side to find price data, defaults to 10% of period. example: '600"),
+			searchWidth: optionalSearchWidthArg().describe(
+				"time range on either side to find price data, defaults to 10% of period. example: '600' or '6h",
+			).default('6h'),
 		}),
 		execute: async (args: any) => await getChartCoins(args),
 	},
@@ -378,7 +340,7 @@ export const defillamaTools = [
 		description:
 			"Fetches historical APY and TVL data for a specific yield pool. Returns last 10 data points",
 		parameters: z.object({
-			pool: z.string().describe("Pool identifier"),
+			pool: z.string().describe("pool id, can be retrieved from /pools (property is called pool)"),
 		}),
 		execute: async (args: { pool: string }) =>
 			await getHistoricalPoolData(args),
@@ -390,14 +352,29 @@ export const defillamaTools = [
 			"Fetches latest yield pool data with sorting and limiting capabilities",
 		parameters: z.object({
 			sortCondition: z
-				.string()
-				.describe("Field to sort by (e.g., 'tvlUsd', 'apy')"),
-			order: z.string().describe("Sort order ('asc' or 'desc')"),
-			limit: z.number().describe("Number of results to return"),
+				.enum([
+					"tvlUsd",
+					"apy",
+					"apyBase",
+					"apyReward",
+					"apyPct1D",
+					"apyPct7D",
+					"apyPct30D",
+					"apyMean30d",
+				])
+				.describe("Field to sort by"),
+			order: z.enum(["asc", "desc"]).describe("Sort order").default("desc"),
+			limit: z
+				.number()
+				.int()
+				.min(1)
+				.max(100)
+				.default(10)
+				.describe("Number of results to return (max 100)"),
 		}),
 		execute: async (args: {
 			sortCondition: string;
-			order: string;
+			order: "asc" | "desc";
 			limit: number;
 		}) => await getLatestPoolData(args),
 	},
@@ -424,17 +401,18 @@ export const defillamaTools = [
 					"dailyPremiumVolume",
 					"dailyNotionalVolume",
 				])
-				.optional()
 				.default("dailyNotionalVolume")
 				.describe("Data type to retrieve"),
 			chain: z.string().optional().describe("chain name"),
 			protocol: z.string().optional().describe("protocol slug"),
 			excludeTotalDataChart: z
 				.boolean()
-				.describe("Exclude total chart"),
+				.default(true)
+				.describe("true to exclude aggregated chart from response"),
 			excludeTotalDataChartBreakdown: z
 				.boolean()
-				.describe("Exclude chart breakdown"),
+				.default(true)
+				.describe("true to exclude broken down chart from response"),
 		}),
 		execute: async (args: any) => await getOptionsData(args),
 	},
@@ -446,9 +424,11 @@ export const defillamaTools = [
 			"Fetches blockchain block data for a specific chain and timestamp",
 		parameters: z.object({
 			chain: z.string().describe("Chain name"),
-			timestamp: z.string().describe("Timestamp in ISO format"),
+			timestamp: unixTimestampArg().describe(
+				"Timestamp to query (Unix seconds or ISO 8601)",
+			),
 		}),
-		execute: async (args: { chain: string; timestamp: string }) =>
+		execute: async (args: { chain: string; timestamp: number | string }) =>
 			await getBlockChainTimestamp(args),
 	},
 ] as const;

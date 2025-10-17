@@ -10,10 +10,24 @@ const STABLECOINS_URL = "https://stablecoins.llama.fi";
 const YIELDS_URL = "https://yields.llama.fi";
 
 /**
- * Helper function to convert ISO timestamp to Unix timestamp
+ * Helper function to convert timestamp inputs to Unix seconds
  */
-const isoToUnix = (isoString: string): number => {
-	return Math.floor(new Date(isoString).getTime() / 1000);
+const toUnixSeconds = (value: string | number): number => {
+	if (typeof value === "number") {
+		return Math.floor(value);
+	}
+
+	const trimmed = value.trim();
+	if (/^\d+$/.test(trimmed)) {
+		return Math.floor(Number(trimmed));
+	}
+
+	const parsed = Date.parse(trimmed);
+	if (Number.isNaN(parsed)) {
+		throw new Error(`Invalid timestamp value: ${value}`);
+	}
+
+	return Math.floor(parsed / 1000);
 };
 
 /**
@@ -101,20 +115,27 @@ export const getDexsData = async (args: {
 	sortCondition?: string;
 	order?: "asc" | "desc";
 }): Promise<string> => {
-	let url: string;
+	const excludeTotalDataChart =
+		args.excludeTotalDataChart !== undefined ? args.excludeTotalDataChart : true;
+	const excludeTotalDataChartBreakdown =
+		args.excludeTotalDataChartBreakdown !== undefined
+			? args.excludeTotalDataChartBreakdown
+			: true;
+
+	const params = new URLSearchParams({
+		excludeTotalDataChart: String(excludeTotalDataChart),
+		excludeTotalDataChartBreakdown: String(excludeTotalDataChartBreakdown),
+	});
 
 	if (args.protocol) {
-		url = `${BASE_URL}/summary/dexs/${args.protocol}`;
+		const url = `${BASE_URL}/summary/dexs/${args.protocol}?${params.toString()}`;
 		const data = await fetchData(url);
 		return JSON.stringify({ protocolData: data });
 	}
 
-	if (args.chain) {
-		url = `${BASE_URL}/overview/dexs/${args.chain}`;
-	} else {
-		url = `${BASE_URL}/overview/dexs`;
-	}
-
+	const url = args.chain
+		? `${BASE_URL}/overview/dexs/${args.chain}?${params.toString()}`
+		: `${BASE_URL}/overview/dexs?${params.toString()}`;
 	const data = await fetchData(url);
 
 	if (data.protocols) {
@@ -160,18 +181,40 @@ export const getFeesAndRevenue = async (args: {
 	sortCondition: string;
 	order: "asc" | "desc";
 }): Promise<string> => {
-	let url: string;
+	const excludeTotalDataChart =
+		args.excludeTotalDataChart !== undefined ? args.excludeTotalDataChart : true;
+	const excludeTotalDataChartBreakdown =
+		args.excludeTotalDataChartBreakdown !== undefined
+			? args.excludeTotalDataChartBreakdown
+			: true;
+	const dataType = args.dataType ?? "dailyFees";
+
+	const params = new URLSearchParams({
+		excludeTotalDataChart: String(excludeTotalDataChart),
+		excludeTotalDataChartBreakdown: String(excludeTotalDataChartBreakdown),
+		dataType,
+	});
 
 	if (args.protocol) {
-		url = `${BASE_URL}/summary/fees/${args.protocol}`;
+		const url = `${BASE_URL}/summary/fees/${args.protocol}?${params.toString()}`;
+		const data = await fetchData(url);
+
+		return JSON.stringify({ data });
 	} else if (args.chain) {
-		url = `${BASE_URL}/overview/fees/${args.chain}`;
+		const url = `${BASE_URL}/overview/fees/${args.chain}?${params.toString()}`;
+		const data = await fetchData(url);
+		return processFeesResponse(data, args);
 	} else {
-		url = `${BASE_URL}/overview/fees`;
+		const url = `${BASE_URL}/overview/fees?${params.toString()}`;
+		const data = await fetchData(url);
+		return processFeesResponse(data, args);
 	}
+};
 
-	const data = await fetchData(url);
-
+const processFeesResponse = (
+	data: any,
+	args: { sortCondition: string; order: "asc" | "desc" },
+): string => {
 	if (data.protocols) {
 		const sorted = data.protocols.sort((a: any, b: any) => {
 			const aVal = a[args.sortCondition] || 0;
@@ -205,7 +248,10 @@ export const getFeesAndRevenue = async (args: {
 export const getStableCoin = async (args: {
 	includePrices?: boolean;
 }): Promise<string> => {
-	const data = await fetchData(`${STABLECOINS_URL}/stablecoins`);
+	const includePrices = args.includePrices ?? false;
+	const data = await fetchData(
+		`${STABLECOINS_URL}/stablecoins?includePrices=${includePrices}`,
+	);
 
 	const sorted = data.peggedAssets.sort(
 		(a: any, b: any) => b.circulating.peggedUSD - a.circulating.peggedUSD,
@@ -238,17 +284,24 @@ export const getStableCoinChains = async (args: any): Promise<string> => {
 
 export const getStableCoinCharts = async (args: {
 	chain?: string;
-	stablecoinId?: number;
+	stablecoin?: number;
 }): Promise<string> => {
 	let url: string;
+	const params = new URLSearchParams();
 
-	if (args.chain) {
-		url = `${STABLECOINS_URL}/stablecoins/${args.chain}`;
-	} else {
-		url = `${STABLECOINS_URL}/stablecoins/all`;
+	if (args.stablecoin !== undefined) {
+		params.append("stablecoin", args.stablecoin.toString());
 	}
 
-	const data = await fetchData(url);
+	if (args.chain) {
+		url = `${STABLECOINS_URL}/stablecoincharts/${args.chain}`;
+	} else {
+		url = `${STABLECOINS_URL}/stablecoincharts/all`;
+	}
+
+	const data = await fetchData(
+		params.toString() ? `${url}?${params.toString()}` : url,
+	);
 
 	const last10 = data.slice(-10).map((item: any) => ({
 		date: item.date,
@@ -274,98 +327,22 @@ export const getStableCoinPrices = async (args: any): Promise<string> => {
 };
 
 /**
- * Bridges
- */
-export const getBridgeVolume = async (args: {
-	id?: string;
-	chain: string;
-}): Promise<string> => {
-	const url = args.id
-		? `${BRIDGES_URL}/bridgevolume/${args.chain}?id=${args.id}`
-		: `${BRIDGES_URL}/bridgevolume/${args.chain}`;
-
-	const data = await fetchData(url);
-
-	const last10 = data.slice(-10).map((item: any) => ({
-		...item,
-		date: new Date(item.date * 1000).toISOString(),
-	}));
-
-	return JSON.stringify(last10);
-};
-
-export const getAllTransactions = async (args: {
-	id: string;
-	limit?: number;
-	address?: string;
-	sourcechain?: string;
-	starttimestamp?: string;
-	endtimestamp?: string;
-}): Promise<any> => {
-	let url = `${BRIDGES_URL}/transactions/${args.id}?limit=10`;
-
-	if (args.address) url += `&address=${args.address}`;
-	if (args.sourcechain) url += `&sourcechain=${args.sourcechain}`;
-	if (args.starttimestamp)
-		url += `&starttimestamp=${isoToUnix(args.starttimestamp)}`;
-	if (args.endtimestamp) url += `&endtimestamp=${isoToUnix(args.endtimestamp)}`;
-
-	return await fetchData(url);
-};
-
-export const getBridgeDayStats = async (args: {
-	timestamp: string;
-	chain: string;
-	id?: string;
-}): Promise<any> => {
-	const unixTime = isoToUnix(args.timestamp);
-	const url = args.id
-		? `${BRIDGES_URL}/bridgedaystats/${unixTime}/${args.chain}?id=${args.id}`
-		: `${BRIDGES_URL}/bridgedaystats/${unixTime}/${args.chain}`;
-
-	return await fetchData(url);
-};
-
-export const getBridgeTotalVolume = async (args: {
-	timePeriod: string;
-}): Promise<number> => {
-	const data = await fetchData(`${BRIDGES_URL}/bridges`);
-
-	const total = data.bridges.reduce((sum: number, bridge: any) => {
-		return sum + (bridge[args.timePeriod] || 0);
-	}, 0);
-
-	return total;
-};
-
-export const listAllBridges = async (args: {
-	order: "asc" | "desc";
-	includeChains?: boolean;
-	sortConditions: string;
-}): Promise<any> => {
-	const includeChains = args.includeChains !== false;
-	const data = await fetchData(
-		`${BRIDGES_URL}/bridges?includeChains=${includeChains}`,
-	);
-
-	const sorted = data.bridges.sort((a: any, b: any) => {
-		const aVal = a[args.sortConditions] || 0;
-		const bVal = b[args.sortConditions] || 0;
-		return args.order === "asc" ? aVal - bVal : bVal - aVal;
-	});
-
-	return sorted.slice(10, 20);
-};
-
-/**
  * Prices
  */
 export const getPricesCurrentCoins = async (args: {
 	coins: string;
-	searchWidth?: string;
+	searchWidth?: string | number;
 }): Promise<string> => {
-	let url = `${COINS_URL}/prices/current/${args.coins}`;
-	if (args.searchWidth) url += `?searchWidth=${args.searchWidth}`;
+	const coinsSegment = encodeURIComponent(args.coins);
+	const params = new URLSearchParams();
+
+	if (args.searchWidth !== undefined) {
+		params.append("searchWidth", String(args.searchWidth));
+	}
+
+	const url = `${COINS_URL}/prices/current/${coinsSegment}${
+		params.toString() ? `?${params.toString()}` : ""
+	}`;
 
 	const data = await fetchData(url);
 	return JSON.stringify({ url, data });
@@ -381,10 +358,17 @@ export const getPricesFirstCoins = async (args: {
 
 export const getBatchHistorical = async (args: {
 	coins: string;
-	searchWidth?: string;
+	searchWidth?: string | number;
 }): Promise<string> => {
-	let url = `${COINS_URL}/batchHistorical?coins=${args.coins}`;
-	if (args.searchWidth) url += `&searchWidth=${args.searchWidth}`;
+	const params = new URLSearchParams({
+		coins: args.coins,
+	});
+
+	if (args.searchWidth !== undefined) {
+		params.append("searchWidth", String(args.searchWidth));
+	}
+
+	const url = `${COINS_URL}/batchHistorical?${params.toString()}`;
 
 	const data = await fetchData(url);
 	return JSON.stringify({ url, data });
@@ -392,12 +376,20 @@ export const getBatchHistorical = async (args: {
 
 export const getHistoricalPricesByContractAddress = async (args: {
 	coins: string;
-	timestamp: string;
-	searchWidth?: string;
+	timestamp: string | number;
+	searchWidth?: string | number;
 }): Promise<string> => {
-	const unixTime = isoToUnix(args.timestamp);
-	let url = `${COINS_URL}/prices/historical/${unixTime}/${args.coins}`;
-	if (args.searchWidth) url += `?searchWidth=${args.searchWidth}`;
+	const unixTime = toUnixSeconds(args.timestamp);
+	const coinsSegment = encodeURIComponent(args.coins);
+	const params = new URLSearchParams();
+
+	if (args.searchWidth !== undefined) {
+		params.append("searchWidth", String(args.searchWidth));
+	}
+
+	const url = `${COINS_URL}/prices/historical/${unixTime}/${coinsSegment}${
+		params.toString() ? `?${params.toString()}` : ""
+	}`;
 
 	const data = await fetchData(url);
 	return JSON.stringify({ url, data });
@@ -409,41 +401,40 @@ export const getPercentageCoins = async (args: {
 	lookForward?: boolean;
 	timestamp?: string | number;
 }): Promise<string> => {
-	let url = `${COINS_URL}/percentage/${args.coins}`;
+	const coinsSegment = encodeURIComponent(args.coins);
 	const params = new URLSearchParams();
 
 	if (args.period) params.append("period", args.period);
 	if (args.lookForward) params.append("lookForward", "true");
 	if (args.timestamp) {
-		const unixTime =
-			typeof args.timestamp === "string"
-				? isoToUnix(args.timestamp)
-				: args.timestamp;
+		const unixTime = toUnixSeconds(args.timestamp);
 		params.append("timestamp", unixTime.toString());
 	}
 
-	if (params.toString()) url += `?${params.toString()}`;
-
+	const url = `${COINS_URL}/percentage/${coinsSegment}${
+		params.toString() ? `?${params.toString()}` : ""
+	}`;
 	const data = await fetchData(url);
 	return JSON.stringify({ url, data });
 };
 
 export const getChartCoins = async (args: {
 	coins: string;
-	start?: string;
-	end?: string;
+	start?: string | number;
+	end?: string | number;
 	span?: number;
 	period?: string;
-	searchWidth?: string;
+	searchWidth?: string | number;
 }): Promise<string> => {
 	let url = `${COINS_URL}/chart/${args.coins}`;
 	const params = new URLSearchParams();
 
-	if (args.start) params.append("start", args.start);
-	if (args.end) params.append("end", args.end);
-	if (args.span) params.append("span", args.span.toString());
+	if (args.start !== undefined) params.append("start", String(args.start));
+	if (args.end !== undefined) params.append("end", String(args.end));
+	if (args.span !== undefined) params.append("span", args.span.toString());
 	if (args.period) params.append("period", args.period);
-	if (args.searchWidth) params.append("searchWidth", args.searchWidth);
+	if (args.searchWidth !== undefined)
+		params.append("searchWidth", String(args.searchWidth));
 
 	if (params.toString()) url += `?${params.toString()}`;
 
@@ -508,18 +499,43 @@ export const getOptionsData = async (args: {
 	excludeTotalDataChart?: boolean;
 	excludeTotalDataChartBreakdown?: boolean;
 }): Promise<string> => {
-	let url: string;
+	const excludeTotalDataChart =
+		args.excludeTotalDataChart !== undefined ? args.excludeTotalDataChart : true;
+	const excludeTotalDataChartBreakdown =
+		args.excludeTotalDataChartBreakdown !== undefined
+			? args.excludeTotalDataChartBreakdown
+			: true;
+	const dataType = args.dataType ?? "dailyNotionalVolume";
+
+	const params = new URLSearchParams({
+		excludeTotalDataChart: String(excludeTotalDataChart),
+		excludeTotalDataChartBreakdown: String(excludeTotalDataChartBreakdown),
+		dataType,
+	});
 
 	if (args.protocol) {
-		url = `${BASE_URL}/summary/options/${args.protocol}`;
+		const summaryParams = new URLSearchParams({
+			dataType,
+		});
+		const url = `${BASE_URL}/summary/options/${args.protocol}?${summaryParams.toString()}`;
+		const data = await fetchData(url);
+
+		return JSON.stringify({ data });
 	} else if (args.chain) {
-		url = `${BASE_URL}/overview/options/${args.chain}`;
+		const url = `${BASE_URL}/overview/options/${args.chain}?${params.toString()}`;
+		const data = await fetchData(url);
+		return processOptionsResponse(data, args);
 	} else {
-		url = `${BASE_URL}/overview/options`;
+		const url = `${BASE_URL}/overview/options?${params.toString()}`;
+		const data = await fetchData(url);
+		return processOptionsResponse(data, args);
 	}
+};
 
-	const data = await fetchData(url);
-
+const processOptionsResponse = (
+	data: any,
+	args: { sortCondition: string; order: "asc" | "desc" },
+): string => {
 	if (data.protocols) {
 		const sorted = data.protocols.sort((a: any, b: any) => {
 			const aVal = a[args.sortCondition] || 0;
@@ -541,9 +557,9 @@ export const getOptionsData = async (args: {
  */
 export const getBlockChainTimestamp = async (args: {
 	chain: string;
-	timestamp: string;
+	timestamp: string | number;
 }): Promise<string> => {
-	const unixTime = isoToUnix(args.timestamp);
+	const unixTime = toUnixSeconds(args.timestamp);
 	const url = `${COINS_URL}/block/${args.chain}/${unixTime}`;
 
 	const data = await fetchData(url);
