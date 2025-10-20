@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { FastMCP } from "fastmcp";
-import { defillamaTools } from "./tools";
+import { createChildLogger } from "../../lib/utils/logger.js";
+import { defillamaTools } from "./tools.js";
+
+const logger = createChildLogger("DefiLlama MCP");
 
 /**
  * Initializes and starts the DefiLlama MCP (Model Context Protocol) Server.
@@ -10,34 +13,40 @@ import { defillamaTools } from "./tools";
  * via stdio transport, making it suitable for integration with MCP clients and AI agents.
  */
 async function main() {
-	console.log("Initializing DefiLlama MCP Server...");
+	logger.info("Initializing server...");
+	logger.debug(`Node version: ${process.version}`);
+	logger.debug(`Platform: ${process.platform}`);
 
 	const server = new FastMCP({
 		name: "DefiLlama MCP Server",
 		version: "1.0.0",
 	});
 
+	// Register all tools
+	logger.debug("Registering tools...");
+	let toolCount = 0;
 	for (const tool of defillamaTools) {
-		server.addTool(tool as any); // Type cast to avoid union type issues
+		server.addTool(tool as any);
+		toolCount++;
+		logger.debug(`Registered tool [${toolCount}]: ${tool.name}`);
 	}
 
 	try {
 		await server.start({
 			transportType: "stdio",
 		});
-		console.log("✅ DefiLlama MCP Server started successfully over stdio.");
-		console.log("   You can now connect to it using an MCP client.");
-		console.log(`   Available tools: ${defillamaTools.length}`);
+
+		logger.info("Server started successfully");
+		logger.info(`Transport: stdio`);
+		logger.info(`Tools available: ${toolCount}`);
+		logger.info("Waiting for client connection...");
 	} catch (error) {
-		console.error("❌ Failed to start DefiLlama MCP Server:", error);
+		logger.error("Failed to start server", error as Error);
 		process.exit(1);
 	}
 }
 
 main().catch((error) => {
-	console.error(
-		"❌ An unexpected error occurred in the DefiLlama MCP Server:",
-		error,
-	);
+	logger.error("Unexpected error occurred", error);
 	process.exit(1);
 });
