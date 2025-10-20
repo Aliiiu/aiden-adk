@@ -121,6 +121,14 @@ export const getWorkflowAgent = async () => {
     - **Resolve conflicts**: Prioritize real-time data for current facts, foundational data for concepts
     - **Be honest** about limitations: if information is incomplete, say so
 
+    ## Preserve Data Fidelity
+
+    When sub-agents return structured data (lists, tables, metrics):
+    - **Include the raw data** in your response, don't just summarize it
+    - Format it clearly (bullet points, tables, or lists)
+    - Add a brief interpretation AFTER showing the data
+    - Structure: Data First → Analysis Second
+
     ## Communication Style
     - Professional, knowledgeable, helpful
     - Unified AIDEN voice (not "the agent said...")
