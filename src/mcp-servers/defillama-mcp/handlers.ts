@@ -5,9 +5,31 @@
 
 const BASE_URL = "https://api.llama.fi";
 const COINS_URL = "https://coins.llama.fi";
-const BRIDGES_URL = "https://bridges.llama.fi";
 const STABLECOINS_URL = "https://stablecoins.llama.fi";
 const YIELDS_URL = "https://yields.llama.fi";
+const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CacheEntry = {
+	data: unknown;
+	expiresAt: number;
+};
+
+const cache = new Map<string, CacheEntry>();
+
+const getCachedData = async <T>(
+	key: string,
+	fetcher: () => Promise<T>,
+	ttlMs: number = DEFAULT_CACHE_TTL_MS,
+): Promise<T> => {
+	const cached = cache.get(key);
+	if (cached && cached.expiresAt > Date.now()) {
+		return cached.data as T;
+	}
+
+	const data = await fetcher();
+	cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+	return data;
+};
 
 /**
  * Helper function to convert timestamp inputs to Unix seconds
@@ -47,8 +69,12 @@ const fetchData = async (url: string): Promise<any> => {
 export const getChains = async (args: {
 	order: "asc" | "desc";
 }): Promise<string> => {
-	const data = await fetchData(`${BASE_URL}/v2/chains`);
-	const sorted = data.sort((a: any, b: any) => {
+	const data = await getCachedData(
+		"chains",
+		() => fetchData(`${BASE_URL}/v2/chains`),
+	);
+
+	const sorted = [...data].sort((a: any, b: any) => {
 		return args.order === "asc" ? a.tvl - b.tvl : b.tvl - a.tvl;
 	});
 	const top20 = sorted.slice(0, 20).map((chain: any) => ({
@@ -64,12 +90,19 @@ export const getProtocolData = async (args: {
 	order: "asc" | "desc";
 }): Promise<string> => {
 	if (args.protocol) {
-		const data = await fetchData(`${BASE_URL}/protocol/${args.protocol}`);
+		const data = await getCachedData(
+			`protocol:${args.protocol}`,
+			() => fetchData(`${BASE_URL}/protocol/${args.protocol}`),
+		);
 		return JSON.stringify({ protocolInfo: data });
 	}
 
-	const data = await fetchData(`${BASE_URL}/protocols`);
-	const sorted = data.sort((a: any, b: any) => {
+	const data = await getCachedData(
+		"protocols",
+		() => fetchData(`${BASE_URL}/protocols`),
+	);
+
+	const sorted = [...data].sort((a: any, b: any) => {
 		const aVal = a[args.sortCondition] || 0;
 		const bVal = b[args.sortCondition] || 0;
 		return args.order === "asc" ? aVal - bVal : bVal - aVal;
