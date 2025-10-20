@@ -81,7 +81,11 @@ export const getChains = async (args: {
 		name: chain.name,
 		tvl: chain.tvl,
 	}));
-	return JSON.stringify({ topChainsChains: top20 });
+	return JSON.stringify({ 
+		topChainsChains: top20,
+		totalChainsAvailable: data.length,
+		note: "These are the top 20 chains. Chain names can be used in other defillama tools."
+	});
 };
 
 export const getProtocolData = async (args: {
@@ -110,6 +114,7 @@ export const getProtocolData = async (args: {
 
 	const top10 = sorted.slice(0, 10).map((protocol: any) => ({
 		name: protocol.name,
+		slug: protocol.slug,
 		tvl: protocol.tvl,
 		chainTvls: protocol.chainTvls,
 		change_1h: protocol.change_1h,
