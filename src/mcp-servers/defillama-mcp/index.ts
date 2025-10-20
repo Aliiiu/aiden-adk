@@ -13,22 +13,16 @@ const logger = createChildLogger("DefiLlama MCP");
  * via stdio transport, making it suitable for integration with MCP clients and AI agents.
  */
 async function main() {
-	logger.info("Initializing server...");
-	logger.debug(`Node version: ${process.version}`);
-	logger.debug(`Platform: ${process.platform}`);
-
 	const server = new FastMCP({
 		name: "DefiLlama MCP Server",
 		version: "1.0.0",
 	});
 
 	// Register all tools
-	logger.debug("Registering tools...");
 	let toolCount = 0;
 	for (const tool of defillamaTools) {
 		server.addTool(tool as any);
 		toolCount++;
-		logger.debug(`Registered tool [${toolCount}]: ${tool.name}`);
 	}
 
 	try {
@@ -36,10 +30,7 @@ async function main() {
 			transportType: "stdio",
 		});
 
-		logger.info("Server started successfully");
-		logger.info(`Transport: stdio`);
-		logger.info(`Tools available: ${toolCount}`);
-		logger.info("Waiting for client connection...");
+		
 	} catch (error) {
 		logger.error("Failed to start server", error as Error);
 		process.exit(1);
