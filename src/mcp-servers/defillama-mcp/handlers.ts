@@ -139,7 +139,7 @@ export const getHistoricalChainTvl = async (args: {
 		tvl: item.tvl,
 	}));
 
-	return JSON.stringify({ histoticalChainInfo: last10 });
+	return JSON.stringify({ historicalChainInfo: last10 });
 };
 
 /**
@@ -272,7 +272,7 @@ const processFeesResponse = (
 		}));
 
 		return JSON.stringify({
-			ProtocolsData: top10,
+			protocolsData: top10,
 			overall: data.totalDataChart || [],
 		});
 	}
@@ -312,12 +312,15 @@ export const getStableCoin = async (args: {
 export const getStableCoinChains = async (args: any): Promise<string> => {
 	const data = await fetchData(`${STABLECOINS_URL}/stablecoinchains`);
 
-	const last3 = data.slice(-3).map((item: any) => ({
-		chainName: Object.keys(item)[0],
-		mcapsum: Object.values(item)[0],
-	}));
+	const last3 = data.slice(-3).map((item: any) => {
+		const chainName = Object.keys(item)[0];
+		return {
+			chainName: chainName,
+			mcapsum: item[chainName],
+		};
+	});
 
-	return JSON.stringify({ histoticalChainInfo: last3 });
+	return JSON.stringify({ historicalChainInfo: last3 });
 };
 
 export const getStableCoinCharts = async (args: {
@@ -361,7 +364,7 @@ export const getStableCoinPrices = async (args: any): Promise<string> => {
 		Prices: item.prices,
 	}));
 
-	return JSON.stringify({ histoticalChainInfo: last3 });
+	return JSON.stringify({ historicalChainInfo: last3 });
 };
 
 /**
@@ -383,7 +386,7 @@ export const getPricesCurrentCoins = async (args: {
 	}`;
 
 	const data = await fetchData(url);
-	return JSON.stringify({ url, data });
+	return JSON.stringify({ data });
 };
 
 export const getPricesFirstCoins = async (args: {
@@ -391,7 +394,7 @@ export const getPricesFirstCoins = async (args: {
 }): Promise<string> => {
 	const url = `${COINS_URL}/prices/first/${args.coins}`;
 	const data = await fetchData(url);
-	return JSON.stringify({ url, data });
+	return JSON.stringify({ data });
 };
 
 export const getBatchHistorical = async (args: {
@@ -409,7 +412,7 @@ export const getBatchHistorical = async (args: {
 	const url = `${COINS_URL}/batchHistorical?${params.toString()}`;
 
 	const data = await fetchData(url);
-	return JSON.stringify({ url, data });
+	return JSON.stringify({ data });
 };
 
 export const getHistoricalPricesByContractAddress = async (args: {
@@ -430,7 +433,7 @@ export const getHistoricalPricesByContractAddress = async (args: {
 	}`;
 
 	const data = await fetchData(url);
-	return JSON.stringify({ url, data });
+	return JSON.stringify({ data });
 };
 
 export const getPercentageCoins = async (args: {
@@ -453,7 +456,7 @@ export const getPercentageCoins = async (args: {
 		params.toString() ? `?${params.toString()}` : ""
 	}`;
 	const data = await fetchData(url);
-	return JSON.stringify({ url, data });
+	return JSON.stringify({ data });
 };
 
 export const getChartCoins = async (args: {
@@ -477,7 +480,7 @@ export const getChartCoins = async (args: {
 	if (params.toString()) url += `?${params.toString()}`;
 
 	const data = await fetchData(url);
-	return JSON.stringify({ url, data });
+	return JSON.stringify({ data });
 };
 
 /**
@@ -601,5 +604,5 @@ export const getBlockChainTimestamp = async (args: {
 	const url = `${COINS_URL}/block/${args.chain}/${unixTime}`;
 
 	const data = await fetchData(url);
-	return JSON.stringify({ url, data });
+	return JSON.stringify({ data });
 };
