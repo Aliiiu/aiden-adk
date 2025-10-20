@@ -35,8 +35,6 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 
 export const getCoingeckoTools = async () => {
 	try {
-		logger.debug("Connecting to CoinGecko MCP server...");
-
 		const toolset = new McpToolset({
 			name: "Coingecko MCP",
 			description: "mcp for coingecko",
@@ -58,7 +56,6 @@ export const getCoingeckoTools = async () => {
 		return tools.map((tool) => wrapToolWithErrorHandling(tool));
 	} catch (error) {
 		logger.warn("Failed to load CoinGecko MCP tools", error as Error);
-		logger.info("Continuing without CoinGecko tools...");
 		return [];
 	}
 };
@@ -83,8 +80,6 @@ export const getDefillamaToolsWrapped = () => {
  */
 export const getDefillamaToolsViaMcp = async () => {
 	try {
-		logger.debug("Initializing DefiLlama MCP connection...");
-
 		const projectRoot = process.cwd();
 		const defillamaMcpPath = path.join(
 			projectRoot,
@@ -97,8 +92,6 @@ export const getDefillamaToolsViaMcp = async () => {
 				`DefiLlama MCP server not found at: ${defillamaMcpPath}\nCurrent working directory: ${projectRoot}`,
 			);
 		}
-
-		logger.debug(`MCP server path: ${defillamaMcpPath}`);
 
 		const toolset = new McpToolset({
 			name: "DefiLlama MCP",
@@ -120,7 +113,6 @@ export const getDefillamaToolsViaMcp = async () => {
 		return tools.map((tool) => wrapToolWithErrorHandling(tool));
 	} catch (error) {
 		logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
-		logger.info("Falling back to direct import...");
 		// Fallback to direct import if MCP fails
 		return getDefillamaToolsWrapped();
 	}

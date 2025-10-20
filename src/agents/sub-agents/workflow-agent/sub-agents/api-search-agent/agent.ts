@@ -5,6 +5,9 @@ import { openrouter } from "../../../../../lib/integrations/openrouter";
 import { getCoingeckoTools, getDefillamaToolsViaMcp } from "./tools";
 
 export const getApiSearchAgent = async () => {
+	const coingeckoTools = await getCoingeckoTools();
+	const defillamaTools = await getDefillamaToolsViaMcp();
+
 	const instruction = endent`
     You are an API intelligence specialist for real-time cryptocurrency and DeFi data.
 
@@ -34,9 +37,6 @@ export const getApiSearchAgent = async () => {
     - Provide detailed data + transfer_to_agent = your complete job
 
   `;
-
-	const coingeckoTools = await getCoingeckoTools();
-	const defillamaTools = await getDefillamaToolsViaMcp();
 
 	return new LlmAgent({
 		name: "api_search_agent",
