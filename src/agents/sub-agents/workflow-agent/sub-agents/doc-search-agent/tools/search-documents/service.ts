@@ -4,7 +4,6 @@ import {
 	SEARCH_QUERY,
 	WIKI_GRAPHQL_ENDPOINT,
 } from "./constants";
-import { formatSearchResults } from "./utils";
 import { searchResponseSchema } from "./schemas";
 import type {
 	ExecuteSearchOptions,
@@ -12,6 +11,7 @@ import type {
 	SearchResult,
 	Suggestion,
 } from "./types";
+import { formatSearchResults } from "./utils";
 
 /**
  * Execute the document search against the GraphQL API

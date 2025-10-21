@@ -13,7 +13,6 @@ export const getLogLevelFromEnv = (): LogLevel => {
 	return parseLogLevel(process.env.LOG_LEVEL);
 };
 
-
 export interface LoggerOptions {
 	service: string;
 	level?: LogLevel;

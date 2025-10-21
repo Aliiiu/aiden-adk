@@ -1,8 +1,8 @@
-import { type BaseTool, McpToolset } from "@iqai/adk";
-import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
-import { createChildLogger } from "../../../../../lib/utils/logger";
-import * as path from "node:path";
 import * as fs from "node:fs";
+import * as path from "node:path";
+import { type BaseTool, McpToolset, type ToolContext } from "@iqai/adk";
+import { createChildLogger } from "../../../../../lib/utils/logger";
+import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
 
 const logger = createChildLogger("API Search Tools");
 
@@ -14,18 +14,23 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
 
 	// Override runAsync to catch errors
-	tool.runAsync = async (args: Record<string, any>, context: any) => {
+	tool.runAsync = async (
+		args: Record<string, unknown>,
+		context: ToolContext,
+	) => {
 		try {
 			return await originalRunAsync(args, context);
-		} catch (error: any) {
+		} catch (error) {
 			// Return error as a safe object instead of throwing
-			console.error(`Error in tool ${tool.name}:`, error.message);
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error";
+			console.error(`Error in tool ${tool.name}:`, errorMessage);
 			return {
 				error: "Tool execution failed",
 				message:
 					"Unable to retrieve data at this time. Please try again shortly.",
 				tool: tool.name,
-				_technical_details: error.message,
+				_technical_details: errorMessage,
 			};
 		}
 	};
