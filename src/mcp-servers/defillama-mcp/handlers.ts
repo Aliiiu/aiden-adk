@@ -3,16 +3,32 @@
  * Implementation of all DefiLlama API functions
  */
 
+import type {
+	BatchHistoricalResponse,
+	CacheEntry,
+	ChainData,
+	ChartResponse,
+	CurrentPricesResponse,
+	DexOverviewResponse,
+	FeesOverviewResponse,
+	FirstPricesResponse,
+	HistoricalChainTvlItem,
+	HistoricalPoolResponse,
+	OptionsOverviewResponse,
+	PercentageResponse,
+	PoolsResponse,
+	ProtocolData,
+	StablecoinChainItem,
+	StablecoinChartItem,
+	StablecoinPriceItem,
+	StablecoinsResponse,
+} from "./types";
+
 const BASE_URL = "https://api.llama.fi";
 const COINS_URL = "https://coins.llama.fi";
 const STABLECOINS_URL = "https://stablecoins.llama.fi";
 const YIELDS_URL = "https://yields.llama.fi";
 const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
-
-type CacheEntry = {
-	data: unknown;
-	expiresAt: number;
-};
 
 const cache = new Map<string, CacheEntry>();
 
@@ -53,14 +69,15 @@ const toUnixSeconds = (value: string | number): number => {
 };
 
 /**
- * Helper function to fetch data from API
+ * Helper function to fetch data from API with type safety
+ * Uses generics to ensure type safety throughout the codebase
  */
-const fetchData = async (url: string): Promise<any> => {
+const fetchData = async <T>(url: string): Promise<T> => {
 	const response = await fetch(url);
 	if (!response.ok) {
 		throw new Error(`API request failed: ${response.statusText}`);
 	}
-	return await response.json();
+	return (await response.json()) as T;
 };
 
 /**
@@ -69,22 +86,21 @@ const fetchData = async (url: string): Promise<any> => {
 export const getChains = async (args: {
 	order: "asc" | "desc";
 }): Promise<string> => {
-	const data = await getCachedData(
-		"chains",
-		() => fetchData(`${BASE_URL}/v2/chains`),
+	const data = await getCachedData<ChainData[]>("chains", () =>
+		fetchData<ChainData[]>(`${BASE_URL}/v2/chains`),
 	);
 
-	const sorted = [...data].sort((a: any, b: any) => {
+	const sorted = [...data].sort((a, b) => {
 		return args.order === "asc" ? a.tvl - b.tvl : b.tvl - a.tvl;
 	});
-	const top20 = sorted.slice(0, 20).map((chain: any) => ({
+	const top20 = sorted.slice(0, 20).map((chain) => ({
 		name: chain.name,
 		tvl: chain.tvl,
 	}));
-	return JSON.stringify({ 
+	return JSON.stringify({
 		topChainsChains: top20,
 		totalChainsAvailable: data.length,
-		note: "These are the top 20 chains. Chain names can be used in other defillama tools."
+		note: "These are the top 20 chains. Chain names can be used in other defillama tools.",
 	});
 };
 
@@ -94,27 +110,25 @@ export const getProtocolData = async (args: {
 	order: "asc" | "desc";
 }): Promise<string> => {
 	if (args.protocol) {
-		const data = await getCachedData(
-			`protocol:${args.protocol}`,
-			() => fetchData(`${BASE_URL}/protocol/${args.protocol}`),
+		const data = await getCachedData(`protocol:${args.protocol}`, () =>
+			fetchData<ProtocolData>(`${BASE_URL}/protocol/${args.protocol}`),
 		);
 		return JSON.stringify({ protocolInfo: data });
 	}
 
-	const data = await getCachedData(
-		"protocols",
-		() => fetchData(`${BASE_URL}/protocols`),
+	const data = await getCachedData<ProtocolData[]>("protocols", () =>
+		fetchData<ProtocolData[]>(`${BASE_URL}/protocols`),
 	);
 
-	const sorted = [...data].sort((a: any, b: any) => {
+	const sorted = [...data].sort((a, b) => {
 		const aVal = a[args.sortCondition] || 0;
 		const bVal = b[args.sortCondition] || 0;
 		return args.order === "asc" ? aVal - bVal : bVal - aVal;
 	});
 
-	const top10 = sorted.slice(0, 10).map((protocol: any) => ({
+	const top10 = sorted.slice(0, 10).map((protocol) => ({
 		name: protocol.name,
-		slug: protocol.slug,
+		slug: protocol.symbol,
 		tvl: protocol.tvl,
 		chainTvls: protocol.chainTvls,
 		change_1h: protocol.change_1h,
@@ -133,8 +147,8 @@ export const getHistoricalChainTvl = async (args: {
 		? `${BASE_URL}/v2/historicalChainTvl/${args.chain}`
 		: `${BASE_URL}/v2/historicalChainTvl`;
 
-	const data = await fetchData(url);
-	const last10 = data.slice(-10).map((item: any) => ({
+	const data = await fetchData<HistoricalChainTvlItem[]>(url);
+	const last10 = data.slice(-10).map((item) => ({
 		date: item.date,
 		tvl: item.tvl,
 	}));
@@ -154,7 +168,9 @@ export const getDexsData = async (args: {
 	order?: "asc" | "desc";
 }): Promise<string> => {
 	const excludeTotalDataChart =
-		args.excludeTotalDataChart !== undefined ? args.excludeTotalDataChart : true;
+		args.excludeTotalDataChart !== undefined
+			? args.excludeTotalDataChart
+			: true;
 	const excludeTotalDataChartBreakdown =
 		args.excludeTotalDataChartBreakdown !== undefined
 			? args.excludeTotalDataChartBreakdown
@@ -167,26 +183,26 @@ export const getDexsData = async (args: {
 
 	if (args.protocol) {
 		const url = `${BASE_URL}/summary/dexs/${args.protocol}?${params.toString()}`;
-		const data = await fetchData(url);
+		const data = await fetchData<DexOverviewResponse>(url);
 		return JSON.stringify({ protocolData: data });
 	}
 
 	const url = args.chain
 		? `${BASE_URL}/overview/dexs/${args.chain}?${params.toString()}`
 		: `${BASE_URL}/overview/dexs?${params.toString()}`;
-	const data = await fetchData(url);
+	const data = await fetchData<DexOverviewResponse>(url);
 
 	if (data.protocols) {
 		const sortCondition = args.sortCondition || "total24h";
 		const order = args.order || "desc";
 
-		const sorted = data.protocols.sort((a: any, b: any) => {
-			const aVal = a[sortCondition] || 0;
-			const bVal = b[sortCondition] || 0;
+		const sorted = data.protocols.sort((a, b) => {
+			const aVal = (a[sortCondition as keyof typeof a] as number) || 0;
+			const bVal = (b[sortCondition as keyof typeof b] as number) || 0;
 			return order === "asc" ? aVal - bVal : bVal - aVal;
 		});
 
-		const top10 = sorted.slice(0, 10).map((protocol: any) => ({
+		const top10 = sorted.slice(0, 10).map((protocol) => ({
 			displayName: protocol.displayName,
 			breakdown24h: protocol.breakdown24h,
 			dailyVolume: protocol.dailyVolume,
@@ -220,7 +236,9 @@ export const getFeesAndRevenue = async (args: {
 	order: "asc" | "desc";
 }): Promise<string> => {
 	const excludeTotalDataChart =
-		args.excludeTotalDataChart !== undefined ? args.excludeTotalDataChart : true;
+		args.excludeTotalDataChart !== undefined
+			? args.excludeTotalDataChart
+			: true;
 	const excludeTotalDataChartBreakdown =
 		args.excludeTotalDataChartBreakdown !== undefined
 			? args.excludeTotalDataChartBreakdown
@@ -235,32 +253,32 @@ export const getFeesAndRevenue = async (args: {
 
 	if (args.protocol) {
 		const url = `${BASE_URL}/summary/fees/${args.protocol}?${params.toString()}`;
-		const data = await fetchData(url);
+		const data = await fetchData<FeesOverviewResponse>(url);
 
 		return JSON.stringify({ data });
 	} else if (args.chain) {
 		const url = `${BASE_URL}/overview/fees/${args.chain}?${params.toString()}`;
-		const data = await fetchData(url);
+		const data = await fetchData<FeesOverviewResponse>(url);
 		return processFeesResponse(data, args);
 	} else {
 		const url = `${BASE_URL}/overview/fees?${params.toString()}`;
-		const data = await fetchData(url);
+		const data = await fetchData<FeesOverviewResponse>(url);
 		return processFeesResponse(data, args);
 	}
 };
 
 const processFeesResponse = (
-	data: any,
+	data: FeesOverviewResponse,
 	args: { sortCondition: string; order: "asc" | "desc" },
 ): string => {
 	if (data.protocols) {
-		const sorted = data.protocols.sort((a: any, b: any) => {
-			const aVal = a[args.sortCondition] || 0;
-			const bVal = b[args.sortCondition] || 0;
+		const sorted = data.protocols.sort((a, b) => {
+			const aVal = (a[args.sortCondition as keyof typeof a] as number) || 0;
+			const bVal = (b[args.sortCondition as keyof typeof b] as number) || 0;
 			return args.order === "asc" ? aVal - bVal : bVal - aVal;
 		});
 
-		const top10 = sorted.slice(0, 10).map((protocol: any) => ({
+		const top10 = sorted.slice(0, 10).map((protocol) => ({
 			name: protocol.name,
 			change_1d: protocol.change_1d,
 			change_7d: protocol.change_7d,
@@ -287,15 +305,15 @@ export const getStableCoin = async (args: {
 	includePrices?: boolean;
 }): Promise<string> => {
 	const includePrices = args.includePrices ?? false;
-	const data = await fetchData(
+	const data = await fetchData<StablecoinsResponse>(
 		`${STABLECOINS_URL}/stablecoins?includePrices=${includePrices}`,
 	);
 
 	const sorted = data.peggedAssets.sort(
-		(a: any, b: any) => b.circulating.peggedUSD - a.circulating.peggedUSD,
+		(a, b) => b.circulating.peggedUSD - a.circulating.peggedUSD,
 	);
 
-	const top20 = sorted.slice(0, 20).map((coin: any) => ({
+	const top20 = sorted.slice(0, 20).map((coin) => ({
 		id: coin.id,
 		name: coin.name,
 		symbol: coin.symbol,
@@ -309,16 +327,15 @@ export const getStableCoin = async (args: {
 	return JSON.stringify({ stableCoins: top20 });
 };
 
-export const getStableCoinChains = async (args: any): Promise<string> => {
-	const data = await fetchData(`${STABLECOINS_URL}/stablecoinchains`);
+export const getStableCoinChains = async (): Promise<string> => {
+	const data = await fetchData<StablecoinChainItem[]>(
+		`${STABLECOINS_URL}/stablecoinchains`,
+	);
 
-	const last3 = data.slice(-3).map((item: any) => {
-		const chainName = Object.keys(item)[0];
-		return {
-			chainName: chainName,
-			mcapsum: item[chainName],
-		};
-	});
+	const last3 = data.slice(-3).map((item) => ({
+		chainName: item.name,
+		mcapsum: item.totalCirculating.peggedUSD,
+	}));
 
 	return JSON.stringify({ historicalChainInfo: last3 });
 };
@@ -340,13 +357,13 @@ export const getStableCoinCharts = async (args: {
 		url = `${STABLECOINS_URL}/stablecoincharts/all`;
 	}
 
-	const data = await fetchData(
+	const data = await fetchData<StablecoinChartItem[]>(
 		params.toString() ? `${url}?${params.toString()}` : url,
 	);
 
-	const last10 = data.slice(-10).map((item: any) => ({
+	const last10 = data.slice(-10).map((item) => ({
 		date: item.date,
-		totalCirculating: item.totalCirculating,
+		totalCirculatingPeggedUSD: item.totalCirculating.peggedUSD,
 		totalUnreleased: item.totalUnreleased,
 		totalCirculatingUSD: item.totalCirculatingUSD,
 		totalMintedUSD: item.totalMintedUSD,
@@ -356,10 +373,12 @@ export const getStableCoinCharts = async (args: {
 	return JSON.stringify({ data: last10 });
 };
 
-export const getStableCoinPrices = async (args: any): Promise<string> => {
-	const data = await fetchData(`${STABLECOINS_URL}/stablecoinprices`);
+export const getStableCoinPrices = async (): Promise<string> => {
+	const data = await fetchData<StablecoinPriceItem[]>(
+		`${STABLECOINS_URL}/stablecoinprices`,
+	);
 
-	const last3 = data.slice(-3).map((item: any) => ({
+	const last3 = data.slice(-3).map((item) => ({
 		date: item.date,
 		Prices: item.prices,
 	}));
@@ -385,7 +404,7 @@ export const getPricesCurrentCoins = async (args: {
 		params.toString() ? `?${params.toString()}` : ""
 	}`;
 
-	const data = await fetchData(url);
+	const data = await fetchData<CurrentPricesResponse>(url);
 	return JSON.stringify({ data });
 };
 
@@ -393,7 +412,7 @@ export const getPricesFirstCoins = async (args: {
 	coins: string;
 }): Promise<string> => {
 	const url = `${COINS_URL}/prices/first/${args.coins}`;
-	const data = await fetchData(url);
+	const data = await fetchData<FirstPricesResponse>(url);
 	return JSON.stringify({ data });
 };
 
@@ -411,7 +430,7 @@ export const getBatchHistorical = async (args: {
 
 	const url = `${COINS_URL}/batchHistorical?${params.toString()}`;
 
-	const data = await fetchData(url);
+	const data = await fetchData<BatchHistoricalResponse>(url);
 	return JSON.stringify({ data });
 };
 
@@ -432,7 +451,7 @@ export const getHistoricalPricesByContractAddress = async (args: {
 		params.toString() ? `?${params.toString()}` : ""
 	}`;
 
-	const data = await fetchData(url);
+	const data = await fetchData<CurrentPricesResponse>(url);
 	return JSON.stringify({ data });
 };
 
@@ -455,7 +474,7 @@ export const getPercentageCoins = async (args: {
 	const url = `${COINS_URL}/percentage/${coinsSegment}${
 		params.toString() ? `?${params.toString()}` : ""
 	}`;
-	const data = await fetchData(url);
+	const data = await fetchData<PercentageResponse>(url);
 	return JSON.stringify({ data });
 };
 
@@ -479,7 +498,7 @@ export const getChartCoins = async (args: {
 
 	if (params.toString()) url += `?${params.toString()}`;
 
-	const data = await fetchData(url);
+	const data = await fetchData<ChartResponse>(url);
 	return JSON.stringify({ data });
 };
 
@@ -489,9 +508,11 @@ export const getChartCoins = async (args: {
 export const getHistoricalPoolData = async (args: {
 	pool: string;
 }): Promise<string> => {
-	const data = await fetchData(`${YIELDS_URL}/chart/${args.pool}`);
+	const data = await fetchData<HistoricalPoolResponse>(
+		`${YIELDS_URL}/chart/${args.pool}`,
+	);
 
-	const last10 = data.data.slice(-10).map((item: any) => ({
+	const last10 = data.data.slice(-10).map((item) => ({
 		timestamp: item.timestamp,
 		tvlUsd: item.tvlUsd,
 		apy: item.apy,
@@ -506,15 +527,15 @@ export const getLatestPoolData = async (args: {
 	order: string;
 	limit: number;
 }): Promise<string> => {
-	const data = await fetchData(`${YIELDS_URL}/pools`);
+	const data = await fetchData<PoolsResponse>(`${YIELDS_URL}/pools`);
 
-	const sorted = data.data.sort((a: any, b: any) => {
-		const aVal = a[args.sortCondition] || 0;
-		const bVal = b[args.sortCondition] || 0;
+	const sorted = data.data.sort((a, b) => {
+		const aVal = (a[args.sortCondition as keyof typeof a] as number) || 0;
+		const bVal = (b[args.sortCondition as keyof typeof b] as number) || 0;
 		return args.order === "asc" ? aVal - bVal : bVal - aVal;
 	});
 
-	const limited = sorted.slice(0, args.limit).map((pool: any) => ({
+	const limited = sorted.slice(0, args.limit).map((pool) => ({
 		chain: pool.chain,
 		project: pool.project,
 		tvlUsd: pool.tvlUsd,
@@ -541,7 +562,9 @@ export const getOptionsData = async (args: {
 	excludeTotalDataChartBreakdown?: boolean;
 }): Promise<string> => {
 	const excludeTotalDataChart =
-		args.excludeTotalDataChart !== undefined ? args.excludeTotalDataChart : true;
+		args.excludeTotalDataChart !== undefined
+			? args.excludeTotalDataChart
+			: true;
 	const excludeTotalDataChartBreakdown =
 		args.excludeTotalDataChartBreakdown !== undefined
 			? args.excludeTotalDataChartBreakdown
@@ -559,28 +582,28 @@ export const getOptionsData = async (args: {
 			dataType,
 		});
 		const url = `${BASE_URL}/summary/options/${args.protocol}?${summaryParams.toString()}`;
-		const data = await fetchData(url);
+		const data = await fetchData<OptionsOverviewResponse>(url);
 
 		return JSON.stringify({ data });
 	} else if (args.chain) {
 		const url = `${BASE_URL}/overview/options/${args.chain}?${params.toString()}`;
-		const data = await fetchData(url);
+		const data = await fetchData<OptionsOverviewResponse>(url);
 		return processOptionsResponse(data, args);
 	} else {
 		const url = `${BASE_URL}/overview/options?${params.toString()}`;
-		const data = await fetchData(url);
+		const data = await fetchData<OptionsOverviewResponse>(url);
 		return processOptionsResponse(data, args);
 	}
 };
 
 const processOptionsResponse = (
-	data: any,
+	data: OptionsOverviewResponse,
 	args: { sortCondition: string; order: "asc" | "desc" },
 ): string => {
 	if (data.protocols) {
-		const sorted = data.protocols.sort((a: any, b: any) => {
-			const aVal = a[args.sortCondition] || 0;
-			const bVal = b[args.sortCondition] || 0;
+		const sorted = data.protocols.sort((a, b) => {
+			const aVal = (a[args.sortCondition as keyof typeof a] as number) || 0;
+			const bVal = (b[args.sortCondition as keyof typeof b] as number) || 0;
 			return args.order === "asc" ? aVal - bVal : bVal - aVal;
 		});
 
