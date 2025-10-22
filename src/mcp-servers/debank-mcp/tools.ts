@@ -1,0 +1,664 @@
+import { type BaseTool, createTool } from "@iqai/adk";
+import { z } from "zod";
+import {
+	explainTransaction,
+	getAllProtocolsOfSupportedChains,
+	getChain,
+	getGasPrices,
+	getListTokenInformation,
+	getPoolInformation,
+	getProtocolInformation,
+	getSupportedChainList,
+	getTokenHistoryPrice,
+	getTokenInformation,
+	getTopHoldersOfProtocol,
+	getTopHoldersOfToken,
+	getUserAllComplexProtocolList,
+	getUserAllHistoryList,
+	getUserAllNftList,
+	getUserAllSimpleProtocolList,
+	getUserAllTokenList,
+	getUserChainBalance,
+	getUserChainNetCurve,
+	getUserComplexProtocolList,
+	getUserHistoryList,
+	getUserNftAuthorizedList,
+	getUserNftList,
+	getUserProtocol,
+	getUserTokenAuthorizedList,
+	getUserTokenBalance,
+	getUserTokenList,
+	getUserTotalBalance,
+	getUserTotalNetCurve,
+	getUserUsedChainList,
+	preExecTransaction,
+} from "./handlers";
+
+/**
+ * Tool definitions for FastMCP (MCP Server usage)
+ * These are exported as plain objects with Zod schemas for FastMCP compatibility
+ */
+export const debankTools = [
+	// Chain Endpoints
+	{
+		name: "debank_get_supported_chain_list",
+		description:
+			"Retrieve a comprehensive list of all blockchain chains supported by the DeBank API. Returns information about each chain including their IDs, names, logo URLs, native token IDs, wrapped token IDs, and pre-execution support status. Use this to discover available chains before calling other chain-specific endpoints.",
+		parameters: z.object({}),
+		execute: async () => await getSupportedChainList(),
+	},
+	{
+		name: "debank_get_chain",
+		description:
+			"Retrieve detailed information about a specific blockchain chain supported by DeBank. Returns chain details including ID, name, logo URL, native token ID, wrapped token ID, and whether it supports pre-execution of transactions.",
+		parameters: z.object({
+			id: z
+				.string()
+				.describe(
+					"The unique identifier of the chain (e.g., 'eth' for Ethereum, 'bsc' for BNB Chain, 'matic' for Polygon, 'arb' for Arbitrum). Use debank_get_supported_chain_list to discover available chain IDs.",
+				),
+		}),
+		execute: async (args: { id: string }) => await getChain(args),
+	},
+
+	// Protocol Endpoints
+	{
+		name: "debank_get_all_protocols_of_supported_chains",
+		description:
+			"Retrieve a list of all DeFi protocols across specified or all supported blockchain chains. Returns essential information about each protocol including ID, chain ID, name, logo URL, site URL, portfolio support status, and TVL. Returns top 20 protocols by default. Filter by specific chains using chain_ids parameter.",
+		parameters: z.object({
+			chain_ids: z
+				.string()
+				.optional()
+				.describe(
+					"Comma-separated list of chain IDs to filter protocols (e.g., 'eth,bsc,matic'). If omitted, returns protocols across all supported chains. Use debank_get_supported_chain_list to discover valid chain IDs.",
+				),
+		}),
+		execute: async (args: { chain_ids?: string }) =>
+			await getAllProtocolsOfSupportedChains(args),
+	},
+	{
+		name: "debank_get_protocol_information",
+		description:
+			"Fetch detailed information about a specific DeFi protocol. Returns protocol details including ID, associated chain, name, logo URL, site URL, portfolio support status, and total value locked (TVL). Useful for analyzing individual protocols across different chains.",
+		parameters: z.object({
+			id: z
+				.string()
+				.describe(
+					"The unique identifier of the protocol (e.g., 'bsc_pancakeswap' for PancakeSwap on BSC, 'uniswap', 'aave', 'curve'). Use debank_get_all_protocols_of_supported_chains to discover protocol IDs.",
+				),
+		}),
+		execute: async (args: { id: string }) => await getProtocolInformation(args),
+	},
+
+	{
+		name: "debank_get_top_holders_of_protocol",
+		description:
+			"Retrieve a list of top holders within a specified DeFi protocol, ranked by their holdings. Provides insights into the distribution and concentration of holdings among participants. Supports pagination for large result sets.",
+		parameters: z.object({
+			id: z
+				.string()
+				.describe(
+					"The unique identifier of the protocol (e.g., 'uniswap', 'aave', 'compound'). Use debank_get_all_protocols_of_supported_chains to find protocol IDs.",
+				),
+			start: z
+				.number()
+				.int()
+				.nonnegative()
+				.max(1000)
+				.optional()
+				.describe(
+					"Pagination offset to specify where to start in the list. Default is 0, maximum is 1000.",
+				),
+			limit: z
+				.number()
+				.int()
+				.positive()
+				.max(100)
+				.optional()
+				.describe(
+					"Maximum number of top holders to retrieve. Default and maximum is 100.",
+				),
+		}),
+		execute: async (args: { id: string; start?: number; limit?: number }) =>
+			await getTopHoldersOfProtocol(args),
+	},
+
+	// Pool Endpoints
+	{
+		name: "debank_get_pool_information",
+		description:
+			"Retrieve detailed information about a specific liquidity pool. Returns pool details including ID, chain, protocol ID, contract IDs, name, USD value of deposited assets, total user count, and count of valuable users (>$100 USD value). Essential for analyzing specific pools for investment or research.",
+		parameters: z.object({
+			id: z
+				.string()
+				.describe(
+					"The unique identifier of the pool (typically a contract address, e.g., '0x00000000219ab540356cbb839cbe05303d7705fa').",
+				),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID where the pool is located (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to discover valid chain IDs.",
+				),
+		}),
+		execute: async (args: { id: string; chain_id: string }) =>
+			await getPoolInformation(args),
+	},
+
+	// Token Endpoints
+	{
+		name: "debank_get_token_information",
+		description:
+			"Fetch comprehensive details about a specific token on a blockchain. Returns token information including contract address, chain, name, symbol, decimals, logo URL, associated protocol ID, USD price, verification status, and deployment timestamp. Essential for token analysis and display.",
+		parameters: z.object({
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID where the token exists (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs.",
+				),
+			id: z
+				.string()
+				.describe(
+					"The token contract address or native token ID (e.g., 'eth' for Ethereum, 'matic' for Polygon, or '0xdac17f958d2ee523a2206206994597c13d831ec7' for USDT on Ethereum).",
+				),
+		}),
+		execute: async (args: { chain_id: string; id: string }) =>
+			await getTokenInformation(args),
+	},
+
+	{
+		name: "debank_get_list_token_information",
+		description:
+			"Retrieve detailed information for multiple tokens at once on a specific chain. Returns an array of token objects with comprehensive details. Useful for bulk token data retrieval, with support for up to 100 token addresses per request.",
+		parameters: z.object({
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID where the tokens exist (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs",
+				),
+			ids: z
+				.string()
+				.describe(
+					"Comma-separated list of token addresses (up to 100). Example: '0xdac17f958d2ee523a2206206994597c13d831ec7,0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'",
+				),
+		}),
+		execute: async (args: { chain_id: string; ids: string }) =>
+			await getListTokenInformation(args),
+	},
+
+	{
+		name: "debank_get_top_holders_of_token",
+		description:
+			"Fetch the top holders of a specified token, showing the largest token holders ranked by their holdings. Supports both contract addresses and native token IDs. Useful for analyzing token distribution and ownership concentration. Supports pagination for detailed analysis.",
+		parameters: z.object({
+			id: z
+				.string()
+				.describe(
+					"The token address or native token ID (e.g., 'eth', 'bsc', or contract address).",
+				),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID where the token exists (e.g., 'eth', 'bsc', 'matic').  Use debank_get_supported_chain_list to find valid chain IDs",
+				),
+			start: z
+				.number()
+				.int()
+				.nonnegative()
+				.max(10000)
+				.optional()
+				.describe("Pagination offset. Default is 0, maximum is 10000."),
+			limit: z
+				.number()
+				.int()
+				.positive()
+				.max(100)
+				.optional()
+				.describe("Maximum number of holders to return. Default is 100."),
+		}),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			start?: number;
+			limit?: number;
+		}) => await getTopHoldersOfToken(args),
+	},
+
+	{
+		name: "debank_get_token_history_price",
+		description:
+			"Retrieve the historical price of a specified token for a given date. Essential for financial analysis, historical comparison, and tracking price movements over time. Returns price data for the UTC time zone on the specified date.",
+		parameters: z.object({
+			id: z
+				.string()
+				.describe(
+					"The token address or native token ID (e.g., 'eth', 'bsc', or contract address).",
+				),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID where the token exists (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs",
+				),
+			date_at: z
+				.string()
+				.describe(
+					"The date for historical price data in UTC time zone. Format: YYYY-MM-DD (e.g., '2023-05-18').",
+				),
+		}),
+		execute: async (args: { id: string; chain_id: string; date_at: string }) =>
+			await getTokenHistoryPrice(args),
+	},
+
+	// User Endpoints
+	{
+		name: "debank_get_user_used_chain_list",
+		description:
+			"Retrieve a list of blockchain chains that a specific user has interacted with. Returns details about each chain including ID, name, logo URL, native token ID, wrapped token ID, and the birth time of the user's address on each chain.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+		}),
+		execute: async (args: { id: string }) => await getUserUsedChainList(args),
+	},
+
+	{
+		name: "debank_get_user_chain_balance",
+		description:
+			"Fetch the current balance of a user's account on a specified blockchain chain. Returns the balance in USD value, providing a snapshot of the user's holdings on that chain.",
+		parameters: z.object({
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').  Use debank_get_supported_chain_list to find valid chain IDs",
+				),
+			id: z.string().describe("The user's wallet address."),
+		}),
+		execute: async (args: { chain_id: string; id: string }) =>
+			await getUserChainBalance(args),
+	},
+
+	{
+		name: "debank_get_user_protocol",
+		description:
+			"Get detailed information about a user's positions within a specified DeFi protocol. Returns protocol details and the user's portfolio items including assets, debts, and rewards in that protocol.",
+		parameters: z.object({
+			protocol_id: z
+				.string()
+				.describe(
+					"The protocol ID (e.g., 'bsc_pancakeswap', 'uniswap', 'aave')Use debank_get_all_protocols_of_supported_chains to discover protocol IDs..",
+				),
+			id: z.string().describe("The user's wallet address."),
+		}),
+		execute: async (args: { protocol_id: string; id: string }) =>
+			await getUserProtocol(args),
+	},
+
+	{
+		name: "debank_get_user_complex_protocol_list",
+		description:
+			"Retrieve detailed portfolios of a user on a specific chain across multiple protocols. Returns comprehensive information about the user's engagements including protocol details and portfolio items with assets, debts, and positions.",
+		parameters: z.object({
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs",
+				),
+			id: z.string().describe("The user's wallet address."),
+		}),
+		execute: async (args: { chain_id: string; id: string }) =>
+			await getUserComplexProtocolList(args),
+	},
+
+	{
+		name: "debank_get_user_all_complex_protocol_list",
+		description:
+			"Retrieve a user's detailed portfolios across all supported chains within multiple protocols. Provides a comprehensive overview of investments and positions across the entire DeFi ecosystem. Can be filtered by specific chains.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_ids: z
+				.string()
+				.optional()
+				.describe(
+					"Optional comma-separated list of chain IDs to filter by (e.g., 'eth,bsc,matic'). If omitted, includes all supported chains.",
+				),
+		}),
+		execute: async (args: { id: string; chain_ids?: string }) =>
+			await getUserAllComplexProtocolList(args),
+	},
+
+	{
+		name: "debank_get_user_all_simple_protocol_list",
+		description:
+			"Fetch a user's balances in protocols across all supported chains. Returns simplified protocol information including TVL and basic details. Useful for getting a quick overview of a user's protocol engagements.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_ids: z
+				.string()
+				.optional()
+				.describe(
+					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+				),
+		}),
+		execute: async (args: { id: string; chain_ids?: string }) =>
+			await getUserAllSimpleProtocolList(args),
+	},
+
+	{
+		name: "debank_get_user_token_balance",
+		description:
+			"Retrieve a user's balance for a specific token. Returns detailed token information including name, symbol, decimals, USD price, and the user's balance amount.",
+		parameters: z.object({
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+			id: z.string().describe("The user's wallet address."),
+			token_id: z
+				.string()
+				.describe(
+					"The token address or native token ID (e.g., 'eth' or contract address).",
+				),
+		}),
+		execute: async (args: { chain_id: string; id: string; token_id: string }) =>
+			await getUserTokenBalance(args),
+	},
+
+	{
+		name: "debank_get_user_token_list",
+		description:
+			"Retrieve a list of tokens held by a user on a specific chain. Returns token details including symbol, decimals, USD price, and balance amounts. Can filter for core/verified tokens or include all tokens.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+			is_all: z
+				.boolean()
+				.optional()
+				.describe(
+					"If true, returns all tokens including non-core tokens. Default is true.",
+				),
+		}),
+		execute: async (args: { id: string; chain_id: string; is_all?: boolean }) =>
+			await getUserTokenList(args),
+	},
+
+	{
+		name: "debank_get_user_all_token_list",
+		description:
+			"Retrieve a user's token balances across all supported chains. Provides a comprehensive list of all tokens held by the user, offering insights into their wider cryptocurrency portfolio.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			is_all: z
+				.boolean()
+				.optional()
+				.describe(
+					"If true, includes all tokens in the response. Default is true.",
+				),
+		}),
+		execute: async (args: { id: string; is_all?: boolean }) =>
+			await getUserAllTokenList(args),
+	},
+
+	{
+		name: "debank_get_user_nft_list",
+		description:
+			"Fetch a list of NFTs owned by a user on a specific chain. Returns NFT details including contract ID, name, description, content type, and attributes. Can filter for verified collections only.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+			is_all: z
+				.boolean()
+				.optional()
+				.describe(
+					"If false, only returns NFTs from verified collections. Default is true.",
+				),
+		}),
+		execute: async (args: { id: string; chain_id: string; is_all?: boolean }) =>
+			await getUserNftList(args),
+	},
+
+	{
+		name: "debank_get_user_all_nft_list",
+		description:
+			"Retrieve a user's NFT holdings across all supported chains. Provides an aggregate list of NFTs held by the user with details including contract ID, name, and content type. Can be filtered by specific chains.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			is_all: z
+				.boolean()
+				.optional()
+				.describe("If true, includes all NFTs. Default is true."),
+			chain_ids: z
+				.string()
+				.optional()
+				.describe(
+					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+				),
+		}),
+		execute: async (args: {
+			id: string;
+			is_all?: boolean;
+			chain_ids?: string;
+		}) => await getUserAllNftList(args),
+	},
+
+	{
+		name: "debank_get_user_history_list",
+		description:
+			"Fetch a user's transaction history on a specified chain. Returns a list of past transactions with details including transaction type, tokens involved, values, and timestamps. Supports filtering by token and pagination.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+			token_id: z
+				.string()
+				.optional()
+				.describe("Optional token ID to filter history for a specific token."),
+			start_time: z
+				.number()
+				.int()
+				.optional()
+				.describe(
+					"Optional timestamp to return history earlier than this time (Unix timestamp).",
+				),
+			page_count: z
+				.number()
+				.int()
+				.positive()
+				.max(20)
+				.optional()
+				.describe("Number of entries to return. Maximum is 20."),
+		}),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			token_id?: string;
+			start_time?: number;
+			page_count?: number;
+		}) => await getUserHistoryList(args),
+	},
+
+	{
+		name: "debank_get_user_all_history_list",
+		description:
+			"Retrieve a user's transaction history across all supported chains. Provides a comprehensive overview of DeFi activities across the entire blockchain ecosystem. Supports pagination and chain filtering.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			start_time: z
+				.number()
+				.int()
+				.optional()
+				.describe(
+					"Optional timestamp to return history earlier than this time.",
+				),
+			page_count: z
+				.number()
+				.int()
+				.positive()
+				.max(20)
+				.optional()
+				.describe("Number of entries to return. Maximum is 20."),
+			chain_ids: z
+				.string()
+				.optional()
+				.describe(
+					"Optional comma-separated list of chain IDs. If omitted, includes all chains.Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+				),
+		}),
+		execute: async (args: {
+			id: string;
+			start_time?: number;
+			page_count?: number;
+			chain_ids?: string;
+		}) => await getUserAllHistoryList(args),
+	},
+
+	{
+		name: "debank_get_user_token_authorized_list",
+		description:
+			"Fetch a list of tokens for which a user has granted spending approvals on a specified chain. Returns details about each approval including amount, spender address, and associated protocol information. Useful for security audits.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+		}),
+		execute: async (args: { id: string; chain_id: string }) =>
+			await getUserTokenAuthorizedList(args),
+	},
+
+	{
+		name: "debank_get_user_nft_authorized_list",
+		description:
+			"Retrieve a list of NFTs for which a user has given spending permissions on a specified chain. Returns details including contract IDs, names, symbols, spender addresses, and approved amounts for ERC1155 tokens. Important for security reviews.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+		}),
+		execute: async (args: { id: string; chain_id: string }) =>
+			await getUserNftAuthorizedList(args),
+	},
+
+	{
+		name: "debank_get_user_total_balance",
+		description:
+			"Retrieve a user's total net assets across all supported chains. Calculates and returns the total USD value of assets including both tokens and protocol positions. Provides a complete snapshot of the user's DeFi portfolio.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+		}),
+		execute: async (args: { id: string }) => await getUserTotalBalance(args),
+	},
+
+	{
+		name: "debank_get_user_chain_net_curve",
+		description:
+			"Retrieve a user's 24-hour net asset value curve on a single chain. Shows the changes in total USD value of assets over the last 24 hours, providing insights into portfolio fluctuations on that specific chain.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+		}),
+		execute: async (args: { id: string; chain_id: string }) =>
+			await getUserChainNetCurve(args),
+	},
+
+	{
+		name: "debank_get_user_total_net_curve",
+		description:
+			"Retrieve a user's 24-hour net asset value curve across all chains. Provides a comprehensive view of total USD value changes over the last 24 hours, helping track overall portfolio performance. Can be filtered by specific chains.",
+		parameters: z.object({
+			id: z.string().describe("The user's wallet address."),
+			chain_ids: z
+				.string()
+				.optional()
+				.describe(
+					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+				),
+		}),
+		execute: async (args: { id: string; chain_ids?: string }) =>
+			await getUserTotalNetCurve(args),
+	},
+
+	// Wallet Endpoints
+	{
+		name: "debank_get_gas_prices",
+		description:
+			"Fetch current gas prices for different transaction speed levels on a specified chain. Returns prices for slow, normal, and fast transaction speeds with estimated confirmation times. Crucial for transaction cost estimation.",
+		parameters: z.object({
+			chain_id: z
+				.string()
+				.describe(
+					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+				),
+		}),
+		execute: async (args: { chain_id: string }) => await getGasPrices(args),
+	},
+
+	{
+		name: "debank_pre_exec_transaction",
+		description:
+			"Simulate the execution of a transaction or sequence of transactions before submitting them on-chain. Returns detailed information about balance changes, gas estimates, and success status. Useful for DEX swaps requiring token approvals or complex transaction sequences.",
+		parameters: z.object({
+			tx: z
+				.string()
+				.describe(
+					"The main transaction object as a JSON string. Must include fields like from, to, data, value, etc.",
+				),
+			pending_tx_list: z
+				.string()
+				.optional()
+				.describe(
+					"Optional JSON string array of transactions to execute before the main transaction (e.g., approval transactions).",
+				),
+		}),
+		execute: async (args: { tx: string; pending_tx_list?: string }) =>
+			await preExecTransaction(args),
+	},
+
+	{
+		name: "debank_explain_transaction",
+		description:
+			"Decode and explain a given transaction in human-readable terms. Returns details about function calls, parameters, and actions derived from the transaction data. Supports complex transactions across multiple protocols.",
+		parameters: z.object({
+			tx: z
+				.string()
+				.describe(
+					"The transaction object as a JSON string to be explained. Must include transaction data field.",
+				),
+		}),
+		execute: async (args: { tx: string }) => await explainTransaction(args),
+	},
+] as const;
+
+/**
+ * Get all DeBank tools as ADK BaseTool instances
+ * Use this function when integrating with ADK agents
+ */
+export const getDebankTools = (): BaseTool[] => {
+	return debankTools.map((tool) =>
+		createTool({
+			name: tool.name,
+			description: tool.description,
+			schema: tool.parameters as z.ZodSchema<Record<string, unknown>>,
+			fn: async (args) => await tool.execute(args as never),
+		}),
+	);
+};
