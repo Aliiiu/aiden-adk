@@ -605,12 +605,12 @@ export const defillamaTools = [
  * Use this function when integrating with ADK agents
  */
 export const getDefillamaTools = (): BaseTool[] => {
-	return defillamaTools.map((tool: any) =>
+	return defillamaTools.map((tool) =>
 		createTool({
 			name: tool.name,
 			description: tool.description,
-			schema: tool.parameters,
-			fn: tool.execute,
+			schema: tool.parameters as z.ZodSchema<Record<string, unknown>>,
+			fn: async (args) => await tool.execute(args as never),
 		}),
 	);
 };
