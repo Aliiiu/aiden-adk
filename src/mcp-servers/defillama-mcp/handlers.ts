@@ -3,6 +3,7 @@
  * Implementation of all DefiLlama API functions
  */
 
+import { findProtocolSlug } from "./protocol-matcher";
 import type {
 	BatchHistoricalResponse,
 	CacheEntry,
@@ -110,10 +111,51 @@ export const getProtocolData = async (args: {
 	order: "asc" | "desc";
 }): Promise<string> => {
 	if (args.protocol) {
-		const data = await getCachedData(`protocol:${args.protocol}`, () =>
-			fetchData<ProtocolData>(`${BASE_URL}/protocol/${args.protocol}`),
-		);
-		return JSON.stringify({ protocolInfo: data });
+		// Use Gemini cached input to find the correct protocol slug
+		const matchedSlug = await findProtocolSlug(args.protocol);
+
+		if (!matchedSlug) {
+			return JSON.stringify({
+				error: "Protocol not found",
+				message: `Could not find a protocol matching "${args.protocol}". Please check the protocol name or try calling this tool without the protocol parameter to discover available protocols.`,
+				suggestedProtocol: args.protocol,
+			});
+		}
+
+		try {
+			const data = await getCachedData(`protocol:${matchedSlug}`, () =>
+				fetchData<ProtocolData>(`${BASE_URL}/protocol/${matchedSlug}`),
+			);
+
+			// Extract only essential fields to reduce response size
+			const essentialData = {
+				id: data.id,
+				name: data.name,
+				symbol: data.symbol,
+				category: data.category,
+				chains: data.chains,
+				tvl: data.tvl,
+				chainTvls: data.chainTvls,
+				change_1h: data.change_1h,
+				change_1d: data.change_1d,
+				change_7d: data.change_7d,
+				currentChainTvls: data.currentChainTvls,
+				mcap: data.mcap,
+			};
+
+			return JSON.stringify({
+				protocolInfo: essentialData,
+				matchedSlug,
+				originalQuery: args.protocol,
+			});
+		} catch (_error) {
+			return JSON.stringify({
+				error: "Failed to fetch protocol data",
+				message: `Found matching slug "${matchedSlug}" for "${args.protocol}", but failed to fetch data from API.`,
+				matchedSlug,
+				originalQuery: args.protocol,
+			});
+		}
 	}
 
 	const data = await getCachedData<ProtocolData[]>("protocols", () =>
