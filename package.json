@@ -18,10 +18,14 @@
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
+		"@ai-sdk/google": "^2.0.23",
 		"@iqai/adk": "^0.3.6",
 		"@openrouter/ai-sdk-provider": "^1.2.0",
 		"@types/node": "^24.6.2",
+		"ai": "^5.0.77",
+		"axios": "^1.12.2",
 		"date-fns": "^4.1.0",
+		"dedent": "^1.7.0",
 		"dotenv": "^17.2.3",
 		"endent": "^2.1.0",
 		"fastmcp": "^3.16.0",
