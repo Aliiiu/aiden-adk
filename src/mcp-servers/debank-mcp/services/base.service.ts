@@ -10,9 +10,6 @@ import { config } from "../config";
 export abstract class BaseService {
 	protected baseUrl = config.baseUrl;
 
-	/**
-	 * Helper function to fetch data from API through IQ Gateway
-	 */
 	protected async fetchWithToolConfig<T>(
 		url: string,
 		cacheDuration = config.debankDefaultLifeTime,
@@ -46,9 +43,6 @@ export abstract class BaseService {
 		}
 	}
 
-	/**
-	 * Helper function for POST requests through IQ Gateway
-	 */
 	protected async postWithToolConfig<T>(
 		url: string,
 		body: unknown,
@@ -86,7 +80,7 @@ export abstract class BaseService {
 			numberFields?: string[];
 		},
 	): string {
-		const { toMarkdown } = require("./markdown-formatter");
+		const { toMarkdown } = require("../../../lib/utils/markdown-formatter");
 		return toMarkdown(data, options);
 	}
 }
