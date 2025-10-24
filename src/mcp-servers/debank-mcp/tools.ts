@@ -1,38 +1,12 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
 import {
-	explainTransaction,
-	getAllProtocolsOfSupportedChains,
-	getChain,
-	getGasPrices,
-	getListTokenInformation,
-	getPoolInformation,
-	getProtocolInformation,
-	getSupportedChainList,
-	getTokenHistoryPrice,
-	getTokenInformation,
-	getTopHoldersOfProtocol,
-	getTopHoldersOfToken,
-	getUserAllComplexProtocolList,
-	getUserAllHistoryList,
-	getUserAllNftList,
-	getUserAllSimpleProtocolList,
-	getUserAllTokenList,
-	getUserChainBalance,
-	getUserChainNetCurve,
-	getUserComplexProtocolList,
-	getUserHistoryList,
-	getUserNftAuthorizedList,
-	getUserNftList,
-	getUserProtocol,
-	getUserTokenAuthorizedList,
-	getUserTokenBalance,
-	getUserTokenList,
-	getUserTotalBalance,
-	getUserTotalNetCurve,
-	getUserUsedChainList,
-	preExecTransaction,
-} from "./handlers";
+	chainService,
+	protocolService,
+	tokenService,
+	transactionService,
+	userService,
+} from "./services";
 
 /**
  * Tool definitions for FastMCP (MCP Server usage)
@@ -45,7 +19,7 @@ export const debankTools = [
 		description:
 			"Retrieve a comprehensive list of all blockchain chains supported by the DeBank API. Returns information about each chain including their IDs, names, logo URLs, native token IDs, wrapped token IDs, and pre-execution support status. Use this to discover available chains before calling other chain-specific endpoints.",
 		parameters: z.object({}),
-		execute: async () => await getSupportedChainList(),
+		execute: async () => await chainService.getSupportedChainList(),
 	},
 	{
 		name: "debank_get_chain",
@@ -58,7 +32,7 @@ export const debankTools = [
 					"The unique identifier of the chain (e.g., 'eth' for Ethereum, 'bsc' for BNB Chain, 'matic' for Polygon, 'arb' for Arbitrum). Use debank_get_supported_chain_list to discover available chain IDs.",
 				),
 		}),
-		execute: async (args: { id: string }) => await getChain(args),
+		execute: async (args: { id: string }) => await chainService.getChain(args),
 	},
 
 	// Protocol Endpoints
@@ -75,7 +49,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { chain_ids?: string }) =>
-			await getAllProtocolsOfSupportedChains(args),
+			await protocolService.getAllProtocolsOfSupportedChains(args),
 	},
 	{
 		name: "debank_get_protocol_information",
@@ -88,7 +62,8 @@ export const debankTools = [
 					"The unique identifier of the protocol (e.g., 'bsc_pancakeswap' for PancakeSwap on BSC, 'uniswap', 'aave', 'curve'). Use debank_get_all_protocols_of_supported_chains to discover protocol IDs.",
 				),
 		}),
-		execute: async (args: { id: string }) => await getProtocolInformation(args),
+		execute: async (args: { id: string }) =>
+			await protocolService.getProtocolInformation(args),
 	},
 
 	{
@@ -121,7 +96,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; start?: number; limit?: number }) =>
-			await getTopHoldersOfProtocol(args),
+			await protocolService.getTopHoldersOfProtocol(args),
 	},
 
 	// Pool Endpoints
@@ -142,7 +117,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_id: string }) =>
-			await getPoolInformation(args),
+			await protocolService.getPoolInformation(args),
 	},
 
 	// Token Endpoints
@@ -163,7 +138,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { chain_id: string; id: string }) =>
-			await getTokenInformation(args),
+			await tokenService.getTokenInformation(args),
 	},
 
 	{
@@ -183,7 +158,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { chain_id: string; ids: string }) =>
-			await getListTokenInformation(args),
+			await tokenService.getListTokenInformation(args),
 	},
 
 	{
@@ -221,7 +196,7 @@ export const debankTools = [
 			chain_id: string;
 			start?: number;
 			limit?: number;
-		}) => await getTopHoldersOfToken(args),
+		}) => await tokenService.getTopHoldersOfToken(args),
 	},
 
 	{
@@ -246,7 +221,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_id: string; date_at: string }) =>
-			await getTokenHistoryPrice(args),
+			await tokenService.getTokenHistoryPrice(args),
 	},
 
 	// User Endpoints
@@ -257,7 +232,8 @@ export const debankTools = [
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 		}),
-		execute: async (args: { id: string }) => await getUserUsedChainList(args),
+		execute: async (args: { id: string }) =>
+			await userService.getUserUsedChainList(args),
 	},
 
 	{
@@ -273,7 +249,7 @@ export const debankTools = [
 			id: z.string().describe("The user's wallet address."),
 		}),
 		execute: async (args: { chain_id: string; id: string }) =>
-			await getUserChainBalance(args),
+			await userService.getUserChainBalance(args),
 	},
 
 	{
@@ -289,7 +265,7 @@ export const debankTools = [
 			id: z.string().describe("The user's wallet address."),
 		}),
 		execute: async (args: { protocol_id: string; id: string }) =>
-			await getUserProtocol(args),
+			await userService.getUserProtocol(args),
 	},
 
 	{
@@ -305,7 +281,7 @@ export const debankTools = [
 			id: z.string().describe("The user's wallet address."),
 		}),
 		execute: async (args: { chain_id: string; id: string }) =>
-			await getUserComplexProtocolList(args),
+			await userService.getUserComplexProtocolList(args),
 	},
 
 	{
@@ -322,7 +298,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_ids?: string }) =>
-			await getUserAllComplexProtocolList(args),
+			await userService.getUserAllComplexProtocolList(args),
 	},
 
 	{
@@ -339,7 +315,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_ids?: string }) =>
-			await getUserAllSimpleProtocolList(args),
+			await userService.getUserAllSimpleProtocolList(args),
 	},
 
 	{
@@ -360,7 +336,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { chain_id: string; id: string; token_id: string }) =>
-			await getUserTokenBalance(args),
+			await userService.getUserTokenBalance(args),
 	},
 
 	{
@@ -382,7 +358,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_id: string; is_all?: boolean }) =>
-			await getUserTokenList(args),
+			await userService.getUserTokenList(args),
 	},
 
 	{
@@ -399,7 +375,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; is_all?: boolean }) =>
-			await getUserAllTokenList(args),
+			await userService.getUserAllTokenList(args),
 	},
 
 	{
@@ -421,7 +397,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_id: string; is_all?: boolean }) =>
-			await getUserNftList(args),
+			await userService.getUserNftList(args),
 	},
 
 	{
@@ -445,7 +421,7 @@ export const debankTools = [
 			id: string;
 			is_all?: boolean;
 			chain_ids?: string;
-		}) => await getUserAllNftList(args),
+		}) => await userService.getUserAllNftList(args),
 	},
 
 	{
@@ -484,7 +460,7 @@ export const debankTools = [
 			token_id?: string;
 			start_time?: number;
 			page_count?: number;
-		}) => await getUserHistoryList(args),
+		}) => await userService.getUserHistoryList(args),
 	},
 
 	{
@@ -519,7 +495,7 @@ export const debankTools = [
 			start_time?: number;
 			page_count?: number;
 			chain_ids?: string;
-		}) => await getUserAllHistoryList(args),
+		}) => await userService.getUserAllHistoryList(args),
 	},
 
 	{
@@ -535,7 +511,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_id: string }) =>
-			await getUserTokenAuthorizedList(args),
+			await userService.getUserTokenAuthorizedList(args),
 	},
 
 	{
@@ -551,7 +527,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_id: string }) =>
-			await getUserNftAuthorizedList(args),
+			await userService.getUserNftAuthorizedList(args),
 	},
 
 	{
@@ -561,7 +537,8 @@ export const debankTools = [
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 		}),
-		execute: async (args: { id: string }) => await getUserTotalBalance(args),
+		execute: async (args: { id: string }) =>
+			await userService.getUserTotalBalance(args),
 	},
 
 	{
@@ -577,7 +554,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_id: string }) =>
-			await getUserChainNetCurve(args),
+			await userService.getUserChainNetCurve(args),
 	},
 
 	{
@@ -594,7 +571,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { id: string; chain_ids?: string }) =>
-			await getUserTotalNetCurve(args),
+			await userService.getUserTotalNetCurve(args),
 	},
 
 	// Wallet Endpoints
@@ -609,7 +586,8 @@ export const debankTools = [
 					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
 				),
 		}),
-		execute: async (args: { chain_id: string }) => await getGasPrices(args),
+		execute: async (args: { chain_id: string }) =>
+			await chainService.getGasPrices(args),
 	},
 
 	{
@@ -630,7 +608,7 @@ export const debankTools = [
 				),
 		}),
 		execute: async (args: { tx: string; pending_tx_list?: string }) =>
-			await preExecTransaction(args),
+			await transactionService.preExecTransaction(args),
 	},
 
 	{
@@ -644,7 +622,8 @@ export const debankTools = [
 					"The transaction object as a JSON string to be explained. Must include transaction data field.",
 				),
 		}),
-		execute: async (args: { tx: string }) => await explainTransaction(args),
+		execute: async (args: { tx: string }) =>
+			await transactionService.explainTransaction(args),
 	},
 ] as const;
 
