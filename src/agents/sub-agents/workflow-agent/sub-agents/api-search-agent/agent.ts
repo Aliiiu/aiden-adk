@@ -2,11 +2,16 @@ import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
 import { openrouter } from "../../../../../lib/integrations/openrouter";
-import { getCoingeckoTools, getDefillamaToolsViaMcp } from "./tools";
+import {
+	getCoingeckoTools,
+	getDebankToolsViaMcp,
+	getDefillamaToolsViaMcp,
+} from "./tools";
 
 export const getApiSearchAgent = async () => {
 	const coingeckoTools = await getCoingeckoTools();
 	const defillamaTools = await getDefillamaToolsViaMcp();
+	const debankTools = await getDebankToolsViaMcp();
 
 	const instruction = endent`
     You are an API intelligence specialist for real-time cryptocurrency and DeFi data.
@@ -24,6 +29,17 @@ export const getApiSearchAgent = async () => {
       * Options protocol data
       * Historical price and chart data
       * Cross-chain metrics and comparisons
+    - Utilize DeBank MCP tools for:
+      * User-specific blockchain data and portfolios
+      * Chain information and supported networks
+      * Protocol positions and user balances
+      * Token holdings across multiple chains
+      * NFT collections and holdings
+      * Transaction history and authorizations
+      * Gas prices for transaction optimization
+      * Transaction simulation and explanation
+      * Top holders of protocols and tokens
+      * Historical token prices
 
     ## ERROR HANDLING
     If a tool returns an "error" field, respond: "I apologize, but I'm unable to retrieve that data right now. Please try again shortly."
@@ -41,9 +57,9 @@ export const getApiSearchAgent = async () => {
 	return new LlmAgent({
 		name: "api_search_agent",
 		description:
-			"Fetches real-time cryptocurrency prices, DeFi metrics, and blockchain data via MCP APIs including CoinGecko, DefiLlama, Frax Tools, and IQ AI Tools",
+			"Fetches real-time cryptocurrency prices, DeFi metrics, user portfolios, and blockchain data via MCP APIs including CoinGecko, DefiLlama, and DeBank",
 		model: openrouter(env.LLM_MODEL),
-		tools: [...coingeckoTools, ...defillamaTools],
+		tools: [...coingeckoTools, ...defillamaTools, ...debankTools],
 		instruction,
 	});
 };
