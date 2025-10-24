@@ -1,26 +1,15 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
 import {
-	getBatchHistorical,
-	getBlockChainTimestamp,
-	getChains,
-	getChartCoins,
-	getDexsData,
-	getFeesAndRevenue,
-	getHistoricalChainTvl,
-	getHistoricalPoolData,
-	getHistoricalPricesByContractAddress,
-	getLatestPoolData,
-	getOptionsData,
-	getPercentageCoins,
-	getPricesCurrentCoins,
-	getPricesFirstCoins,
-	getProtocolData,
-	getStableCoin,
-	getStableCoinChains,
-	getStableCoinCharts,
-	getStableCoinPrices,
-} from "./handlers";
+	blockchainService,
+	dexService,
+	feesService,
+	optionsService,
+	priceService,
+	protocolService,
+	stablecoinService,
+	yieldService,
+} from "./services";
 
 const unixTimestampArg = () =>
 	z.union([z.number().int().nonnegative(), z.string().min(1)]);
@@ -46,7 +35,8 @@ export const defillamaTools = [
 					"Sort order by TVL. Use 'desc' (default) for highest TVL first (e.g., Ethereum, BSC, Tron), or 'asc' for lowest TVL first",
 				),
 		}),
-		execute: async (args: { order: "asc" | "desc" }) => await getChains(args),
+		execute: async (args: { order: "asc" | "desc" }) =>
+			await protocolService.getChains(args),
 	},
 
 	{
@@ -75,7 +65,7 @@ export const defillamaTools = [
 			protocol?: string;
 			sortCondition: "change_1h" | "change_1d" | "change_7d" | "tvl";
 			order: "asc" | "desc";
-		}) => await getProtocolData(args),
+		}) => await protocolService.getProtocolData(args),
 	},
 
 	{
@@ -91,7 +81,7 @@ export const defillamaTools = [
 				),
 		}),
 		execute: async (args: { chain?: string }) =>
-			await getHistoricalChainTvl(args),
+			await protocolService.getHistoricalChainTvl(args),
 	},
 
 	// DEX Data
@@ -149,7 +139,7 @@ export const defillamaTools = [
 				| "change_7d"
 				| "change_1m";
 			order: "asc" | "desc";
-		}) => await getDexsData(args),
+		}) => await dexService.getDexsData(args),
 	},
 
 	// Fees & Revenue
@@ -207,7 +197,7 @@ export const defillamaTools = [
 			protocol?: string;
 			sortCondition: string;
 			order: "asc" | "desc";
-		}) => await getFeesAndRevenue(args),
+		}) => await feesService.getFeesAndRevenue(args),
 	},
 
 	// Stablecoins
@@ -222,7 +212,7 @@ export const defillamaTools = [
 				.describe("Whether to include price data"),
 		}),
 		execute: async (args: { includePrices?: boolean }) =>
-			await getStableCoin(args),
+			await stablecoinService.getStableCoin(args),
 	},
 
 	{
@@ -230,7 +220,7 @@ export const defillamaTools = [
 		description:
 			"Fetches stablecoin data by chains. Returns last 3 chains with market cap data",
 		parameters: z.object({}),
-		execute: async () => await getStableCoinChains(),
+		execute: async () => await stablecoinService.getStableCoinChains(),
 	},
 
 	{
@@ -253,7 +243,7 @@ export const defillamaTools = [
 				),
 		}),
 		execute: async (args: { chain?: string; stablecoin?: number }) =>
-			await getStableCoinCharts(args),
+			await stablecoinService.getStableCoinCharts(args),
 	},
 
 	{
@@ -261,7 +251,7 @@ export const defillamaTools = [
 		description:
 			"Fetches historical stablecoin price data. Returns last 3 data points",
 		parameters: z.object({}),
-		execute: async () => await getStableCoinPrices(),
+		execute: async () => await stablecoinService.getStableCoinPrices(),
 	},
 
 	// Prices
@@ -283,7 +273,7 @@ export const defillamaTools = [
 				),
 		}),
 		execute: async (args: { coins: string; searchWidth: string | number }) =>
-			await getPricesCurrentCoins(args),
+			await priceService.getPricesCurrentCoins(args),
 	},
 
 	{
@@ -297,7 +287,8 @@ export const defillamaTools = [
 					"Comma-separated list of tokens in the format '{chain}:{tokenAddress}'. Each token must specify its blockchain and contract address. Examples: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7' (USDT), 'bsc:0x55d398326f99059ff775485246999027b3197955' (USDT on BSC), or multiple tokens: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7,ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'. Chain names must match exactly - if unsure about the correct chain name format, call defillama_get_chains first to discover valid chain names (e.g., 'ethereum' not 'Ethereum', 'bsc' not 'BSC'). Token addresses are checksummed contract addresses on the specified chain",
 				),
 		}),
-		execute: async (args: { coins: string }) => await getPricesFirstCoins(args),
+		execute: async (args: { coins: string }) =>
+			await priceService.getPricesFirstCoins(args),
 	},
 
 	{
@@ -331,7 +322,7 @@ export const defillamaTools = [
 			coins: string | Record<string, Array<number | string>>;
 			searchWidth?: string | number;
 		}) =>
-			await getBatchHistorical({
+			await priceService.getBatchHistorical({
 				coins:
 					typeof args.coins === "string"
 						? args.coins
@@ -363,7 +354,7 @@ export const defillamaTools = [
 			coins: string;
 			timestamp: number | string;
 			searchWidth: string | number;
-		}) => await getHistoricalPricesByContractAddress(args),
+		}) => await priceService.getHistoricalPricesByContractAddress(args),
 	},
 
 	{
@@ -399,7 +390,7 @@ export const defillamaTools = [
 			timestamp?: string | number;
 			period: string;
 			lookForward: boolean;
-		}) => await getPercentageCoins(args),
+		}) => await priceService.getPercentageCoins(args),
 	},
 
 	{
@@ -449,7 +440,7 @@ export const defillamaTools = [
 			span?: number;
 			period?: string;
 			searchWidth: string | number;
-		}) => await getChartCoins(args),
+		}) => await priceService.getChartCoins(args),
 	},
 
 	// Yields
@@ -497,7 +488,7 @@ export const defillamaTools = [
 				| "apyMean30d";
 			order: "asc" | "desc";
 			limit: number;
-		}) => await getLatestPoolData(args),
+		}) => await yieldService.getLatestPoolData(args),
 	},
 
 	{
@@ -512,7 +503,7 @@ export const defillamaTools = [
 				),
 		}),
 		execute: async (args: { pool: string }) =>
-			await getHistoricalPoolData(args),
+			await yieldService.getHistoricalPoolData(args),
 	},
 
 	// Options
@@ -577,7 +568,7 @@ export const defillamaTools = [
 			order: "asc" | "desc";
 			excludeTotalDataChart: boolean;
 			excludeTotalDataChartBreakdown: boolean;
-		}) => await getOptionsData(args),
+		}) => await optionsService.getOptionsData(args),
 	},
 
 	// Blockchain
@@ -596,7 +587,7 @@ export const defillamaTools = [
 			),
 		}),
 		execute: async (args: { chain: string; timestamp: number | string }) =>
-			await getBlockChainTimestamp(args),
+			await blockchainService.getBlockChainTimestamp(args),
 	},
 ] as const;
 
