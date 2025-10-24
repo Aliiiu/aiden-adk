@@ -52,24 +52,24 @@ export const defillamaTools = [
 	{
 		name: "defillama_get_protocol_data",
 		description:
-			"Fetches TVL (Total Value Locked) data for DeFi protocols. **Two modes:** (1) WITH protocol parameter - returns detailed data for that specific protocol including all chains and historical data. (2) WITHOUT protocol parameter - returns top 10 protocols with basic info INCLUDING their slugs, which can be used as the protocol parameter in subsequent calls. Use mode (2) first when you need to discover the correct slug format for a user-mentioned protocol name",
+			"Fetches TVL (Total Value Locked) data for DeFi protocols. **INTELLIGENT PROTOCOL MATCHING:** This tool uses AI-powered matching to find the correct protocol slug from user queries. You can pass protocol names as the user mentions them (e.g., 'Lido', 'Uniswap', 'Aave', 'MakerDAO') and the tool will automatically find the correct slug. For protocols with multiple versions, specify the version in your query (e.g., 'Aave V3') or the tool will match to the most commonly used version. If protocol parameter is omitted, returns top 10 protocols sorted by your chosen criteria.",
 		parameters: z.object({
 			protocol: z
 				.string()
 				.optional()
 				.describe(
-					"Protocol slug in lowercase (e.g., 'aave', 'curve', 'lido'). **Discovery workflow:** If user mentions a protocol but you don't know the exact slug, call this tool WITHOUT this parameter to get a list containing protocol names and their corresponding slugs, then call again WITH the correct slug for detailed data",
+					"Protocol name or identifier as mentioned by the user. The tool will intelligently match this to the correct DefiLlama protocol slug using AI. Examples: 'Lido', 'Uniswap', 'Aave V3', 'Curve', 'MakerDAO'. The matching is flexible and handles variations in naming. If omitted, returns top 10 protocols sorted by the specified condition.",
 				),
 			sortCondition: z
 				.enum(["change_1h", "change_1d", "change_7d", "tvl"])
 				.default("tvl")
 				.describe(
-					"Field to sort results by. Only used when protocol parameter is omitted",
+					"Field to sort results by. Only used when protocol parameter is omitted.",
 				),
 			order: z
 				.enum(["asc", "desc"])
 				.default("desc")
-				.describe("Sort order. Only used when protocol parameter is omitted"),
+				.describe("Sort order. Only used when protocol parameter is omitted."),
 		}),
 		execute: async (args: {
 			protocol?: string;
