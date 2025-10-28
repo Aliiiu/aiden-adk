@@ -1,5 +1,6 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
+import { logger } from "../../lib/utils";
 import {
 	blockchainService,
 	dexService,
@@ -18,6 +19,38 @@ const optionalSearchWidthArg = () =>
 	z.union([z.string().min(1), z.number().positive()]).optional();
 
 /**
+ * Helper to set query on all services when _userQuery is provided in args
+ * This is called from MCP tool execute functions to enable context-aware filtering
+ */
+function setQueryFromArgs(args: Record<string, unknown>) {
+	const query = args._userQuery as string | undefined;
+	if (query) {
+		blockchainService.setQuery(query);
+		dexService.setQuery(query);
+		feesService.setQuery(query);
+		optionsService.setQuery(query);
+		priceService.setQuery(query);
+		protocolService.setQuery(query);
+		stablecoinService.setQuery(query);
+		yieldService.setQuery(query);
+	}
+}
+
+/**
+ * Helper to extract user query from context.userContent
+ * The userContent contains the original user message that started the invocation
+ */
+function extractQueryFromContext(context?: {
+	userContent?: { parts?: Array<{ text?: string }> };
+}): string | null {
+	if (!context?.userContent?.parts) return null;
+
+	// Extract text from the first part (which contains the user's query)
+	const firstPart = context.userContent.parts[0];
+	return firstPart?.text || null;
+}
+
+/**
  * Tool definitions for FastMCP (MCP Server usage)
  * These are exported as plain objects with Zod schemas for FastMCP compatibility
  */
@@ -34,9 +67,12 @@ export const defillamaTools = [
 				.describe(
 					"Sort order by TVL. Use 'desc' (default) for highest TVL first (e.g., Ethereum, BSC, Tron), or 'asc' for lowest TVL first",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { order: "asc" | "desc" }) =>
-			await protocolService.getChains(args),
+		execute: async (args: { order: "asc" | "desc"; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await protocolService.getChains(args);
+		},
 	},
 
 	{
@@ -60,12 +96,16 @@ export const defillamaTools = [
 				.enum(["asc", "desc"])
 				.default("desc")
 				.describe("Sort order. Only used when protocol parameter is omitted."),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			protocol?: string;
 			sortCondition: "change_1h" | "change_1d" | "change_7d" | "tvl";
 			order: "asc" | "desc";
-		}) => await protocolService.getProtocolData(args),
+		}) => {
+			setQueryFromArgs(args);
+			return await protocolService.getProtocolData(args);
+		},
 	},
 
 	{
@@ -79,9 +119,12 @@ export const defillamaTools = [
 				.describe(
 					"Blockchain name to get historical TVL for (e.g., 'Ethereum', 'Arbitrum', 'Polygon', 'Avalanche'). **When the user mentions a specific blockchain, always call defillama_get_chains first** to discover the correct chain name format and ensure it's available. If omitted, returns aggregated historical TVL across all chains combined",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain?: string }) =>
-			await protocolService.getHistoricalChainTvl(args),
+		execute: async (args: { chain?: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await protocolService.getHistoricalChainTvl(args);
+		},
 	},
 
 	// DEX Data
@@ -125,6 +168,7 @@ export const defillamaTools = [
 				.enum(["asc", "desc"])
 				.default("desc")
 				.describe("Sort order (ascending or descending)"),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			excludeTotalDataChart: boolean;
@@ -139,7 +183,10 @@ export const defillamaTools = [
 				| "change_7d"
 				| "change_1m";
 			order: "asc" | "desc";
-		}) => await dexService.getDexsData(args),
+		}) => {
+			setQueryFromArgs(args);
+			return await dexService.getDexsData(args);
+		},
 	},
 
 	// Fees & Revenue
@@ -188,6 +235,7 @@ export const defillamaTools = [
 				.default("total24h")
 				.describe("Field to sort results by"),
 			order: z.enum(["asc", "desc"]).default("desc").describe("Sort order"),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			excludeTotalDataChart: boolean;
@@ -197,7 +245,10 @@ export const defillamaTools = [
 			protocol?: string;
 			sortCondition: string;
 			order: "asc" | "desc";
-		}) => await feesService.getFeesAndRevenue(args),
+		}) => {
+			setQueryFromArgs(args);
+			return await feesService.getFeesAndRevenue(args);
+		},
 	},
 
 	// Stablecoins
@@ -210,17 +261,25 @@ export const defillamaTools = [
 				.boolean()
 				.optional()
 				.describe("Whether to include price data"),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { includePrices?: boolean }) =>
-			await stablecoinService.getStableCoin(args),
+		execute: async (args: { includePrices?: boolean; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await stablecoinService.getStableCoin(args);
+		},
 	},
 
 	{
 		name: "defillama_get_stablecoin_chains",
 		description:
 			"Fetches stablecoin data by chains. Returns last 3 chains with market cap data",
-		parameters: z.object({}),
-		execute: async () => await stablecoinService.getStableCoinChains(),
+		parameters: z.object({
+			_userQuery: z.string().optional(),
+		}),
+		execute: async (args: Record<string, unknown>) => {
+			setQueryFromArgs(args);
+			return await stablecoinService.getStableCoinChains();
+		},
 	},
 
 	{
@@ -241,17 +300,29 @@ export const defillamaTools = [
 				.describe(
 					"Blockchain name to filter stablecoin data by (e.g., 'Ethereum', 'Polygon', 'Arbitrum'). Returns stablecoin market cap data for that specific chain. **If the user mentions a blockchain but you're unsure of the exact name format, call defillama_get_chains first to discover valid chain names**. If omitted, returns global aggregated data across all chains",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain?: string; stablecoin?: number }) =>
-			await stablecoinService.getStableCoinCharts(args),
+		execute: async (args: {
+			chain?: string;
+			stablecoin?: number;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await stablecoinService.getStableCoinCharts(args);
+		},
 	},
 
 	{
 		name: "defillama_get_stablecoin_prices",
 		description:
 			"Fetches historical stablecoin price data. Returns last 3 data points",
-		parameters: z.object({}),
-		execute: async () => await stablecoinService.getStableCoinPrices(),
+		parameters: z.object({
+			_userQuery: z.string().optional(),
+		}),
+		execute: async (args: Record<string, unknown>) => {
+			setQueryFromArgs(args);
+			return await stablecoinService.getStableCoinPrices();
+		},
 	},
 
 	// Prices
@@ -271,9 +342,16 @@ export const defillamaTools = [
 				.describe(
 					"Time window to search for price data. Accepts duration strings (e.g., '4h', '1d', '30m') or seconds as a number (e.g., 600 for 10 minutes). Defaults to 4 hours. Use larger values if recent price data might not be available",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { coins: string; searchWidth: string | number }) =>
-			await priceService.getPricesCurrentCoins(args),
+		execute: async (args: {
+			coins: string;
+			searchWidth: string | number;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await priceService.getPricesCurrentCoins(args);
+		},
 	},
 
 	{
@@ -286,9 +364,12 @@ export const defillamaTools = [
 				.describe(
 					"Comma-separated list of tokens in the format '{chain}:{tokenAddress}'. Each token must specify its blockchain and contract address. Examples: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7' (USDT), 'bsc:0x55d398326f99059ff775485246999027b3197955' (USDT on BSC), or multiple tokens: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7,ethereum:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'. Chain names must match exactly - if unsure about the correct chain name format, call defillama_get_chains first to discover valid chain names (e.g., 'ethereum' not 'Ethereum', 'bsc' not 'BSC'). Token addresses are checksummed contract addresses on the specified chain",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { coins: string }) =>
-			await priceService.getPricesFirstCoins(args),
+		execute: async (args: { coins: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await priceService.getPricesFirstCoins(args);
+		},
 	},
 
 	{
@@ -317,18 +398,22 @@ export const defillamaTools = [
 				.describe(
 					"Time range around each timestamp to search for price data. Accepts duration strings (e.g., '4h', '1d', '30m') or seconds as a number (e.g., 600 for 10 minutes). Defaults to '6h' (6 hours). Wider ranges increase chances of finding data but may be less precise",
 				),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			coins: string | Record<string, Array<number | string>>;
 			searchWidth?: string | number;
-		}) =>
-			await priceService.getBatchHistorical({
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await priceService.getBatchHistorical({
 				coins:
 					typeof args.coins === "string"
 						? args.coins
 						: encodeURIComponent(JSON.stringify(args.coins)),
 				searchWidth: args.searchWidth,
-			}),
+			});
+		},
 	},
 
 	{
@@ -349,12 +434,17 @@ export const defillamaTools = [
 				.describe(
 					"Time window to search for price data around the timestamp if exact data unavailable. Accepts duration string (e.g., '4h', '1d') or seconds (e.g., 600). Defaults to 6 hours. Larger windows increase chances of finding data but may be less accurate",
 				),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			coins: string;
 			timestamp: number | string;
 			searchWidth: string | number;
-		}) => await priceService.getHistoricalPricesByContractAddress(args),
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await priceService.getHistoricalPricesByContractAddress(args);
+		},
 	},
 
 	{
@@ -384,13 +474,18 @@ export const defillamaTools = [
 				.describe(
 					"Direction to calculate change. If false (default), calculates change from [timestamp - period] to [timestamp] (looking backward). If true, calculates change from [timestamp] to [timestamp + period] (looking forward). Use true for historical predictions/projections",
 				),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			coins: string;
 			timestamp?: string | number;
 			period: string;
 			lookForward: boolean;
-		}) => await priceService.getPercentageCoins(args),
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await priceService.getPercentageCoins(args);
+		},
 	},
 
 	{
@@ -432,6 +527,8 @@ export const defillamaTools = [
 				.describe(
 					"Time window for finding price data around each period point. Can be specified as seconds (number) or duration string. Wider search windows are more forgiving but may be less precise. Examples: '600' (10 minutes), '6h' (6 hours). Defaults to 6 hours",
 				),
+
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			coins: string;
@@ -440,7 +537,11 @@ export const defillamaTools = [
 			span?: number;
 			period?: string;
 			searchWidth: string | number;
-		}) => await priceService.getChartCoins(args),
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await priceService.getChartCoins(args);
+		},
 	},
 
 	// Yields
@@ -475,6 +576,7 @@ export const defillamaTools = [
 				.max(100)
 				.default(10)
 				.describe("Number of pools to return (between 1-100)"),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			sortCondition:
@@ -488,7 +590,11 @@ export const defillamaTools = [
 				| "apyMean30d";
 			order: "asc" | "desc";
 			limit: number;
-		}) => await yieldService.getLatestPoolData(args),
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await yieldService.getLatestPoolData(args);
+		},
 	},
 
 	{
@@ -501,9 +607,12 @@ export const defillamaTools = [
 				.describe(
 					"Unique pool identifier (UUID format). **IMPORTANT: Always call defillama_get_latest_pool_data first** to discover available pools and their IDs. The pool ID is returned in the 'pool' property of each result (e.g., '742c4e8f-1f3d-4c3e-9c1e-2a3b4c5d6e7f')",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { pool: string }) =>
-			await yieldService.getHistoricalPoolData(args),
+		execute: async (args: { pool: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await yieldService.getHistoricalPoolData(args);
+		},
 	},
 
 	// Options
@@ -553,6 +662,7 @@ export const defillamaTools = [
 				.boolean()
 				.default(true)
 				.describe("Whether to exclude broken down chart data from response"),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			dataType: "dailyPremiumVolume" | "dailyNotionalVolume";
@@ -568,7 +678,11 @@ export const defillamaTools = [
 			order: "asc" | "desc";
 			excludeTotalDataChart: boolean;
 			excludeTotalDataChartBreakdown: boolean;
-		}) => await optionsService.getOptionsData(args),
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await optionsService.getOptionsData(args);
+		},
 	},
 
 	// Blockchain
@@ -585,9 +699,16 @@ export const defillamaTools = [
 			timestamp: unixTimestampArg().describe(
 				"Time to query block data for. Accepts both Unix timestamp in seconds (e.g., 1640000000) or ISO 8601 date string (e.g., '2024-01-15T10:30:00Z', '2024-01-15'). Relative dates work too - the converter will handle them. Will be automatically converted to Unix timestamp for the API call",
 			),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain: string; timestamp: number | string }) =>
-			await blockchainService.getBlockChainTimestamp(args),
+		execute: async (args: {
+			chain: string;
+			timestamp: number | string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await blockchainService.getBlockChainTimestamp(args);
+		},
 	},
 ] as const;
 
@@ -601,7 +722,27 @@ export const getDefillamaTools = (): BaseTool[] => {
 			name: tool.name,
 			description: tool.description,
 			schema: tool.parameters as z.ZodSchema<Record<string, unknown>>,
-			fn: async (args) => await tool.execute(args as never),
+			fn: async (args, context) => {
+				// Extract and inject user query from context.userContent into all services
+				const query = extractQueryFromContext(context);
+				logger.info(
+					`Extracted user query from context: ${query ? query.substring(0, 100) + "..." : "none"}`,
+				);
+				if (query) {
+					logger.info(
+						`Setting user query for filtering: ${query.substring(0, 100)}...`,
+					);
+					blockchainService.setQuery(query);
+					dexService.setQuery(query);
+					feesService.setQuery(query);
+					optionsService.setQuery(query);
+					priceService.setQuery(query);
+					protocolService.setQuery(query);
+					stablecoinService.setQuery(query);
+					yieldService.setQuery(query);
+				}
+				return await tool.execute(args as never);
+			},
 		}),
 	);
 };
