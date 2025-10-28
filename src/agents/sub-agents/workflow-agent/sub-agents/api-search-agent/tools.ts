@@ -8,13 +8,49 @@ import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tool
 const logger = createChildLogger("API Search Tools");
 
 /**
- * Wraps an MCP tool to catch errors and return them as safe objects
- * instead of throwing exceptions
+ * Extract user query from ADK ToolContext
+ * The userContent contains the original user message that started the invocation
+ */
+function extractQueryFromContext(context?: ToolContext): string | null {
+	if (!context?.userContent?.parts) return null;
+	const firstPart = context.userContent.parts[0];
+	return firstPart?.text || null;
+}
+
+/**
+ * Wraps an MCP tool to inject user query for data filtering
+ * This wrapper extracts the user's original query from context and passes it
+ * as _userQuery parameter to MCP tools for context-aware filtering
+ */
+function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
+	const originalRunAsync = tool.runAsync.bind(tool);
+
+	tool.runAsync = async (
+		args: Record<string, unknown>,
+		context: ToolContext,
+	) => {
+		// Extract user query from context
+		const query = extractQueryFromContext(context);
+		if (query) {
+			logger.info(
+				`Extracted user query for tool ${tool.name}: ${query.substring(0, 100)}...`,
+			);
+		}
+
+		const enhancedArgs = query ? { ...args, _userQuery: query } : args;
+		return await originalRunAsync(enhancedArgs, context);
+	};
+
+	return tool;
+}
+
+/**
+ * Wraps an MCP tool to catch errors and extract text content from MCP responses
  */
 function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
 
-	// Override runAsync to catch errors
+	// Override runAsync to catch errors and extract MCP content
 	tool.runAsync = async (
 		args: Record<string, unknown>,
 		context: ToolContext,
@@ -102,24 +138,21 @@ export const getDefillamaToolsViaMcp = async () => {
 		const toolset = new McpToolset({
 			name: "DefiLlama MCP",
 			description: "DeFi data via DefiLlama MCP server",
-			debug: false, // Set to true for detailed MCP logs
 			transport: {
 				mode: "stdio",
 				command: "npx",
 				args: ["tsx", defillamaMcpPath],
 			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
 		});
 
 		const tools = await toolset.getTools();
 		logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
-		return tools.map((tool) => wrapToolWithErrorHandling(tool));
+		// Apply both wrappers: query injection first, then error handling
+		return tools.map((tool) =>
+			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
+		);
 	} catch (error) {
 		logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
-		// Fallback to direct import if MCP fails
 		return getDefillamaToolsWrapped();
 	}
 };
@@ -152,24 +185,21 @@ export const getDebankToolsViaMcp = async () => {
 		const toolset = new McpToolset({
 			name: "DeBank MCP",
 			description: "Blockchain and DeFi user data via DeBank MCP server",
-			debug: false, // Set to true for detailed MCP logs
 			transport: {
 				mode: "stdio",
 				command: "npx",
 				args: ["tsx", debankMcpPath],
 			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
 		});
 
 		const tools = await toolset.getTools();
 		logger.info(`Loaded ${tools.length} DeBank tools via MCP`);
-		return tools.map((tool) => wrapToolWithErrorHandling(tool));
+		// Apply both wrappers: query injection first, then error handling
+		return tools.map((tool) =>
+			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
+		);
 	} catch (error) {
 		logger.warn("Failed to load DeBank tools via MCP", error as Error);
-		// Fallback to direct import if MCP fails
 		const tools = getDebankTools();
 		return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
 	}
