@@ -1,6 +1,14 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
-import { logger } from "../../lib/utils";
+import { createChildLogger } from "../../lib/utils";
+import {
+	needsResolution,
+	resolveBridge,
+	resolveChain,
+	resolveOption,
+	resolveProtocol,
+	resolveStablecoin,
+} from "./entity-resolver";
 import {
 	blockchainService,
 	dexService,
@@ -11,6 +19,8 @@ import {
 	stablecoinService,
 	yieldService,
 } from "./services";
+
+const logger = createChildLogger("DefiLlama MCP Tools");
 
 const unixTimestampArg = () =>
 	z.union([z.number().int().nonnegative(), z.string().min(1)]);
@@ -51,6 +61,86 @@ function extractQueryFromContext(context?: {
 }
 
 /**
+ * Automatically resolve human-friendly entity names to API-compatible IDs/slugs
+ * Handles protocols, chains, stablecoins, bridges, and options
+ */
+async function autoResolveEntities(
+	args: Record<string, unknown>,
+): Promise<void> {
+	// Protocol resolution
+	if (args.protocol && typeof args.protocol === "string") {
+		logger.info(`Resolving protocol: ${args.protocol}`);
+		const resolved = await resolveProtocol(args.protocol);
+		if (resolved) {
+			logger.info(`Resolved "${args.protocol}" → "${resolved}"`);
+			args.protocol = resolved;
+		} else {
+			logger.warn(`Could not resolve protocol: ${args.protocol}`);
+		}
+	}
+
+	// Chain resolution
+	if (args.chain && typeof args.chain === "string") {
+		logger.info(`Resolving chain: ${args.chain}`);
+		const resolved = await resolveChain(args.chain);
+		if (resolved) {
+			logger.info(`Resolved "${args.chain}" → "${resolved}"`);
+			args.chain = resolved;
+		} else {
+			logger.warn(`Could not resolve chain: ${args.chain}`);
+		}
+	}
+
+	// Stablecoin resolution (for stablecoin parameter)
+	if (
+		args.stablecoin &&
+		typeof args.stablecoin === "string" &&
+		needsResolution(args.stablecoin, "stablecoin")
+	) {
+		logger.info(`Resolving stablecoin: ${args.stablecoin}`);
+		const resolved = await resolveStablecoin(args.stablecoin);
+		if (resolved) {
+			logger.info(`Resolved "${args.stablecoin}" → ID ${resolved}`);
+			args.stablecoin = resolved;
+		} else {
+			logger.warn(`Could not resolve stablecoin: ${args.stablecoin}`);
+		}
+	}
+
+	// Bridge resolution
+	if (
+		args.bridge &&
+		typeof args.bridge === "string" &&
+		needsResolution(args.bridge, "bridge")
+	) {
+		logger.info(`Resolving bridge: ${args.bridge}`);
+		const resolved = await resolveBridge(args.bridge);
+		if (resolved) {
+			logger.info(`Resolved "${args.bridge}" → ID ${resolved}`);
+			args.bridge = resolved;
+		} else {
+			logger.warn(`Could not resolve bridge: ${args.bridge}`);
+		}
+	}
+
+	// Option resolution
+	if (
+		args.option &&
+		typeof args.option === "string" &&
+		needsResolution(args.option, "option")
+	) {
+		logger.info(`Resolving option: ${args.option}`);
+		const resolved = await resolveOption(args.option);
+		if (resolved) {
+			logger.info(`Resolved "${args.option}" → "${resolved}"`);
+			args.option = resolved;
+		} else {
+			logger.warn(`Could not resolve option: ${args.option}`);
+		}
+	}
+}
+
+/**
  * Tool definitions for FastMCP (MCP Server usage)
  * These are exported as plain objects with Zod schemas for FastMCP compatibility
  */
@@ -78,13 +168,13 @@ export const defillamaTools = [
 	{
 		name: "defillama_get_protocol_data",
 		description:
-			"Fetches TVL (Total Value Locked) data for DeFi protocols. **INTELLIGENT PROTOCOL MATCHING:** This tool uses AI-powered matching to find the correct protocol slug from user queries. You can pass protocol names as the user mentions them (e.g., 'Lido', 'Uniswap', 'Aave', 'MakerDAO') and the tool will automatically find the correct slug. For protocols with multiple versions, specify the version in your query (e.g., 'Aave V3') or the tool will match to the most commonly used version. If protocol parameter is omitted, returns top 10 protocols sorted by your chosen criteria.",
+			"Fetches TVL (Total Value Locked) data for DeFi protocols. **AUTO-RESOLUTION ENABLED:** Pass protocol names as users mention them (e.g., 'Lido', 'Uniswap', 'Aave', 'MakerDAO') - they're automatically resolved to correct slugs via AI. For multiple versions, specify the version (e.g., 'Aave V3') or the most common version is matched. If protocol parameter is omitted, returns top 10 protocols sorted by your chosen criteria.",
 		parameters: z.object({
 			protocol: z
 				.string()
 				.optional()
 				.describe(
-					"Protocol name or identifier as mentioned by the user. The tool will intelligently match this to the correct DefiLlama protocol slug using AI. Examples: 'Lido', 'Uniswap', 'Aave V3', 'Curve', 'MakerDAO'. The matching is flexible and handles variations in naming. If omitted, returns top 10 protocols sorted by the specified condition.",
+					"Protocol name as mentioned by the user - auto-resolved via AI (e.g., 'Lido', 'Uniswap', 'Aave V3', 'Curve', 'MakerDAO'). Exact slugs also work. Flexible matching handles name variations. If omitted, returns top 10 protocols sorted by the specified condition.",
 				),
 			sortCondition: z
 				.enum(["change_1h", "change_1d", "change_7d", "tvl"])
@@ -102,7 +192,9 @@ export const defillamaTools = [
 			protocol?: string;
 			sortCondition: "change_1h" | "change_1d" | "change_7d" | "tvl";
 			order: "asc" | "desc";
+			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await protocolService.getProtocolData(args);
 		},
@@ -111,17 +203,18 @@ export const defillamaTools = [
 	{
 		name: "defillama_get_historical_chain_tvl",
 		description:
-			"Fetches historical TVL (Total Value Locked) data for blockchain chains over time. Returns the last 10 data points showing TVL evolution. Can return data for a specific chain or aggregated data across all chains",
+			"Fetches historical TVL (Total Value Locked) data for blockchain chains over time. Returns the last 10 data points showing TVL evolution. Can return data for a specific chain or aggregated data across all chains. **AUTO-RESOLUTION ENABLED:** Chain names are automatically matched (e.g., 'Ethereum', 'BSC', 'Polygon', 'Avalanche').",
 		parameters: z.object({
 			chain: z
 				.string()
 				.optional()
 				.describe(
-					"Blockchain name to get historical TVL for (e.g., 'Ethereum', 'Arbitrum', 'Polygon', 'Avalanche'). **When the user mentions a specific blockchain, always call defillama_get_chains first** to discover the correct chain name format and ensure it's available. If omitted, returns aggregated historical TVL across all chains combined",
+					"Blockchain name - auto-resolved (e.g., 'Ethereum', 'Arbitrum', 'Polygon', 'BSC', 'Avalanche'). Common variations are handled automatically. If omitted, returns aggregated historical TVL across all chains combined",
 				),
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { chain?: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await protocolService.getHistoricalChainTvl(args);
 		},
@@ -131,7 +224,7 @@ export const defillamaTools = [
 	{
 		name: "defillama_get_dexs_data",
 		description:
-			"Fetches DEX (decentralized exchange) trading volume data and metrics. Returns different levels of data based on parameters: specific protocol data (most detailed), chain-specific overview, or global overview (all DEXs)",
+			"Fetches DEX (decentralized exchange) trading volume data and metrics. Returns different levels of data based on parameters: specific protocol data (most detailed), chain-specific overview, or global overview (all DEXs). **AUTO-RESOLUTION ENABLED:** Protocol and chain names are automatically matched.",
 		parameters: z.object({
 			excludeTotalDataChart: z
 				.boolean()
@@ -145,13 +238,13 @@ export const defillamaTools = [
 				.string()
 				.optional()
 				.describe(
-					"Protocol slug for a specific DEX (e.g., 'uniswap', 'pancakeswap', 'curve'). When provided, returns detailed data for that protocol only. If the user mentions a DEX name but you're unsure of the exact slug format, call defillama_get_protocol_data first to find the correct slug. Takes priority over chain parameter",
+					"DEX protocol name - auto-resolved (e.g., 'Uniswap', 'PancakeSwap', 'Curve'). When provided, returns detailed data for that protocol only. Takes priority over chain parameter",
 				),
 			chain: z
 				.string()
 				.optional()
 				.describe(
-					"Blockchain name to filter DEXs by (e.g., 'Ethereum', 'BSC', 'Polygon', 'Arbitrum'). Returns overview of all DEXs operating on that chain. Only used when protocol is not specified. If the user mentions a chain but you're unsure of the exact name format, call defillama_get_chains first to discover valid chain names. If both protocol and chain are omitted, returns global overview of all DEXs",
+					"Blockchain name - auto-resolved (e.g., 'Ethereum', 'BSC', 'Polygon', 'Arbitrum'). Returns overview of all DEXs operating on that chain. Only used when protocol is not specified. If both protocol and chain are omitted, returns global overview of all DEXs",
 				),
 			sortCondition: z
 				.enum([
@@ -184,6 +277,7 @@ export const defillamaTools = [
 				| "change_1m";
 			order: "asc" | "desc";
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await dexService.getDexsData(args);
 		},
@@ -193,7 +287,7 @@ export const defillamaTools = [
 	{
 		name: "defillama_get_fees_and_revenue",
 		description:
-			"Fetches fees and revenue metrics for DeFi protocols. Can filter by specific protocol and/or chain",
+			"Fetches fees and revenue metrics for DeFi protocols. Can filter by specific protocol and/or chain. **AUTO-RESOLUTION ENABLED:** Protocol and chain names are automatically matched.",
 		parameters: z.object({
 			excludeTotalDataChart: z
 				.boolean()
@@ -211,13 +305,13 @@ export const defillamaTools = [
 				.string()
 				.optional()
 				.describe(
-					"Chain name (e.g., 'Ethereum', 'Polygon'). If omitted, includes all chains. Use defillama_get_chains to discover available chains",
+					"Chain name - auto-resolved (e.g., 'Ethereum', 'Polygon', 'BSC'). If omitted, includes all chains",
 				),
 			protocol: z
 				.string()
 				.optional()
 				.describe(
-					"Protocol slug (e.g., 'uniswap'). If omitted, includes all protocols. Use defillama_get_protocol_data to discover valid slugs",
+					"Protocol name - auto-resolved (e.g., 'Uniswap', 'Aave'). If omitted, includes all protocols",
 				),
 			sortCondition: z
 				.enum([
@@ -246,6 +340,7 @@ export const defillamaTools = [
 			sortCondition: string;
 			order: "asc" | "desc";
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await feesService.getFeesAndRevenue(args);
 		},
@@ -288,11 +383,10 @@ export const defillamaTools = [
 			"Fetches historical market cap charts for stablecoins over time. Returns the last 10 data points showing circulation, USD values, and bridged amounts. Can filter by blockchain or specific stablecoin, or show global aggregated data",
 		parameters: z.object({
 			stablecoin: z
-				.number()
-				.int()
+				.union([z.number().int(), z.string()])
 				.optional()
 				.describe(
-					"Stablecoin ID to get data for a specific stablecoin (e.g., 1 for USDT, 2 for USDC). **IMPORTANT: This must be a numeric ID, not a name. If the user mentions a stablecoin by name (like 'USDC', 'Tether', 'DAI'), you must first call defillama_get_stablecoins to find the corresponding ID**. Can be combined with chain parameter to show that stablecoin's data on a specific chain",
+					"Stablecoin ID or name (e.g., 1 for USDT, 2 for USDC, or 'USDC', 'Tether', 'DAI'). **AUTO-RESOLUTION ENABLED:** You can now pass stablecoin names directly (like 'USDC', 'Tether', 'DAI') and they will be automatically resolved to their numeric IDs. Numeric IDs are also still accepted. Can be combined with chain parameter to show that stablecoin's data on a specific chain",
 				),
 			chain: z
 				.string()
@@ -304,9 +398,10 @@ export const defillamaTools = [
 		}),
 		execute: async (args: {
 			chain?: string;
-			stablecoin?: number;
+			stablecoin?: number | string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await stablecoinService.getStableCoinCharts(args);
 		},
@@ -619,7 +714,7 @@ export const defillamaTools = [
 	{
 		name: "defillama_get_options_data",
 		description:
-			"Fetches options protocol data including trading volume and premium metrics. Returns different levels of data: specific protocol data (most detailed), chain-specific overview, or global overview (all options protocols)",
+			"Fetches options protocol data including trading volume and premium metrics. Returns different levels of data: specific protocol data (most detailed), chain-specific overview, or global overview (all options protocols). **AUTO-RESOLUTION ENABLED:** Protocol and chain names are automatically matched.",
 		parameters: z.object({
 			dataType: z
 				.enum(["dailyPremiumVolume", "dailyNotionalVolume"])
@@ -631,13 +726,13 @@ export const defillamaTools = [
 				.string()
 				.optional()
 				.describe(
-					"Protocol slug for a specific options protocol (e.g., 'lyra', 'hegic', 'opyn'). When provided, returns detailed data for that protocol only. If the user mentions an options protocol name but you're unsure of the exact slug format, call defillama_get_protocol_data first to find the correct slug. Takes priority over chain parameter",
+					"Options protocol name - auto-resolved (e.g., 'Lyra', 'Hegic', 'Aevo'). When provided, returns detailed data for that protocol only. Takes priority over chain parameter",
 				),
 			chain: z
 				.string()
 				.optional()
 				.describe(
-					"Blockchain name to filter options protocols by (e.g., 'Ethereum', 'Arbitrum', 'Optimism'). Returns overview of all options protocols operating on that chain. Only used when protocol is not specified. If the user mentions a chain but you're unsure of the exact name format, call defillama_get_chains first to discover valid chain names. If both protocol and chain are omitted, returns global overview of all options protocols",
+					"Blockchain name - auto-resolved (e.g., 'Ethereum', 'Arbitrum', 'Optimism'). Returns overview of all options protocols operating on that chain. Only used when protocol is not specified. If both protocol and chain are omitted, returns global overview of all options protocols",
 				),
 			sortCondition: z
 				.enum([
@@ -680,6 +775,7 @@ export const defillamaTools = [
 			excludeTotalDataChartBreakdown: boolean;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await optionsService.getOptionsData(args);
 		},
@@ -689,12 +785,12 @@ export const defillamaTools = [
 	{
 		name: "defillama_get_blockchain_timestamp",
 		description:
-			"Fetches blockchain block information for a specific chain at a given timestamp. Returns the block number, timestamp, and height that existed at that point in time. This is essential for historical DeFi queries - many blockchain APIs require a specific block number to retrieve historical state (e.g., 'What was the TVL on date X?' requires knowing which block number corresponded to date X). Use this tool to convert human-readable dates into block numbers",
+			"Fetches blockchain block information for a specific chain at a given timestamp. Returns the block number, timestamp, and height that existed at that point in time. This is essential for historical DeFi queries - many blockchain APIs require a specific block number to retrieve historical state (e.g., 'What was the TVL on date X?' requires knowing which block number corresponded to date X). Use this tool to convert human-readable dates into block numbers. **AUTO-RESOLUTION ENABLED:** Chain names are automatically matched.",
 		parameters: z.object({
 			chain: z
 				.string()
 				.describe(
-					"Blockchain name (e.g., 'Ethereum', 'Polygon', 'Arbitrum', 'Avalanche'). If the user mentions a blockchain but you're unsure of the exact name format, call defillama_get_chains first to discover the correct chain name",
+					"Blockchain name - auto-resolved (e.g., 'Ethereum', 'Polygon', 'Arbitrum', 'Avalanche', 'BSC'). Common variations are handled automatically",
 				),
 			timestamp: unixTimestampArg().describe(
 				"Time to query block data for. Accepts both Unix timestamp in seconds (e.g., 1640000000) or ISO 8601 date string (e.g., '2024-01-15T10:30:00Z', '2024-01-15'). Relative dates work too - the converter will handle them. Will be automatically converted to Unix timestamp for the API call",
@@ -706,6 +802,7 @@ export const defillamaTools = [
 			timestamp: number | string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await blockchainService.getBlockChainTimestamp(args);
 		},
