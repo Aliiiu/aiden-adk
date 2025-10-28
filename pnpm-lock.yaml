@@ -41,6 +41,12 @@ importers:
       fastmcp:
         specifier: ^3.16.0
         version: 3.19.2
+      jqts:
+        specifier: ^0.0.8
+        version: 0.0.8
+      js-tiktoken:
+        specifier: ^1.0.21
+        version: 1.0.21
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
@@ -1685,6 +1691,12 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+
+  jqts@0.0.8:
+    resolution: {integrity: sha512-f4XuU3OWF+1e0o9ich5tzNr+EkDwinqHy6rtz9YfEYC1w6JHuSFfrjrseg//auXDExy2nhwrz6e2v6IPlxSodQ==}
+
+  js-tiktoken@1.0.21:
+    resolution: {integrity: sha512-biOj/6M5qdgx5TKjDnFT1ymSpM5tbd3ylwDtrQvFQSu0Z7bBYko2dF+W/aUkXUPuk6IVpRxk/3Q2sHOzGlS36g==}
 
   json-bigint@1.0.0:
     resolution: {integrity: sha512-SiPv/8VpZuWbvLSMtTDU8hEfrZWg/mH/nV/b4o0CYbSxu1UIQPLdwKOCIyLQX+VIPO5vrLX3i8qtqFyhdPSUSQ==}
@@ -4216,6 +4228,12 @@ snapshots:
   is-unicode-supported@2.1.0: {}
 
   isexe@2.0.0: {}
+
+  jqts@0.0.8: {}
+
+  js-tiktoken@1.0.21:
+    dependencies:
+      base64-js: 1.5.1
 
   json-bigint@1.0.0:
     dependencies:
