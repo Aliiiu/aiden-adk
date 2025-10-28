@@ -31,7 +31,7 @@ export class DexService extends BaseService {
 		if (args.protocol) {
 			const url = `${this.BASE_URL}/summary/dexs/${args.protocol}?${params.toString()}`;
 			const data = await this.fetchData<DexOverviewResponse>(url);
-			return this.formatResponse(data, {
+			return await this.formatResponse(data, {
 				title: `DEX Protocol: ${args.protocol}`,
 				currencyFields: ["total24h", "total7d", "total30d"],
 				numberFields: ["change_1d", "change_7d", "change_1m"],
@@ -69,14 +69,14 @@ export class DexService extends BaseService {
 				? `Top 10 DEXs on ${args.chain}`
 				: "Top 10 DEXs Globally";
 
-			return this.formatResponse(top10, {
+			return await this.formatResponse(top10, {
 				title,
 				currencyFields: ["total24h", "total7d", "total30d", "dailyVolume"],
 				numberFields: ["change_1d", "change_7d", "change_1m"],
 			});
 		}
 
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "DEX Data",
 		});
 	}

@@ -31,7 +31,7 @@ export class PriceService extends BaseService {
 		}`;
 
 		const data = await this.fetchData<CurrentPricesResponse>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Current Coin Prices",
 			currencyFields: ["price"],
 		});
@@ -43,7 +43,7 @@ export class PriceService extends BaseService {
 	async getPricesFirstCoins(args: { coins: string }): Promise<string> {
 		const url = `${this.COINS_URL}/prices/first/${args.coins}`;
 		const data = await this.fetchData<FirstPricesResponse>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "First Recorded Prices",
 			currencyFields: ["price"],
 		});
@@ -67,7 +67,7 @@ export class PriceService extends BaseService {
 		const url = `${this.COINS_URL}/batchHistorical?${params.toString()}`;
 
 		const data = await this.fetchData<BatchHistoricalResponse>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Batch Historical Prices",
 			currencyFields: ["price"],
 		});
@@ -94,7 +94,7 @@ export class PriceService extends BaseService {
 		}`;
 
 		const data = await this.fetchData<CurrentPricesResponse>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Historical Prices at ${new Date(unixTime * 1000).toISOString()}`,
 			currencyFields: ["price"],
 		});
@@ -123,7 +123,7 @@ export class PriceService extends BaseService {
 			params.toString() ? `?${params.toString()}` : ""
 		}`;
 		const data = await this.fetchData<PercentageResponse>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Price Percentage Change",
 			numberFields: ["percentage"],
 		});
@@ -153,7 +153,7 @@ export class PriceService extends BaseService {
 		if (params.toString()) url += `?${params.toString()}`;
 
 		const data = await this.fetchData<ChartResponse>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Price Chart Data",
 			currencyFields: ["price"],
 		});

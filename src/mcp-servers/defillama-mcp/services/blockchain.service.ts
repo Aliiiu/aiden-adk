@@ -13,7 +13,7 @@ export class BlockchainService extends BaseService {
 		const url = `${this.COINS_URL}/block/${args.chain}/${unixTime}`;
 
 		const data = await this.fetchData(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Block Data: ${args.chain} at ${new Date(unixTime * 1000).toISOString()}`,
 			numberFields: ["height", "timestamp"],
 		});

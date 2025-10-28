@@ -35,7 +35,7 @@ export class StablecoinService extends BaseService {
 			price: coin.price,
 		}));
 
-		return this.formatResponse(top20, {
+		return await this.formatResponse(top20, {
 			title: "Top 20 Stablecoins",
 			currencyFields: ["price"],
 		});
@@ -54,7 +54,7 @@ export class StablecoinService extends BaseService {
 			mcapsum: item.totalCirculating.peggedUSD,
 		}));
 
-		return this.formatResponse(last3, {
+		return await this.formatResponse(last3, {
 			title: "Stablecoin Chains (Last 3)",
 			currencyFields: ["mcapsum"],
 		});
@@ -97,7 +97,7 @@ export class StablecoinService extends BaseService {
 			? `Stablecoin Charts: ${args.chain}`
 			: "Stablecoin Charts (All Chains)";
 
-		return this.formatResponse(last10, {
+		return await this.formatResponse(last10, {
 			title,
 			currencyFields: [
 				"totalCirculatingPeggedUSD",
@@ -121,7 +121,7 @@ export class StablecoinService extends BaseService {
 			prices: item.prices,
 		}));
 
-		return this.formatResponse(last3, {
+		return await this.formatResponse(last3, {
 			title: "Stablecoin Prices (Last 3)",
 		});
 	}

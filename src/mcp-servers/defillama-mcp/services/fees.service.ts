@@ -35,7 +35,7 @@ export class FeesService extends BaseService {
 			const url = `${this.BASE_URL}/summary/fees/${args.protocol}?${params.toString()}`;
 			const data = await this.fetchData<FeesOverviewResponse>(url);
 
-			return this.formatResponse(data, {
+			return await this.formatResponse(data, {
 				title: `Fees & Revenue: ${args.protocol}`,
 				currencyFields: [
 					"dailyUserFees",
@@ -58,10 +58,10 @@ export class FeesService extends BaseService {
 	/**
 	 * Process fees response and format top protocols
 	 */
-	private processFeesResponse(
+	private async processFeesResponse(
 		data: FeesOverviewResponse,
 		args: { sortCondition: string; order: "asc" | "desc"; chain?: string },
-	): string {
+	): Promise<string> {
 		if (data.protocols) {
 			const sorted = data.protocols.sort((a, b) => {
 				const aVal = (a[args.sortCondition as keyof typeof a] as number) || 0;
@@ -84,7 +84,7 @@ export class FeesService extends BaseService {
 				? `Top 10 Protocols by Fees: ${args.chain}`
 				: "Top 10 Protocols by Fees";
 
-			return this.formatResponse(top10, {
+			return await this.formatResponse(top10, {
 				title,
 				currencyFields: [
 					"dailyUserFees",
@@ -96,7 +96,7 @@ export class FeesService extends BaseService {
 			});
 		}
 
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Fees & Revenue Data",
 		});
 	}

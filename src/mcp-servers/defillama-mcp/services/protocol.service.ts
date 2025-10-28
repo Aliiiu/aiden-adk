@@ -24,7 +24,7 @@ export class ProtocolService extends BaseService {
 			tvl: chain.tvl,
 		}));
 
-		return this.formatResponse(top20, {
+		return await this.formatResponse(top20, {
 			title: "Top 20 Chains by TVL",
 			currencyFields: ["tvl"],
 		});
@@ -43,7 +43,7 @@ export class ProtocolService extends BaseService {
 			const matchedSlug = await findProtocolSlug(args.protocol);
 
 			if (!matchedSlug) {
-				return this.formatResponse(
+				return await this.formatResponse(
 					{
 						error: "Protocol not found",
 						message: `Could not find a protocol matching "${args.protocol}". Please check the protocol name or try calling this tool without the protocol parameter to discover available protocols.`,
@@ -78,13 +78,13 @@ export class ProtocolService extends BaseService {
 					mcap: data.mcap,
 				};
 
-				return this.formatResponse(essentialData, {
+				return await this.formatResponse(essentialData, {
 					title: `Protocol: ${data.name}`,
 					currencyFields: ["tvl", "mcap"],
 					numberFields: ["change_1h", "change_1d", "change_7d"],
 				});
 			} catch (_error) {
-				return this.formatResponse(
+				return await this.formatResponse(
 					{
 						error: "Failed to fetch protocol data",
 						message: `Found matching slug "${matchedSlug}" for "${args.protocol}", but failed to fetch data from API.`,
@@ -119,7 +119,7 @@ export class ProtocolService extends BaseService {
 			currentChainTvls: protocol.currentChainTvls,
 		}));
 
-		return this.formatResponse(top10, {
+		return await this.formatResponse(top10, {
 			title: `Top 10 Protocols by ${args.sortCondition}`,
 			currencyFields: ["tvl"],
 			numberFields: ["change_1h", "change_1d", "change_7d"],
@@ -140,7 +140,7 @@ export class ProtocolService extends BaseService {
 			tvl: item.tvl,
 		}));
 
-		return this.formatResponse(last10, {
+		return await this.formatResponse(last10, {
 			title: args.chain
 				? `Historical TVL: ${args.chain}`
 				: "Historical TVL (All Chains)",

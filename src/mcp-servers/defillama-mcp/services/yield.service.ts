@@ -21,7 +21,7 @@ export class YieldService extends BaseService {
 			apyBase: item.apyBase,
 		}));
 
-		return this.formatResponse(last10, {
+		return await this.formatResponse(last10, {
 			title: `Historical Pool Data: ${args.pool}`,
 			currencyFields: ["tvlUsd"],
 			numberFields: ["apy", "apyBase"],
@@ -57,7 +57,7 @@ export class YieldService extends BaseService {
 			predictions: pool.predictions,
 		}));
 
-		return this.formatResponse(limited, {
+		return await this.formatResponse(limited, {
 			title: `Top ${args.limit} Yield Pools`,
 			currencyFields: ["tvlUsd"],
 			numberFields: ["apy", "apyPct1D", "apyPct7D", "apyPct30D"],

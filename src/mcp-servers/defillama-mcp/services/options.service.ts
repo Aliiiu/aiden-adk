@@ -41,7 +41,7 @@ export class OptionsService extends BaseService {
 			const url = `${this.BASE_URL}/summary/options/${args.protocol}?${summaryParams.toString()}`;
 			const data = await this.fetchData<OptionsOverviewResponse>(url);
 
-			return this.formatResponse(data, {
+			return await this.formatResponse(data, {
 				title: `Options Protocol: ${args.protocol}`,
 				currencyFields: ["total24h", "total7d", "total30d"],
 				numberFields: ["change_1d", "change_7d", "change_1m"],
@@ -59,10 +59,10 @@ export class OptionsService extends BaseService {
 	/**
 	 * Process options response and format top protocols
 	 */
-	private processOptionsResponse(
+	private async processOptionsResponse(
 		data: OptionsOverviewResponse,
 		args: { sortCondition: string; order: "asc" | "desc"; chain?: string },
-	): string {
+	): Promise<string> {
 		if (data.protocols) {
 			const sorted = data.protocols.sort((a, b) => {
 				const aVal = (a[args.sortCondition as keyof typeof a] as number) || 0;
@@ -76,14 +76,14 @@ export class OptionsService extends BaseService {
 				? `Top 10 Options Protocols: ${args.chain}`
 				: "Top 10 Options Protocols";
 
-			return this.formatResponse(top10, {
+			return await this.formatResponse(top10, {
 				title,
 				currencyFields: ["total24h", "total7d", "total30d"],
 				numberFields: ["change_1d", "change_7d", "change_1m"],
 			});
 		}
 
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Options Data",
 		});
 	}
