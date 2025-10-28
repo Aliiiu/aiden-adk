@@ -65,13 +65,13 @@ export class StablecoinService extends BaseService {
 	 */
 	async getStableCoinCharts(args: {
 		chain?: string;
-		stablecoin?: number;
+		stablecoin?: number | string;
 	}): Promise<string> {
 		let url: string;
 		const params = new URLSearchParams();
 
 		if (args.stablecoin !== undefined) {
-			params.append("stablecoin", args.stablecoin.toString());
+			params.append("stablecoin", String(args.stablecoin));
 		}
 
 		if (args.chain) {

@@ -1,4 +1,3 @@
-import { findProtocolSlug } from "../protocol-matcher";
 import type { ChainData, HistoricalChainTvlItem, ProtocolData } from "../types";
 import { BaseService } from "./base.service";
 
@@ -39,26 +38,13 @@ export class ProtocolService extends BaseService {
 		order: "asc" | "desc";
 	}): Promise<string> {
 		if (args.protocol) {
-			// Use Gemini to find the correct protocol slug
-			const matchedSlug = await findProtocolSlug(args.protocol);
-
-			if (!matchedSlug) {
-				return await this.formatResponse(
-					{
-						error: "Protocol not found",
-						message: `Could not find a protocol matching "${args.protocol}". Please check the protocol name or try calling this tool without the protocol parameter to discover available protocols.`,
-						suggestedProtocol: args.protocol,
-					},
-					{
-						title: "Error: Protocol Not Found",
-					},
-				);
-			}
+			// Protocol slug is already resolved by autoResolveEntities at the tool layer
+			const protocolSlug = args.protocol;
 
 			try {
-				const data = await this.getCachedData(`protocol:${matchedSlug}`, () =>
+				const data = await this.getCachedData(`protocol:${protocolSlug}`, () =>
 					this.fetchData<ProtocolData>(
-						`${this.BASE_URL}/protocol/${matchedSlug}`,
+						`${this.BASE_URL}/protocol/${protocolSlug}`,
 					),
 				);
 
@@ -87,9 +73,8 @@ export class ProtocolService extends BaseService {
 				return await this.formatResponse(
 					{
 						error: "Failed to fetch protocol data",
-						message: `Found matching slug "${matchedSlug}" for "${args.protocol}", but failed to fetch data from API.`,
-						matchedSlug,
-						originalQuery: args.protocol,
+						message: `Failed to fetch data for protocol "${protocolSlug}". The protocol may not exist or the API request failed.`,
+						protocolSlug,
 					},
 					{
 						title: "Error: API Request Failed",
