@@ -1,10 +1,40 @@
+import type { LanguageModel } from "ai";
+import { Tiktoken } from "js-tiktoken/lite";
+import cl100k_base from "js-tiktoken/ranks/cl100k_base";
+import { logger } from "../../../lib/utils";
+import { LLMDataFilter } from "../../debank-mcp/utils/data-filter";
+import { config } from "../config";
 import type { CacheEntry } from "../types";
+
+// Initialize tiktoken encoder for token counting
+const encoder = new Tiktoken(cl100k_base);
 
 /**
  * Base Service for DefiLlama API
  * Provides common caching and data fetching functionality
  */
 export abstract class BaseService {
+	protected aiModel?: LanguageModel;
+	protected dataFilter?: LLMDataFilter;
+	protected currentQuery?: string;
+
+	/**
+	 * Set the AI model for data filtering
+	 * Call this method to enable automatic filtering of large responses
+	 */
+	setAIModel(model: LanguageModel) {
+		this.aiModel = model;
+		this.dataFilter = new LLMDataFilter({ model });
+	}
+
+	/**
+	 * Set the current user query for context-aware filtering
+	 * This should be called before making service requests
+	 */
+	setQuery(query: string) {
+		this.currentQuery = query;
+	}
+
 	protected readonly BASE_URL = "https://api.llama.fi";
 	protected readonly COINS_URL = "https://coins.llama.fi";
 	protected readonly STABLECOINS_URL = "https://stablecoins.llama.fi";
@@ -54,15 +84,57 @@ export abstract class BaseService {
 		return Math.floor(parsed / 1000);
 	}
 
-	protected formatResponse(
+	/**
+	 * Format response for LLM consumption
+	 * Returns MCP-compliant response with content array
+	 * Automatically filters large responses if AI model is configured
+	 * Uses currentQuery set via setQuery() for filtering context
+	 */
+	protected async formatResponse(
 		data: unknown,
 		options?: {
 			title?: string;
 			currencyFields?: string[];
 			numberFields?: string[];
 		},
-	): string {
+	): Promise<string> {
 		const { toMarkdown } = require("../../../lib/utils/markdown-formatter");
-		return toMarkdown(data, options);
+		let markdownOutput = toMarkdown(data, options);
+
+		const tokenLength = encoder.encode(markdownOutput).length;
+		logger.info(`Response token length: ${tokenLength}`);
+		logger.info(
+			`User query for filtering: ${this.currentQuery ? "Yes" : "No"}`,
+		);
+		logger.info(`Data filter configured: ${this.dataFilter ? "Yes" : "No"}`);
+
+		if (
+			tokenLength > config.maxTokens &&
+			this.dataFilter &&
+			this.currentQuery
+		) {
+			try {
+				const jsonData = JSON.stringify(data);
+				const filteredJson = await this.dataFilter.filter(
+					jsonData,
+					this.currentQuery,
+				);
+				markdownOutput = toMarkdown(JSON.parse(filteredJson), {
+					title: options?.title,
+					currencyFields: options?.currencyFields,
+					numberFields: options?.numberFields,
+				});
+
+				const tokenLength = encoder.encode(markdownOutput).length;
+				logger.info(`New Response token length: ${tokenLength}`);
+
+				return markdownOutput;
+			} catch (error) {
+				console.error("Error filtering response:", error);
+				return markdownOutput;
+			}
+		}
+
+		return markdownOutput;
 	}
 }
