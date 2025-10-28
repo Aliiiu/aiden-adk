@@ -7,7 +7,7 @@ export class ProtocolService extends BaseService {
 		const data = await this.fetchWithToolConfig<ProtocolInfo>(
 			`${this.baseUrl}/protocol?id=${args.id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Protocol Information: ${data.name || args.id}`,
 			currencyFields: ["tvl"],
 		});
@@ -24,7 +24,7 @@ export class ProtocolService extends BaseService {
 			url,
 			config.protocolsListLifeTime,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: args.chain_ids
 				? `Protocols on Chains: ${args.chain_ids}`
 				: "All Supported Protocols",
@@ -46,7 +46,7 @@ export class ProtocolService extends BaseService {
 		const data = await this.fetchWithToolConfig<ProtocolHolder[]>(
 			`${this.baseUrl}/protocol/top_holders?${params}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Top Holders of Protocol: ${args.id}`,
 			currencyFields: ["usd_value"],
 		});
@@ -60,7 +60,7 @@ export class ProtocolService extends BaseService {
 			`${this.baseUrl}/pool?id=${args.id}&chain_id=${args.chain_id}`,
 			config.poolDataLifeTime,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Pool Information: ${data.name || args.id}`,
 			currencyFields: ["tvl"],
 		});

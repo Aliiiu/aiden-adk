@@ -21,7 +21,9 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<{ chain_id: string }[]>(
 			`${this.baseUrl}/user/used_chain_list?id=${args.id}`,
 		);
-		return this.formatResponse(data, { title: `Chains Used by ${args.id}` });
+		return await this.formatResponse(data, {
+			title: `Chains Used by ${args.id}`,
+		});
 	}
 
 	async getUserChainBalance(args: {
@@ -31,7 +33,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserChainBalance>(
 			`${this.baseUrl}/user/chain_balance?id=${args.id}&chain_id=${args.chain_id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Balance on ${args.chain_id}`,
 			currencyFields: ["usd_value"],
 		});
@@ -44,7 +46,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserProtocolPosition>(
 			`${this.baseUrl}/user/protocol?id=${args.id}&protocol_id=${args.protocol_id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Protocol Position",
 			currencyFields: ["usd_value"],
 		});
@@ -57,7 +59,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserProtocolPosition[]>(
 			`${this.baseUrl}/user/complex_protocol_list?id=${args.id}&chain_id=${args.chain_id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Complex Protocol Positions on ${args.chain_id}`,
 			currencyFields: ["usd_value"],
 		});
@@ -72,7 +74,7 @@ export class UserService extends BaseService {
 			: `${this.baseUrl}/user/all_complex_protocol_list?id=${args.id}`;
 
 		const data = await this.fetchWithToolConfig<UserProtocolPosition[]>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "All Complex Protocol Positions",
 			currencyFields: ["usd_value"],
 		});
@@ -87,7 +89,7 @@ export class UserService extends BaseService {
 			: `${this.baseUrl}/user/all_simple_protocol_list?id=${args.id}`;
 
 		const data = await this.fetchWithToolConfig<UserProtocolPosition[]>(url);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Simple Protocol Positions",
 			currencyFields: ["usd_value"],
 		});
@@ -101,7 +103,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserTokenBalance>(
 			`${this.baseUrl}/user/token?id=${args.id}&chain_id=${args.chain_id}&token_id=${args.token_id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Token Balance: ${args.token_id}`,
 			currencyFields: ["price", "usd_value"],
 			numberFields: ["amount"],
@@ -126,7 +128,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserTokenBalance[]>(
 			`${this.baseUrl}/user/token_list?${params}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Token Holdings on ${args.chain_id}`,
 			currencyFields: ["price", "usd_value"],
 			numberFields: ["amount"],
@@ -149,7 +151,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserTokenBalance[]>(
 			`${this.baseUrl}/user/all_token_list?${params}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "All Token Holdings",
 			currencyFields: ["price", "usd_value"],
 			numberFields: ["amount"],
@@ -170,7 +172,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserNFT[]>(
 			`${this.baseUrl}/user/nft_list?${params}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `NFT Collection on ${args.chain_id}`,
 			numberFields: ["amount"],
 		});
@@ -190,7 +192,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserNFT[]>(
 			`${this.baseUrl}/user/all_nft_list?${params}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "All NFT Holdings",
 			numberFields: ["amount"],
 		});
@@ -220,7 +222,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserHistoryItem[]>(
 			`${this.baseUrl}/user/history_list?${params}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Transaction History on ${args.chain_id}`,
 		});
 	}
@@ -247,7 +249,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserHistoryItem[]>(
 			`${this.baseUrl}/user/all_history_list?${params}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Complete Transaction History",
 		});
 	}
@@ -256,7 +258,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<TokenAuthorization[]>(
 			`${this.baseUrl}/user/token_authorized_list?id=${args.id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Token Authorizations",
 		});
 	}
@@ -265,7 +267,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<NFTAuthorization[]>(
 			`${this.baseUrl}/user/nft_authorized_list?id=${args.id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "NFT Authorizations",
 		});
 	}
@@ -274,7 +276,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<UserTotalBalance>(
 			`${this.baseUrl}/user/total_balance?id=${args.id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Total Portfolio Balance",
 			currencyFields: ["total_usd_value"],
 		});
@@ -287,7 +289,7 @@ export class UserService extends BaseService {
 		const data = await this.fetchWithToolConfig<NetCurvePoint[]>(
 			`${this.baseUrl}/user/chain_net_curve?id=${args.id}&chain_id=${args.chain_id}`,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Portfolio Value Over Time (${args.chain_id})`,
 			currencyFields: ["usd_value"],
 		});

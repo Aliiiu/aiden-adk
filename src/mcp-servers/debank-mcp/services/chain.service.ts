@@ -8,7 +8,7 @@ export class ChainService extends BaseService {
 			`${this.baseUrl}/chain?id=${args.id}`,
 			config.chainDataLifeTime,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Chain Information: ${data.name}`,
 		});
 	}
@@ -18,7 +18,7 @@ export class ChainService extends BaseService {
 			`${this.baseUrl}/chain/list`,
 			config.supportedChainListLifeTime,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Supported Chains",
 		});
 	}
@@ -28,7 +28,7 @@ export class ChainService extends BaseService {
 			`${this.baseUrl}/gas_market?chain_id=${args.chain_id}`,
 			config.gasPriceLifeTime,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: `Gas Prices for Chain: ${args.chain_id}`,
 			numberFields: ["price", "front_tx_count", "estimated_seconds"],
 		});

@@ -23,7 +23,7 @@ export class TransactionService extends BaseService {
 			`${config.baseUrl}/wallet/pre_exec_tx`,
 			body,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Transaction Simulation Result",
 		});
 	}
@@ -37,7 +37,7 @@ export class TransactionService extends BaseService {
 			`${config.baseUrl}/wallet/explain_tx`,
 			body,
 		);
-		return this.formatResponse(data, {
+		return await this.formatResponse(data, {
 			title: "Transaction Explanation",
 		});
 	}
