@@ -1,10 +1,12 @@
 import type { LanguageModel } from "ai";
 import { Tiktoken } from "js-tiktoken/lite";
 import cl100k_base from "js-tiktoken/ranks/cl100k_base";
-import { logger } from "../../../lib/utils";
+import { createChildLogger } from "../../../lib/utils";
 import { LLMDataFilter } from "../../debank-mcp/utils/data-filter";
 import { config } from "../config";
 import type { CacheEntry } from "../types";
+
+const logger = createChildLogger("DefiLlama Base Service");
 
 // Initialize tiktoken encoder for token counting
 const encoder = new Tiktoken(cl100k_base);
