@@ -1,5 +1,6 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
+import { logger } from "../../lib/utils";
 import {
 	chainService,
 	protocolService,
@@ -7,6 +8,21 @@ import {
 	transactionService,
 	userService,
 } from "./services";
+
+/**
+ * Helper to set query on all services when _userQuery is provided in args
+ * This is called from MCP tool execute functions to enable context-aware filtering
+ */
+function setQueryFromArgs(args: Record<string, unknown>) {
+	const query = args._userQuery as string | undefined;
+	if (query) {
+		chainService.setQuery(query);
+		protocolService.setQuery(query);
+		tokenService.setQuery(query);
+		transactionService.setQuery(query);
+		userService.setQuery(query);
+	}
+}
 
 /**
  * Tool definitions for FastMCP (MCP Server usage)
@@ -18,8 +34,13 @@ export const debankTools = [
 		name: "debank_get_supported_chain_list",
 		description:
 			"Retrieve a comprehensive list of all blockchain chains supported by the DeBank API. Returns information about each chain including their IDs, names, logo URLs, native token IDs, wrapped token IDs, and pre-execution support status. Use this to discover available chains before calling other chain-specific endpoints.",
-		parameters: z.object({}),
-		execute: async () => await chainService.getSupportedChainList(),
+		parameters: z.object({
+			_userQuery: z.string().optional(),
+		}),
+		execute: async (args: Record<string, unknown>) => {
+			setQueryFromArgs(args);
+			return await chainService.getSupportedChainList();
+		},
 	},
 	{
 		name: "debank_get_chain",
@@ -31,8 +52,12 @@ export const debankTools = [
 				.describe(
 					"The unique identifier of the chain (e.g., 'eth' for Ethereum, 'bsc' for BNB Chain, 'matic' for Polygon, 'arb' for Arbitrum). Use debank_get_supported_chain_list to discover available chain IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string }) => await chainService.getChain(args),
+		execute: async (args: { id: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await chainService.getChain(args);
+		},
 	},
 
 	// Protocol Endpoints
@@ -47,9 +72,12 @@ export const debankTools = [
 				.describe(
 					"Comma-separated list of chain IDs to filter protocols (e.g., 'eth,bsc,matic'). If omitted, returns protocols across all supported chains. Use debank_get_supported_chain_list to discover valid chain IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain_ids?: string }) =>
-			await protocolService.getAllProtocolsOfSupportedChains(args),
+		execute: async (args: { chain_ids?: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await protocolService.getAllProtocolsOfSupportedChains(args);
+		},
 	},
 	{
 		name: "debank_get_protocol_information",
@@ -61,9 +89,12 @@ export const debankTools = [
 				.describe(
 					"The unique identifier of the protocol (e.g., 'bsc_pancakeswap' for PancakeSwap on BSC, 'uniswap', 'aave', 'curve'). Use debank_get_all_protocols_of_supported_chains to discover protocol IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string }) =>
-			await protocolService.getProtocolInformation(args),
+		execute: async (args: { id: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await protocolService.getProtocolInformation(args);
+		},
 	},
 
 	{
@@ -94,9 +125,17 @@ export const debankTools = [
 				.describe(
 					"Maximum number of top holders to retrieve. Default and maximum is 100.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; start?: number; limit?: number }) =>
-			await protocolService.getTopHoldersOfProtocol(args),
+		execute: async (args: {
+			id: string;
+			start?: number;
+			limit?: number;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await protocolService.getTopHoldersOfProtocol(args);
+		},
 	},
 
 	// Pool Endpoints
@@ -115,9 +154,16 @@ export const debankTools = [
 				.describe(
 					"The chain ID where the pool is located (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to discover valid chain IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_id: string }) =>
-			await protocolService.getPoolInformation(args),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await protocolService.getPoolInformation(args);
+		},
 	},
 
 	// Token Endpoints
@@ -136,9 +182,16 @@ export const debankTools = [
 				.describe(
 					"The token contract address or native token ID (e.g., 'eth' for Ethereum, 'matic' for Polygon, or '0xdac17f958d2ee523a2206206994597c13d831ec7' for USDT on Ethereum).",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain_id: string; id: string }) =>
-			await tokenService.getTokenInformation(args),
+		execute: async (args: {
+			chain_id: string;
+			id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await tokenService.getTokenInformation(args);
+		},
 	},
 
 	{
@@ -156,9 +209,16 @@ export const debankTools = [
 				.describe(
 					"Comma-separated list of token addresses (up to 100). Example: '0xdac17f958d2ee523a2206206994597c13d831ec7,0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain_id: string; ids: string }) =>
-			await tokenService.getListTokenInformation(args),
+		execute: async (args: {
+			chain_id: string;
+			ids: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await tokenService.getListTokenInformation(args);
+		},
 	},
 
 	{
@@ -190,13 +250,17 @@ export const debankTools = [
 				.max(100)
 				.optional()
 				.describe("Maximum number of holders to return. Default is 100."),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			id: string;
 			chain_id: string;
 			start?: number;
 			limit?: number;
-		}) => await tokenService.getTopHoldersOfToken(args),
+		}) => {
+			setQueryFromArgs(args);
+			return await tokenService.getTopHoldersOfToken(args);
+		},
 	},
 
 	{
@@ -219,9 +283,17 @@ export const debankTools = [
 				.describe(
 					"The date for historical price data in UTC time zone. Format: YYYY-MM-DD (e.g., '2023-05-18').",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_id: string; date_at: string }) =>
-			await tokenService.getTokenHistoryPrice(args),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			date_at: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await tokenService.getTokenHistoryPrice(args);
+		},
 	},
 
 	// User Endpoints
@@ -231,9 +303,12 @@ export const debankTools = [
 			"Retrieve a list of blockchain chains that a specific user has interacted with. Returns details about each chain including ID, name, logo URL, native token ID, wrapped token ID, and the birth time of the user's address on each chain.",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string }) =>
-			await userService.getUserUsedChainList(args),
+		execute: async (args: { id: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await userService.getUserUsedChainList(args);
+		},
 	},
 
 	{
@@ -247,9 +322,16 @@ export const debankTools = [
 					"The chain ID (e.g., 'eth', 'bsc', 'matic').  Use debank_get_supported_chain_list to find valid chain IDs",
 				),
 			id: z.string().describe("The user's wallet address."),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain_id: string; id: string }) =>
-			await userService.getUserChainBalance(args),
+		execute: async (args: {
+			chain_id: string;
+			id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserChainBalance(args);
+		},
 	},
 
 	{
@@ -263,9 +345,16 @@ export const debankTools = [
 					"The protocol ID (e.g., 'bsc_pancakeswap', 'uniswap', 'aave')Use debank_get_all_protocols_of_supported_chains to discover protocol IDs..",
 				),
 			id: z.string().describe("The user's wallet address."),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { protocol_id: string; id: string }) =>
-			await userService.getUserProtocol(args),
+		execute: async (args: {
+			protocol_id: string;
+			id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserProtocol(args);
+		},
 	},
 
 	{
@@ -279,9 +368,16 @@ export const debankTools = [
 					"The chain ID (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs",
 				),
 			id: z.string().describe("The user's wallet address."),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain_id: string; id: string }) =>
-			await userService.getUserComplexProtocolList(args),
+		execute: async (args: {
+			chain_id: string;
+			id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserComplexProtocolList(args);
+		},
 	},
 
 	{
@@ -296,9 +392,16 @@ export const debankTools = [
 				.describe(
 					"Optional comma-separated list of chain IDs to filter by (e.g., 'eth,bsc,matic'). If omitted, includes all supported chains.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_ids?: string }) =>
-			await userService.getUserAllComplexProtocolList(args),
+		execute: async (args: {
+			id: string;
+			chain_ids?: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserAllComplexProtocolList(args);
+		},
 	},
 
 	{
@@ -313,9 +416,16 @@ export const debankTools = [
 				.describe(
 					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_ids?: string }) =>
-			await userService.getUserAllSimpleProtocolList(args),
+		execute: async (args: {
+			id: string;
+			chain_ids?: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserAllSimpleProtocolList(args);
+		},
 	},
 
 	{
@@ -334,9 +444,17 @@ export const debankTools = [
 				.describe(
 					"The token address or native token ID (e.g., 'eth' or contract address).",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain_id: string; id: string; token_id: string }) =>
-			await userService.getUserTokenBalance(args),
+		execute: async (args: {
+			chain_id: string;
+			id: string;
+			token_id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserTokenBalance(args);
+		},
 	},
 
 	{
@@ -356,9 +474,17 @@ export const debankTools = [
 				.describe(
 					"If true, returns all tokens including non-core tokens. Default is true.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_id: string; is_all?: boolean }) =>
-			await userService.getUserTokenList(args),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			is_all?: boolean;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserTokenList(args);
+		},
 	},
 
 	{
@@ -373,9 +499,16 @@ export const debankTools = [
 				.describe(
 					"If true, includes all tokens in the response. Default is true.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; is_all?: boolean }) =>
-			await userService.getUserAllTokenList(args),
+		execute: async (args: {
+			id: string;
+			is_all?: boolean;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserAllTokenList(args);
+		},
 	},
 
 	{
@@ -395,9 +528,17 @@ export const debankTools = [
 				.describe(
 					"If false, only returns NFTs from verified collections. Default is true.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_id: string; is_all?: boolean }) =>
-			await userService.getUserNftList(args),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			is_all?: boolean;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserNftList(args);
+		},
 	},
 
 	{
@@ -416,12 +557,16 @@ export const debankTools = [
 				.describe(
 					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
 				),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			id: string;
 			is_all?: boolean;
 			chain_ids?: string;
-		}) => await userService.getUserAllNftList(args),
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserAllNftList(args);
+		},
 	},
 
 	{
@@ -453,6 +598,7 @@ export const debankTools = [
 				.max(20)
 				.optional()
 				.describe("Number of entries to return. Maximum is 20."),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			id: string;
@@ -460,7 +606,10 @@ export const debankTools = [
 			token_id?: string;
 			start_time?: number;
 			page_count?: number;
-		}) => await userService.getUserHistoryList(args),
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserHistoryList(args);
+		},
 	},
 
 	{
@@ -489,13 +638,17 @@ export const debankTools = [
 				.describe(
 					"Optional comma-separated list of chain IDs. If omitted, includes all chains.Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
 				),
+			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: {
 			id: string;
 			start_time?: number;
 			page_count?: number;
 			chain_ids?: string;
-		}) => await userService.getUserAllHistoryList(args),
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserAllHistoryList(args);
+		},
 	},
 
 	{
@@ -509,9 +662,16 @@ export const debankTools = [
 				.describe(
 					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_id: string }) =>
-			await userService.getUserTokenAuthorizedList(args),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserTokenAuthorizedList(args);
+		},
 	},
 
 	{
@@ -525,9 +685,16 @@ export const debankTools = [
 				.describe(
 					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_id: string }) =>
-			await userService.getUserNftAuthorizedList(args),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserNftAuthorizedList(args);
+		},
 	},
 
 	{
@@ -536,9 +703,12 @@ export const debankTools = [
 			"Retrieve a user's total net assets across all supported chains. Calculates and returns the total USD value of assets including both tokens and protocol positions. Provides a complete snapshot of the user's DeFi portfolio.",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string }) =>
-			await userService.getUserTotalBalance(args),
+		execute: async (args: { id: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await userService.getUserTotalBalance(args);
+		},
 	},
 
 	{
@@ -552,9 +722,16 @@ export const debankTools = [
 				.describe(
 					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_id: string }) =>
-			await userService.getUserChainNetCurve(args),
+		execute: async (args: {
+			id: string;
+			chain_id: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserChainNetCurve(args);
+		},
 	},
 
 	{
@@ -569,9 +746,16 @@ export const debankTools = [
 				.describe(
 					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { id: string; chain_ids?: string }) =>
-			await userService.getUserTotalNetCurve(args),
+		execute: async (args: {
+			id: string;
+			chain_ids?: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await userService.getUserTotalNetCurve(args);
+		},
 	},
 
 	// Wallet Endpoints
@@ -585,9 +769,12 @@ export const debankTools = [
 				.describe(
 					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { chain_id: string }) =>
-			await chainService.getGasPrices(args),
+		execute: async (args: { chain_id: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await chainService.getGasPrices(args);
+		},
 	},
 
 	{
@@ -606,9 +793,16 @@ export const debankTools = [
 				.describe(
 					"Optional JSON string array of transactions to execute before the main transaction (e.g., approval transactions).",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { tx: string; pending_tx_list?: string }) =>
-			await transactionService.preExecTransaction(args),
+		execute: async (args: {
+			tx: string;
+			pending_tx_list?: string;
+			_userQuery?: string;
+		}) => {
+			setQueryFromArgs(args);
+			return await transactionService.preExecTransaction(args);
+		},
 	},
 
 	{
@@ -621,15 +815,30 @@ export const debankTools = [
 				.describe(
 					"The transaction object as a JSON string to be explained. Must include transaction data field.",
 				),
+			_userQuery: z.string().optional(),
 		}),
-		execute: async (args: { tx: string }) =>
-			await transactionService.explainTransaction(args),
+		execute: async (args: { tx: string; _userQuery?: string }) => {
+			setQueryFromArgs(args);
+			return await transactionService.explainTransaction(args);
+		},
 	},
 ] as const;
 
 /**
+ * Helper to extract user query from context.userContent
+ * The userContent contains the original user message that started the invocation
+ */
+function extractQueryFromContext(context?: {
+	userContent?: { parts?: Array<{ text?: string }> };
+}): string | null {
+	if (!context?.userContent?.parts) return null;
+	const firstPart = context.userContent.parts[0];
+	return firstPart?.text || null;
+}
+
+/**
  * Get all DeBank tools as ADK BaseTool instances
- * Use this function when integrating with ADK agents
+ * Use this function when integrating with ADK agents (direct import, not MCP)
  */
 export const getDebankTools = (): BaseTool[] => {
 	return debankTools.map((tool) =>
@@ -637,7 +846,21 @@ export const getDebankTools = (): BaseTool[] => {
 			name: tool.name,
 			description: tool.description,
 			schema: tool.parameters as z.ZodSchema<Record<string, unknown>>,
-			fn: async (args) => await tool.execute(args as never),
+			fn: async (args, context) => {
+				// Extract and inject user query from context.userContent into all services
+				const query = extractQueryFromContext(context);
+				logger.info(
+					`Debank Tool ${tool.name} - extracted user query: ${query}`,
+				);
+				if (query) {
+					chainService.setQuery(query);
+					protocolService.setQuery(query);
+					tokenService.setQuery(query);
+					transactionService.setQuery(query);
+					userService.setQuery(query);
+				}
+				return await tool.execute(args as never);
+			},
 		}),
 	);
 };
