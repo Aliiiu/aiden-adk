@@ -10,4 +10,5 @@ export const config = {
 	chainDataLifeTime: 300, // 5 minutes
 	supportedChainListLifeTime: 604800, // 7 days
 	protocolsListLifeTime: 604800, // 7 days
+	maxTokens: 200000, // Maximum tokens before filtering response
 };
