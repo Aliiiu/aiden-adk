@@ -3,6 +3,8 @@
  * Centralized exports for all service classes and singleton instances
  */
 
+import { env } from "../../../env";
+import { openrouter } from "../../../lib/integrations/openrouter";
 import { BlockchainService } from "./blockchain.service";
 import { DexService } from "./dex.service";
 import { FeesService } from "./fees.service";
@@ -32,3 +34,14 @@ export const priceService = new PriceService();
 export const protocolService = new ProtocolService();
 export const stablecoinService = new StablecoinService();
 export const yieldService = new YieldService();
+
+// Initialize AI model for data filtering
+const aiModel = openrouter(env.LLM_MODEL);
+blockchainService.setAIModel(aiModel);
+dexService.setAIModel(aiModel);
+feesService.setAIModel(aiModel);
+optionsService.setAIModel(aiModel);
+priceService.setAIModel(aiModel);
+protocolService.setAIModel(aiModel);
+stablecoinService.setAIModel(aiModel);
+yieldService.setAIModel(aiModel);
