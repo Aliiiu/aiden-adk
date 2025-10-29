@@ -73,13 +73,11 @@ export async function resolveProtocol(name: string): Promise<string | null> {
 			1. Return ONLY the slug, nothing else
 			2. Match the user's query to the most appropriate protocol from the list
 			3. For protocols with multiple versions, prefer the latest/most commonly used version unless the user explicitly specifies a version
-			4. Handle variations in naming (e.g., "Uni" or "Uniswap" should both match "uniswap")
-			5. If no good match exists, return "NOT_FOUND"
-			6. Be case-insensitive and flexible with spacing and punctuation
+			4. If no good match exists, return "NOT_FOUND"
+			5. Be case-insensitive and flexible with spacing and punctuation
 
 			Examples:
 			- User: "Lido" → "lido"
-			- User: "Uniswap" → "uniswap"
 			- User: "Aave V3" → "aave-v3"
 			- User: "Curve" → "curve-dex"
 			- User: "MakerDAO" → "makerdao"
@@ -88,7 +86,7 @@ export async function resolveProtocol(name: string): Promise<string | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.0-flash-exp"),
+			model: google("gemini-2.5-flash"),
 			prompt,
 			system: endent`
 				You are a precise protocol matcher. Return ONLY the slug or NOT_FOUND. No explanations.
@@ -154,7 +152,7 @@ export async function resolveChain(name: string): Promise<string | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.0-flash-exp"),
+			model: google("gemini-2.5-flash"),
 			prompt,
 			system: endent`
 				You are a precise chain matcher. Return ONLY the exact chain name or NOT_FOUND. No explanations.
@@ -219,7 +217,7 @@ export async function resolveStablecoin(name: string): Promise<string | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.0-flash-exp"),
+			model: google("gemini-2.5-flash"),
 			prompt,
 			system: endent`
 				You are a precise stablecoin matcher. Return ONLY the numeric ID or NOT_FOUND. No explanations.
@@ -282,7 +280,7 @@ export async function resolveBridge(name: string): Promise<number | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.0-flash-exp"),
+			model: google("gemini-2.5-flash"),
 			prompt,
 			system: endent`
 				You are a precise bridge matcher. Return ONLY the numeric ID or NOT_FOUND. No explanations.
@@ -297,7 +295,7 @@ export async function resolveBridge(name: string): Promise<number | null> {
 		}
 
 		const id = Number(idStr);
-		if (isNaN(id)) {
+		if (Number.isNaN(id)) {
 			logger.warn(`Gemini returned non-numeric bridge ID: ${idStr}`);
 			return null;
 		}
