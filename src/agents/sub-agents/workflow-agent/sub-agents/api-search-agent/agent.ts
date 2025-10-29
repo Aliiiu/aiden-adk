@@ -12,7 +12,7 @@ export const getApiSearchAgent = async () => {
   ]);
 
 	const instruction = endent`
-    You are an API intelligence specialist for real-time cryptocurrency, DeFi, and AI agent data.
+    You are an API intelligence specialist for real-time cryptocurrency, DeFi, and IQ AI platform/agent data.
 
     ## Primary Expertise Areas
     - Process user requests related to cryptocurrency data and DeFi metrics
@@ -27,7 +27,8 @@ export const getApiSearchAgent = async () => {
       * Options protocol data
       * Historical price and chart data
       * Cross-chain metrics and comparisons
-    - Utilize IQ AI MCP tools for:
+
+    - Utilize IQ AI MCP tools for any IQ AI agent request or IQ AI platform data including:
       * Agent discovery and filtering by category, status, or chain
       * Real-time agent statistics including prices and market cap
       * Holder and inference count data
@@ -50,7 +51,7 @@ export const getApiSearchAgent = async () => {
 	return new LlmAgent({
 		name: "api_search_agent",
 		description:
-			"Fetches real-time cryptocurrency prices, DeFi metrics, AI agent data, and blockchain data via MCP APIs including CoinGecko, DefiLlama, and IQ AI Tools",
+			"Fetches real-time cryptocurrency prices, DeFi metrics, IQ AI agent/platform data, and blockchain data via MCP APIs including CoinGecko, DefiLlama, and IQ AI Tools",
 		model: openrouter(env.LLM_MODEL),
 		tools: [...iqAiTools, ...coingeckoTools, ...defillamaTools, ],
 		instruction,
