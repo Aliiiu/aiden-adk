@@ -1,4 +1,10 @@
 import { type BaseTool, McpToolset } from "@iqai/adk";
+import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
+import { createChildLogger } from "../../../../../lib/utils/logger";
+import * as path from "node:path";
+import * as fs from "node:fs";
+
+const logger = createChildLogger("API Search Tools");
 
 /**
  * Wraps an MCP tool to catch errors and return them as safe objects
@@ -28,18 +34,86 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 }
 
 export const getCoingeckoTools = async () => {
-	const toolset = new McpToolset({
-		name: "Coingecko MCP",
-		description: "mcp for coingecko",
-		transport: {
-			mode: "stdio",
-			command: "npx",
-			args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
-		},
-	});
+	try {
+		const toolset = new McpToolset({
+			name: "Coingecko MCP",
+			description: "mcp for coingecko",
+			debug: false, // Set to true to see detailed MCP logs
+			transport: {
+				mode: "stdio",
+				command: "npx",
+				args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
+			},
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
+		});
 
-	const tools = await toolset.getTools();
+		const tools = await toolset.getTools();
+		logger.info(`Loaded ${tools.length} CoinGecko tools`);
 
-	// Wrap all tools with error handling
-	return tools.map((tool) => wrapToolWithErrorHandling(tool));
+		return tools.map((tool) => wrapToolWithErrorHandling(tool));
+	} catch (error) {
+		logger.warn("Failed to load CoinGecko MCP tools", error as Error);
+		return [];
+	}
+};
+
+/**
+ * Get DefiLlama tools
+ *
+ * Two approaches available:
+ * 1. Direct import (current) - Simpler, faster, already working
+ * 2. MCP Server via McpToolset - True MCP protocol, can be shared with other clients
+ */
+export const getDefillamaToolsWrapped = () => {
+	// OPTION 1: Direct import (current implementation - simpler and faster)
+	const tools = getDefillamaTools();
+	return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
+};
+
+/**
+ * Alternative: Get DefiLlama tools via MCP Server
+ * Replace getDefillamaToolsWrapped() usage in agent.ts with this function
+ * to use the true MCP protocol approach
+ */
+export const getDefillamaToolsViaMcp = async () => {
+	try {
+		const projectRoot = process.cwd();
+		const defillamaMcpPath = path.join(
+			projectRoot,
+			"src/mcp-servers/defillama-mcp/index.ts",
+		);
+
+		// Verify file exists
+		if (!fs.existsSync(defillamaMcpPath)) {
+			throw new Error(
+				`DefiLlama MCP server not found at: ${defillamaMcpPath}\nCurrent working directory: ${projectRoot}`,
+			);
+		}
+
+		const toolset = new McpToolset({
+			name: "DefiLlama MCP",
+			description: "DeFi data via DefiLlama MCP server",
+			debug: false, // Set to true for detailed MCP logs
+			transport: {
+				mode: "stdio",
+				command: "npx",
+				args: ["tsx", defillamaMcpPath],
+			},
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
+		});
+
+		const tools = await toolset.getTools();
+		logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
+		return tools.map((tool) => wrapToolWithErrorHandling(tool));
+	} catch (error) {
+		logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
+		// Fallback to direct import if MCP fails
+		return getDefillamaToolsWrapped();
+	}
 };
