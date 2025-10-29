@@ -196,5 +196,27 @@ export function toMarkdown(
 	}
 
 	// Handle primitives
+	// If it's a number and we have formatting hints, apply them
+	if (typeof data === "number") {
+		let formattedValue: string;
+
+		// Try to infer if this is currency based on context or magnitude
+		const isCurrency =
+			options?.currencyFields !== undefined ||
+			(data > 1000 && Number.isFinite(data)); // Large numbers likely currency
+
+		if (isCurrency) {
+			formattedValue = formatCurrency(data);
+		} else if (options?.numberFields !== undefined) {
+			formattedValue = formatNumber(data);
+		} else {
+			// Format as number with commas for readability
+			formattedValue = formatNumber(data);
+		}
+
+		return `${output}**Value:** ${formattedValue}\n`;
+	}
+
+	// Handle other primitives (strings, booleans)
 	return `${output + String(data)}\n`;
 }
