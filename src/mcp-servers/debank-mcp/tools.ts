@@ -1,7 +1,11 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
 import { logger } from "../../lib/utils";
-import { resolveEntities } from "./entity-resolver";
+import {
+	needsResolution,
+	resolveChain,
+	resolveEntities,
+} from "./entity-resolver";
 import {
 	chainService,
 	protocolService,
@@ -67,7 +71,12 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
-			await autoResolveEntities(args);
+			if (args.id && needsResolution(args.id, "chain")) {
+				const resolved = await resolveChain(args.id);
+				if (resolved) {
+					args.id = resolved;
+				}
+			}
 			setQueryFromArgs(args);
 			return await chainService.getChain(args);
 		},
@@ -106,7 +115,6 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
-			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await protocolService.getProtocolInformation(args);
 		},
@@ -186,7 +194,7 @@ export const debankTools = [
 	{
 		name: "debank_get_token_information",
 		description:
-			"Fetch comprehensive details about a specific token on a blockchain. Returns token information including contract address, chain, name, symbol, decimals, logo URL, associated protocol ID, USD price, verification status, and deployment timestamp. Essential for token analysis and display. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
+			"Fetch comprehensive details about a specific token on a blockchain. Returns token information including contract address, chain, name, symbol, decimals, logo URL, associated protocol ID, USD price, verification status, and deployment timestamp. Essential for token analysis and display. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc'). **WRAPPED TOKEN RESOLUTION:** Keywords like 'WETH', 'wrapped native', or 'native token' automatically resolve to the chain's wrapped token address.",
 		parameters: z.object({
 			chain_id: z
 				.string()
@@ -196,7 +204,7 @@ export const debankTools = [
 			id: z
 				.string()
 				.describe(
-					"The token contract address or native token ID (e.g., 'eth' for Ethereum, 'matic' for Polygon, or '0xdac17f958d2ee523a2206206994597c13d831ec7' for USDT on Ethereum).",
+					"Token contract address, native token ID, or wrapped token keyword. Auto-resolves: 'WETH'→WETH address, 'wrapped native'→chain's wrapped token, 'native token'→chain's wrapped token. Examples: 'WETH', 'wrapped ETH', 'native token', '0xdac17f958d2ee523a2206206994597c13d831ec7' (USDT).",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -242,12 +250,12 @@ export const debankTools = [
 	{
 		name: "debank_get_top_holders_of_token",
 		description:
-			"Fetch the top holders of a specified token, showing the largest token holders ranked by their holdings. Supports both contract addresses and native token IDs. Useful for analyzing token distribution and ownership concentration. Supports pagination for detailed analysis. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
+			"Fetch the top holders of a specified token, showing the largest token holders ranked by their holdings. Supports both contract addresses and native token IDs. Useful for analyzing token distribution and ownership concentration. Supports pagination for detailed analysis. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc'). **WRAPPED TOKEN RESOLUTION:** Keywords like 'WETH', 'wrapped native', or 'native token' automatically resolve to the chain's wrapped token address.",
 		parameters: z.object({
 			id: z
 				.string()
 				.describe(
-					"The token address or native token ID (e.g., 'eth', 'bsc', or contract address).",
+					"Token contract address, native token ID, or wrapped token keyword. Auto-resolves: 'WETH'→WETH address, 'wrapped native'→chain's wrapped token, 'native token'→chain's wrapped token. Examples: 'WETH', 'wrapped BNB', '0xdac17f958d2ee523a2206206994597c13d831ec7'.",
 				),
 			chain_id: z
 				.string()
@@ -285,12 +293,12 @@ export const debankTools = [
 	{
 		name: "debank_get_token_history_price",
 		description:
-			"Retrieve the historical price of a specified token for a given date. Essential for financial analysis, historical comparison, and tracking price movements over time. Returns price data for the UTC time zone on the specified date. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
+			"Retrieve the historical price of a specified token for a given date. Essential for financial analysis, historical comparison, and tracking price movements over time. Returns price data for the UTC time zone on the specified date. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc'). **WRAPPED TOKEN RESOLUTION:** Keywords like 'WETH', 'wrapped native', or 'native token' automatically resolve to the chain's wrapped token address.",
 		parameters: z.object({
 			id: z
 				.string()
 				.describe(
-					"The token address or native token ID (e.g., 'eth', 'bsc', or contract address).",
+					"Token contract address, native token ID, or wrapped token keyword. Auto-resolves: 'WETH'→WETH address, 'wrapped native'→chain's wrapped token, 'native token'→chain's wrapped token. Examples: 'WETH', 'wrapped MATIC', '0xdac17f958d2ee523a2206206994597c13d831ec7'.",
 				),
 			chain_id: z
 				.string()
@@ -326,7 +334,6 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
-			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserUsedChainList(args);
 		},
@@ -374,7 +381,6 @@ export const debankTools = [
 			id: string;
 			_userQuery?: string;
 		}) => {
-			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserProtocol(args);
 		},
@@ -457,7 +463,7 @@ export const debankTools = [
 	{
 		name: "debank_get_user_token_balance",
 		description:
-			"Retrieve a user's balance for a specific token. Returns detailed token information including name, symbol, decimals, USD price, and the user's balance amount. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
+			"Retrieve a user's balance for a specific token. Returns detailed token information including name, symbol, decimals, USD price, and the user's balance amount. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc'). **WRAPPED TOKEN RESOLUTION:** Keywords like 'WETH', 'wrapped native', or 'native token' automatically resolve to the chain's wrapped token address.",
 		parameters: z.object({
 			chain_id: z
 				.string()
@@ -468,7 +474,7 @@ export const debankTools = [
 			token_id: z
 				.string()
 				.describe(
-					"The token address or native token ID (e.g., 'eth' or contract address).",
+					"Token contract address, native token ID, or wrapped token keyword. Auto-resolves: 'WETH'→WETH address, 'wrapped native'→chain's wrapped token, 'native token'→chain's wrapped token. Examples: 'WETH', 'wrapped token', '0xdac17f958d2ee523a2206206994597c13d831ec7'.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -534,7 +540,6 @@ export const debankTools = [
 			is_all?: boolean;
 			_userQuery?: string;
 		}) => {
-			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserAllTokenList(args);
 		},
@@ -603,7 +608,7 @@ export const debankTools = [
 	{
 		name: "debank_get_user_history_list",
 		description:
-			"Fetch a user's transaction history on a specified chain. Returns a list of past transactions with details including transaction type, tokens involved, values, and timestamps. Supports filtering by token and pagination. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
+			"Fetch a user's transaction history on a specified chain. Returns a list of past transactions with details including transaction type, tokens involved, values, and timestamps. Supports filtering by token and pagination. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc'). **WRAPPED TOKEN RESOLUTION:** Keywords like 'WETH', 'wrapped native', or 'native token' automatically resolve to the chain's wrapped token address.",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_id: z
@@ -614,7 +619,9 @@ export const debankTools = [
 			token_id: z
 				.string()
 				.optional()
-				.describe("Optional token ID to filter history for a specific token."),
+				.describe(
+					"Optional token contract address, native token ID, or wrapped token keyword to filter history. Auto-resolves: 'WETH'→WETH address, 'wrapped native'→chain's wrapped token, 'native token'→chain's wrapped token.",
+				),
 			start_time: z
 				.number()
 				.int()
@@ -741,7 +748,6 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
-			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserTotalBalance(args);
 		},
@@ -839,7 +845,6 @@ export const debankTools = [
 			pending_tx_list?: string;
 			_userQuery?: string;
 		}) => {
-			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await transactionService.preExecTransaction(args);
 		},
