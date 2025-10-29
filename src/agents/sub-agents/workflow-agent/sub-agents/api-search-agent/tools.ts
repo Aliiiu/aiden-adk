@@ -32,9 +32,7 @@ function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 		// Extract user query from context
 		const query = extractQueryFromContext(context);
 		if (query) {
-			logger.info(
-				`Extracted user query for tool ${tool.name}: ${query.substring(0, 100)}...`,
-			);
+			logger.info(`Extracted user query for tool ${tool.name}`);
 		}
 
 		const enhancedArgs = query ? { ...args, _userQuery: query } : args;

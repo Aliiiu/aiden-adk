@@ -13,8 +13,29 @@ export const getApiSearchAgent = async () => {
 	const defillamaTools = await getDefillamaToolsViaMcp();
 	const debankTools = await getDebankToolsViaMcp();
 
+	// Build comprehensive list of all available tools
+	const allTools = [...coingeckoTools, ...defillamaTools, ...debankTools];
+
 	const instruction = endent`
     You are an API intelligence specialist for real-time cryptocurrency and DeFi data.
+
+    ## PRIMARY RULE: ONLY USE AVAILABLE TOOLS
+    **CRITICAL**: You can ONLY call tools that exist in your tools list.
+    **NEVER** invent, guess, or hallucinate tool names.
+
+    Available tool count:
+    - CoinGecko tools: ${coingeckoTools.length}
+    - DefiLlama tools: ${defillamaTools.length}
+    - DeBank tools: ${debankTools.length}
+    Total: ${allTools.length} tools
+
+    If you're not sure a tool exists:
+    1. Check the tool list carefully
+    2. Use the closest matching tool
+    3. If no suitable tool exists, explain you cannot retrieve that specific data
+
+    **DO NOT** call non-existent tools like:
+    - Any tool name you think "should" exist but isn't in your list
 
     ## Primary Expertise Areas
     - Process user requests related to cryptocurrency data and DeFi metrics
@@ -59,7 +80,7 @@ export const getApiSearchAgent = async () => {
 		description:
 			"Fetches real-time cryptocurrency prices, DeFi metrics, user portfolios, and blockchain data via MCP APIs including CoinGecko, DefiLlama, and DeBank",
 		model: openrouter(env.LLM_MODEL),
-		tools: [...coingeckoTools, ...defillamaTools, ...debankTools],
+		tools: allTools,
 		instruction,
 	});
 };
