@@ -15,7 +15,7 @@ Supports:
 
 Returns full agent data including prices, holder counts, inference counts, contracts, and metadata.
 
-Use this for: agent discovery dashboards, browsing interfaces, market overviews, filtered searches.`,
+Use this for: agent discovery dashboards, browsing interfaces, market overviews, filtered searches, and looking up agent addresses/tickers for other tools.`,
   schema: z.object({
     sort: z.enum(["latest", "marketCap", "holders", "inferences"]).optional().describe("Sort field (default: marketCap)"),
     order: z.enum(["asc", "desc"]).optional().describe("Sort order (default: desc)"),
@@ -41,7 +41,7 @@ Use this for: agent discovery dashboards, browsing interfaces, market overviews,
       let result = `Total: ${pagination?.totalCount || response.agents.length} | Page: ${pagination?.currentPage || 1}/${pagination?.totalPages || 1}\n`;
       result += `Explorer: https://app.iqai.com/\n\n`;
 
-      const headers = ["#", "name", "ticker", "category", "priceIQ", "priceUSD", "holders", "inferences"];
+      const headers = ["#", "name", "ticker", "category", "priceIQ", "priceUSD", "holders", "inferences", "tokenContract", "agentContract"];
       const rows = response.agents.map((agent, idx: number) => [
         idx + 1,
         agent.name || "N/A",
@@ -51,6 +51,8 @@ Use this for: agent discovery dashboards, browsing interfaces, market overviews,
         agent.currentPriceInUSD?.toFixed(4) || "N/A",
         agent.holdersCount || "N/A",
         agent.inferenceCount || "N/A",
+        agent.tokenContract || "N/A",
+        agent.agentContract || "N/A",
       ]);
 
       result += formatData(headers, rows);
@@ -121,8 +123,8 @@ Note: When querying by ticker, returns an array (multiple agents can share ticke
 
 Use this for: profile pages, agent cards, detailed views, social bot configuration.`,
   schema: z.object({
-    address: z.string().optional().describe("Token contract address of the agent"),
-    ticker: z.string().optional().describe("Agent ticker symbol (may return multiple agents)"),
+    address: z.string().optional().describe("Token contract address of the agent (use get_all_agents to lookup)"),
+    ticker: z.string().optional().describe("Agent ticker symbol (may return multiple agents, use get_all_agents to lookup)"),
   }),
   fn: async ({ address, ticker }): Promise<string> => {
     try {
@@ -190,8 +192,8 @@ Note: Ticker queries return basic stats array. Address queries support extended 
 
 Use this for: price displays, market analytics, performance tracking, trading dashboards.`,
   schema: z.object({
-    address: z.string().optional().describe("Token contract address"),
-    ticker: z.string().optional().describe("Agent ticker (returns array of basic stats)"),
+    address: z.string().optional().describe("Token contract address (use get_all_agents to lookup)"),
+    ticker: z.string().optional().describe("Agent ticker (returns array of basic stats, use get_all_agents to lookup)"),
     extendedStats: z.boolean().optional().describe("Include ATH/ATL, timelines, 24h trading data (address only)"),
   }),
   fn: async ({ address, ticker, extendedStats }): Promise<string> => {
@@ -286,7 +288,7 @@ Returns chronological event history including:
 
 Use this for: activity timelines, audit trails, event monitoring, transaction tracking.`,
   schema: z.object({
-    agentTokenContract: z.string().describe("Token contract address of the agent (required)"),
+    agentTokenContract: z.string().describe("Token contract address of the agent (required, use get_all_agents to lookup)"),
     page: z.number().optional().describe("Page number for pagination (default: 1)"),
     limit: z.number().optional().describe("Logs per page, max 100 (default: 10)"),
   }),
@@ -337,7 +339,7 @@ Filtered to known IQ AI agent tokens only.
 
 Use this for: portfolio displays, wallet analysis, holdings tracking, valuation calculations.`,
   schema: z.object({
-    address: z.string().describe("Wallet address to query (required)"),
+    address: z.string().describe("Wallet address to query (use get_all_agents to lookup)"),
     chainId: z.string().optional().describe("Chain ID of the agent").default("252"),
   }),
   fn: async ({ address, chainId = "252" }): Promise<string> => {
