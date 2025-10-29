@@ -106,6 +106,9 @@ export abstract class BaseService {
 		const tokenLength = encoder.encode(markdownOutput).length;
 		logger.info(`Response token length: ${tokenLength}`);
 		logger.info(
+			`Response token need filtering: ${tokenLength > config.maxTokens ? "Yes" : "No"}`,
+		);
+		logger.info(
 			`User query for filtering: ${this.currentQuery ? "Yes" : "No"}`,
 		);
 		logger.info(`Data filter configured: ${this.dataFilter ? "Yes" : "No"}`);
