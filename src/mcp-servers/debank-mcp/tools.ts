@@ -1,6 +1,7 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
 import { logger } from "../../lib/utils";
+import { resolveEntities } from "./entity-resolver";
 import {
 	chainService,
 	protocolService,
@@ -25,6 +26,17 @@ function setQueryFromArgs(args: Record<string, unknown>) {
 }
 
 /**
+ * Auto-resolves entity parameters in args object
+ * Handles chain_id, chain_ids, and id (for chain context) parameters
+ * Converts human-friendly names to DeBank IDs (e.g., "Ethereum" → "eth")
+ */
+async function autoResolveEntities(
+	args: Record<string, unknown>,
+): Promise<void> {
+	await resolveEntities(args);
+}
+
+/**
  * Tool definitions for FastMCP (MCP Server usage)
  * These are exported as plain objects with Zod schemas for FastMCP compatibility
  */
@@ -45,16 +57,17 @@ export const debankTools = [
 	{
 		name: "debank_get_chain",
 		description:
-			"Retrieve detailed information about a specific blockchain chain supported by DeBank. Returns chain details including ID, name, logo URL, native token ID, wrapped token ID, and whether it supports pre-execution of transactions.",
+			"Retrieve detailed information about a specific blockchain chain supported by DeBank. Returns chain details including ID, name, logo URL, native token ID, wrapped token ID, and whether it supports pre-execution of transactions. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z
 				.string()
 				.describe(
-					"The unique identifier of the chain (e.g., 'eth' for Ethereum, 'bsc' for BNB Chain, 'matic' for Polygon, 'arb' for Arbitrum). Use debank_get_supported_chain_list to discover available chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await chainService.getChain(args);
 		},
@@ -64,17 +77,18 @@ export const debankTools = [
 	{
 		name: "debank_get_all_protocols_of_supported_chains",
 		description:
-			"Retrieve a list of all DeFi protocols across specified or all supported blockchain chains. Returns essential information about each protocol including ID, chain ID, name, logo URL, site URL, portfolio support status, and TVL. Returns top 20 protocols by default. Filter by specific chains using chain_ids parameter.",
+			"Retrieve a list of all DeFi protocols across specified or all supported blockchain chains. Returns essential information about each protocol including ID, chain ID, name, logo URL, site URL, portfolio support status, and TVL. Returns top 20 protocols by default. Filter by specific chains using chain_ids parameter. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum, BSC, Polygon') - automatically resolved to chain IDs ('eth,bsc,matic').",
 		parameters: z.object({
 			chain_ids: z
 				.string()
 				.optional()
 				.describe(
-					"Comma-separated list of chain IDs to filter protocols (e.g., 'eth,bsc,matic'). If omitted, returns protocols across all supported chains. Use debank_get_supported_chain_list to discover valid chain IDs.",
+					"Comma-separated chain names or IDs - auto-resolved (e.g., 'Ethereum, BSC'→'eth,bsc', 'Polygon'→'matic'). If omitted, returns protocols across all supported chains. Existing chain IDs like 'eth,bsc,matic' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { chain_ids?: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await protocolService.getAllProtocolsOfSupportedChains(args);
 		},
@@ -92,6 +106,7 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await protocolService.getProtocolInformation(args);
 		},
@@ -142,7 +157,7 @@ export const debankTools = [
 	{
 		name: "debank_get_pool_information",
 		description:
-			"Retrieve detailed information about a specific liquidity pool. Returns pool details including ID, chain, protocol ID, contract IDs, name, USD value of deposited assets, total user count, and count of valuable users (>$100 USD value). Essential for analyzing specific pools for investment or research.",
+			"Retrieve detailed information about a specific liquidity pool. Returns pool details including ID, chain, protocol ID, contract IDs, name, USD value of deposited assets, total user count, and count of valuable users (>$100 USD value). Essential for analyzing specific pools for investment or research. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z
 				.string()
@@ -152,7 +167,7 @@ export const debankTools = [
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID where the pool is located (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to discover valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -161,6 +176,7 @@ export const debankTools = [
 			chain_id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await protocolService.getPoolInformation(args);
 		},
@@ -170,12 +186,12 @@ export const debankTools = [
 	{
 		name: "debank_get_token_information",
 		description:
-			"Fetch comprehensive details about a specific token on a blockchain. Returns token information including contract address, chain, name, symbol, decimals, logo URL, associated protocol ID, USD price, verification status, and deployment timestamp. Essential for token analysis and display.",
+			"Fetch comprehensive details about a specific token on a blockchain. Returns token information including contract address, chain, name, symbol, decimals, logo URL, associated protocol ID, USD price, verification status, and deployment timestamp. Essential for token analysis and display. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID where the token exists (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			id: z
 				.string()
@@ -189,6 +205,7 @@ export const debankTools = [
 			id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await tokenService.getTokenInformation(args);
 		},
@@ -197,12 +214,12 @@ export const debankTools = [
 	{
 		name: "debank_get_list_token_information",
 		description:
-			"Retrieve detailed information for multiple tokens at once on a specific chain. Returns an array of token objects with comprehensive details. Useful for bulk token data retrieval, with support for up to 100 token addresses per request.",
+			"Retrieve detailed information for multiple tokens at once on a specific chain. Returns an array of token objects with comprehensive details. Useful for bulk token data retrieval, with support for up to 100 token addresses per request. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID where the tokens exist (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			ids: z
 				.string()
@@ -216,6 +233,7 @@ export const debankTools = [
 			ids: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await tokenService.getListTokenInformation(args);
 		},
@@ -224,7 +242,7 @@ export const debankTools = [
 	{
 		name: "debank_get_top_holders_of_token",
 		description:
-			"Fetch the top holders of a specified token, showing the largest token holders ranked by their holdings. Supports both contract addresses and native token IDs. Useful for analyzing token distribution and ownership concentration. Supports pagination for detailed analysis.",
+			"Fetch the top holders of a specified token, showing the largest token holders ranked by their holdings. Supports both contract addresses and native token IDs. Useful for analyzing token distribution and ownership concentration. Supports pagination for detailed analysis. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z
 				.string()
@@ -234,7 +252,7 @@ export const debankTools = [
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID where the token exists (e.g., 'eth', 'bsc', 'matic').  Use debank_get_supported_chain_list to find valid chain IDs",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			start: z
 				.number()
@@ -258,6 +276,7 @@ export const debankTools = [
 			start?: number;
 			limit?: number;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await tokenService.getTopHoldersOfToken(args);
 		},
@@ -266,7 +285,7 @@ export const debankTools = [
 	{
 		name: "debank_get_token_history_price",
 		description:
-			"Retrieve the historical price of a specified token for a given date. Essential for financial analysis, historical comparison, and tracking price movements over time. Returns price data for the UTC time zone on the specified date.",
+			"Retrieve the historical price of a specified token for a given date. Essential for financial analysis, historical comparison, and tracking price movements over time. Returns price data for the UTC time zone on the specified date. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z
 				.string()
@@ -276,7 +295,7 @@ export const debankTools = [
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID where the token exists (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			date_at: z
 				.string()
@@ -291,6 +310,7 @@ export const debankTools = [
 			date_at: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await tokenService.getTokenHistoryPrice(args);
 		},
@@ -306,6 +326,7 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserUsedChainList(args);
 		},
@@ -314,12 +335,12 @@ export const debankTools = [
 	{
 		name: "debank_get_user_chain_balance",
 		description:
-			"Fetch the current balance of a user's account on a specified blockchain chain. Returns the balance in USD value, providing a snapshot of the user's holdings on that chain.",
+			"Fetch the current balance of a user's account on a specified blockchain chain. Returns the balance in USD value, providing a snapshot of the user's holdings on that chain. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').  Use debank_get_supported_chain_list to find valid chain IDs",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			id: z.string().describe("The user's wallet address."),
 			_userQuery: z.string().optional(),
@@ -329,6 +350,7 @@ export const debankTools = [
 			id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserChainBalance(args);
 		},
@@ -352,6 +374,7 @@ export const debankTools = [
 			id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserProtocol(args);
 		},
@@ -360,12 +383,12 @@ export const debankTools = [
 	{
 		name: "debank_get_user_complex_protocol_list",
 		description:
-			"Retrieve detailed portfolios of a user on a specific chain across multiple protocols. Returns comprehensive information about the user's engagements including protocol details and portfolio items with assets, debts, and positions.",
+			"Retrieve detailed portfolios of a user on a specific chain across multiple protocols. Returns comprehensive information about the user's engagements including protocol details and portfolio items with assets, debts, and positions. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to find valid chain IDs",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			id: z.string().describe("The user's wallet address."),
 			_userQuery: z.string().optional(),
@@ -375,6 +398,7 @@ export const debankTools = [
 			id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserComplexProtocolList(args);
 		},
@@ -383,14 +407,14 @@ export const debankTools = [
 	{
 		name: "debank_get_user_all_complex_protocol_list",
 		description:
-			"Retrieve a user's detailed portfolios across all supported chains within multiple protocols. Provides a comprehensive overview of investments and positions across the entire DeFi ecosystem. Can be filtered by specific chains.",
+			"Retrieve a user's detailed portfolios across all supported chains within multiple protocols. Provides a comprehensive overview of investments and positions across the entire DeFi ecosystem. Can be filtered by specific chains. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum, BSC, Polygon') - automatically resolved to chain IDs ('eth,bsc,matic').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_ids: z
 				.string()
 				.optional()
 				.describe(
-					"Optional comma-separated list of chain IDs to filter by (e.g., 'eth,bsc,matic'). If omitted, includes all supported chains.",
+					"Comma-separated chain names or IDs - auto-resolved (e.g., 'Ethereum, BSC'→'eth,bsc', 'Polygon'→'matic'). If omitted, includes all supported chains. Existing chain IDs like 'eth,bsc,matic' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -399,6 +423,7 @@ export const debankTools = [
 			chain_ids?: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserAllComplexProtocolList(args);
 		},
@@ -407,14 +432,14 @@ export const debankTools = [
 	{
 		name: "debank_get_user_all_simple_protocol_list",
 		description:
-			"Fetch a user's balances in protocols across all supported chains. Returns simplified protocol information including TVL and basic details. Useful for getting a quick overview of a user's protocol engagements.",
+			"Fetch a user's balances in protocols across all supported chains. Returns simplified protocol information including TVL and basic details. Useful for getting a quick overview of a user's protocol engagements. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum, BSC, Polygon') - automatically resolved to chain IDs ('eth,bsc,matic').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_ids: z
 				.string()
 				.optional()
 				.describe(
-					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+					"Comma-separated chain names or IDs - auto-resolved (e.g., 'Ethereum, BSC, Polygon'→'eth,bsc,matic', 'Arbitrum'→'arb'). If omitted, includes all supported chains. Existing chain IDs like 'eth,bsc,polygon' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -423,6 +448,7 @@ export const debankTools = [
 			chain_ids?: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserAllSimpleProtocolList(args);
 		},
@@ -431,12 +457,12 @@ export const debankTools = [
 	{
 		name: "debank_get_user_token_balance",
 		description:
-			"Retrieve a user's balance for a specific token. Returns detailed token information including name, symbol, decimals, USD price, and the user's balance amount.",
+			"Retrieve a user's balance for a specific token. Returns detailed token information including name, symbol, decimals, USD price, and the user's balance amount. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			id: z.string().describe("The user's wallet address."),
 			token_id: z
@@ -452,6 +478,7 @@ export const debankTools = [
 			token_id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserTokenBalance(args);
 		},
@@ -460,13 +487,13 @@ export const debankTools = [
 	{
 		name: "debank_get_user_token_list",
 		description:
-			"Retrieve a list of tokens held by a user on a specific chain. Returns token details including symbol, decimals, USD price, and balance amounts. Can filter for core/verified tokens or include all tokens.",
+			"Retrieve a list of tokens held by a user on a specific chain. Returns token details including symbol, decimals, USD price, and balance amounts. Can filter for core/verified tokens or include all tokens. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			is_all: z
 				.boolean()
@@ -482,6 +509,7 @@ export const debankTools = [
 			is_all?: boolean;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserTokenList(args);
 		},
@@ -506,6 +534,7 @@ export const debankTools = [
 			is_all?: boolean;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserAllTokenList(args);
 		},
@@ -514,13 +543,13 @@ export const debankTools = [
 	{
 		name: "debank_get_user_nft_list",
 		description:
-			"Fetch a list of NFTs owned by a user on a specific chain. Returns NFT details including contract ID, name, description, content type, and attributes. Can filter for verified collections only.",
+			"Fetch a list of NFTs owned by a user on a specific chain. Returns NFT details including contract ID, name, description, content type, and attributes. Can filter for verified collections only. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic'). Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			is_all: z
 				.boolean()
@@ -536,6 +565,7 @@ export const debankTools = [
 			is_all?: boolean;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserNftList(args);
 		},
@@ -544,7 +574,7 @@ export const debankTools = [
 	{
 		name: "debank_get_user_all_nft_list",
 		description:
-			"Retrieve a user's NFT holdings across all supported chains. Provides an aggregate list of NFTs held by the user with details including contract ID, name, and content type. Can be filtered by specific chains.",
+			"Retrieve a user's NFT holdings across all supported chains. Provides an aggregate list of NFTs held by the user with details including contract ID, name, and content type. Can be filtered by specific chains. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum, BSC, Polygon') - automatically resolved to chain IDs ('eth,bsc,matic').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			is_all: z
@@ -555,7 +585,7 @@ export const debankTools = [
 				.string()
 				.optional()
 				.describe(
-					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+					"Comma-separated chain names or IDs - auto-resolved (e.g., 'Ethereum, BSC, Polygon'→'eth,bsc,matic', 'Arbitrum'→'arb'). If omitted, includes all supported chains. Existing chain IDs like 'eth,bsc,polygon' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -564,6 +594,7 @@ export const debankTools = [
 			is_all?: boolean;
 			chain_ids?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserAllNftList(args);
 		},
@@ -572,13 +603,13 @@ export const debankTools = [
 	{
 		name: "debank_get_user_history_list",
 		description:
-			"Fetch a user's transaction history on a specified chain. Returns a list of past transactions with details including transaction type, tokens involved, values, and timestamps. Supports filtering by token and pagination.",
+			"Fetch a user's transaction history on a specified chain. Returns a list of past transactions with details including transaction type, tokens involved, values, and timestamps. Supports filtering by token and pagination. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			token_id: z
 				.string()
@@ -607,6 +638,7 @@ export const debankTools = [
 			start_time?: number;
 			page_count?: number;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserHistoryList(args);
 		},
@@ -615,7 +647,7 @@ export const debankTools = [
 	{
 		name: "debank_get_user_all_history_list",
 		description:
-			"Retrieve a user's transaction history across all supported chains. Provides a comprehensive overview of DeFi activities across the entire blockchain ecosystem. Supports pagination and chain filtering.",
+			"Retrieve a user's transaction history across all supported chains. Provides a comprehensive overview of DeFi activities across the entire blockchain ecosystem. Supports pagination and chain filtering. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum, BSC, Polygon') - automatically resolved to chain IDs ('eth,bsc,matic').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			start_time: z
@@ -636,7 +668,7 @@ export const debankTools = [
 				.string()
 				.optional()
 				.describe(
-					"Optional comma-separated list of chain IDs. If omitted, includes all chains.Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+					"Comma-separated chain names or IDs - auto-resolved (e.g., 'Ethereum, BSC, Polygon'→'eth,bsc,matic', 'Arbitrum'→'arb'). If omitted, includes all supported chains. Existing chain IDs like 'eth,bsc,polygon' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -646,6 +678,7 @@ export const debankTools = [
 			page_count?: number;
 			chain_ids?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserAllHistoryList(args);
 		},
@@ -654,13 +687,13 @@ export const debankTools = [
 	{
 		name: "debank_get_user_token_authorized_list",
 		description:
-			"Fetch a list of tokens for which a user has granted spending approvals on a specified chain. Returns details about each approval including amount, spender address, and associated protocol information. Useful for security audits.",
+			"Fetch a list of tokens for which a user has granted spending approvals on a specified chain. Returns details about each approval including amount, spender address, and associated protocol information. Useful for security audits. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -669,6 +702,7 @@ export const debankTools = [
 			chain_id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserTokenAuthorizedList(args);
 		},
@@ -677,13 +711,13 @@ export const debankTools = [
 	{
 		name: "debank_get_user_nft_authorized_list",
 		description:
-			"Retrieve a list of NFTs for which a user has given spending permissions on a specified chain. Returns details including contract IDs, names, symbols, spender addresses, and approved amounts for ERC1155 tokens. Important for security reviews.",
+			"Retrieve a list of NFTs for which a user has given spending permissions on a specified chain. Returns details including contract IDs, names, symbols, spender addresses, and approved amounts for ERC1155 tokens. Important for security reviews. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -692,6 +726,7 @@ export const debankTools = [
 			chain_id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserNftAuthorizedList(args);
 		},
@@ -706,6 +741,7 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { id: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserTotalBalance(args);
 		},
@@ -714,13 +750,13 @@ export const debankTools = [
 	{
 		name: "debank_get_user_chain_net_curve",
 		description:
-			"Retrieve a user's 24-hour net asset value curve on a single chain. Shows the changes in total USD value of assets over the last 24 hours, providing insights into portfolio fluctuations on that specific chain.",
+			"Retrieve a user's 24-hour net asset value curve on a single chain. Shows the changes in total USD value of assets over the last 24 hours, providing insights into portfolio fluctuations on that specific chain. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -729,6 +765,7 @@ export const debankTools = [
 			chain_id: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserChainNetCurve(args);
 		},
@@ -737,14 +774,14 @@ export const debankTools = [
 	{
 		name: "debank_get_user_total_net_curve",
 		description:
-			"Retrieve a user's 24-hour net asset value curve across all chains. Provides a comprehensive view of total USD value changes over the last 24 hours, helping track overall portfolio performance. Can be filtered by specific chains.",
+			"Retrieve a user's 24-hour net asset value curve across all chains. Provides a comprehensive view of total USD value changes over the last 24 hours, helping track overall portfolio performance. Can be filtered by specific chains. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum, BSC, Polygon') - automatically resolved to chain IDs ('eth,bsc,matic').",
 		parameters: z.object({
 			id: z.string().describe("The user's wallet address."),
 			chain_ids: z
 				.string()
 				.optional()
 				.describe(
-					"Filter by specific blockchains (comma-separated, e.g., 'eth,bsc,polygon'). If omitted, includes all supported chains. Common chains: eth, bsc, polygon, arb, op, avax. Need other chains? Call debank_get_supported_chain_list for the complete list.",
+					"Comma-separated chain names or IDs - auto-resolved (e.g., 'Ethereum, BSC, Polygon'→'eth,bsc,matic', 'Arbitrum'→'arb'). If omitted, includes all supported chains. Existing chain IDs like 'eth,bsc,polygon' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
@@ -753,6 +790,7 @@ export const debankTools = [
 			chain_ids?: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await userService.getUserTotalNetCurve(args);
 		},
@@ -762,16 +800,17 @@ export const debankTools = [
 	{
 		name: "debank_get_gas_prices",
 		description:
-			"Fetch current gas prices for different transaction speed levels on a specified chain. Returns prices for slow, normal, and fast transaction speeds with estimated confirmation times. Crucial for transaction cost estimation.",
+			"Fetch current gas prices for different transaction speed levels on a specified chain. Returns prices for slow, normal, and fast transaction speeds with estimated confirmation times. Crucial for transaction cost estimation. **AUTO-RESOLUTION ENABLED:** Pass chain names as users mention them (e.g., 'Ethereum', 'BSC', 'Binance Smart Chain') - automatically resolved to chain IDs ('eth', 'bsc').",
 		parameters: z.object({
 			chain_id: z
 				.string()
 				.describe(
-					"The chain ID (e.g., 'eth', 'bsc', 'matic').Use debank_get_supported_chain_list to get the complete list of valid chain IDs.",
+					"Chain name or ID - auto-resolved (e.g., 'Ethereum'→'eth', 'BSC'→'bsc', 'Polygon'→'matic', 'Arbitrum'→'arb'). Existing chain IDs like 'eth', 'bsc' also work.",
 				),
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { chain_id: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await chainService.getGasPrices(args);
 		},
@@ -800,6 +839,7 @@ export const debankTools = [
 			pending_tx_list?: string;
 			_userQuery?: string;
 		}) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await transactionService.preExecTransaction(args);
 		},
@@ -818,6 +858,7 @@ export const debankTools = [
 			_userQuery: z.string().optional(),
 		}),
 		execute: async (args: { tx: string; _userQuery?: string }) => {
+			await autoResolveEntities(args);
 			setQueryFromArgs(args);
 			return await transactionService.explainTransaction(args);
 		},
