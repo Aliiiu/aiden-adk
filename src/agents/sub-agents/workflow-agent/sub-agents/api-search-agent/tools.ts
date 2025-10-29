@@ -117,3 +117,46 @@ export const getDefillamaToolsViaMcp = async () => {
 		return getDefillamaToolsWrapped();
 	}
 };
+
+/**
+ * Get IQ AI tools via MCP Server
+ * Loads agent discovery, stats, holdings, and activity log tools
+ */
+export const getIqAiToolsViaMcp = async () => {
+	try {
+		const projectRoot = process.cwd();
+		const iqAiMcpPath = path.join(
+			projectRoot,
+			"src/mcp-servers/iqai/index.ts",
+		);
+
+		// Verify file exists
+		if (!fs.existsSync(iqAiMcpPath)) {
+			throw new Error(
+				`IQ AI MCP server not found at: ${iqAiMcpPath}\nCurrent working directory: ${projectRoot}`,
+			);
+		}
+
+		const toolset = new McpToolset({
+			name: "IQ AI MCP",
+			description: "IQ AI agent data via IQ AI MCP server",
+			debug: false, // Set to true for detailed MCP logs
+			transport: {
+				mode: "stdio",
+				command: "npx",
+				args: ["tsx", iqAiMcpPath],
+			},
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
+		});
+
+		const tools = await toolset.getTools();
+		logger.info(`Loaded ${tools.length} IQ AI tools via MCP`);
+		return tools.map((tool) => wrapToolWithErrorHandling(tool));
+	} catch (error) {
+		logger.warn("Failed to load IQ AI tools via MCP", error as Error);
+		return [];
+	}
+};

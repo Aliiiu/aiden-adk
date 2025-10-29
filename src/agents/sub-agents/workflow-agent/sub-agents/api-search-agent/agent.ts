@@ -2,14 +2,15 @@ import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
 import { openrouter } from "../../../../../lib/integrations/openrouter";
-import { getCoingeckoTools, getDefillamaToolsViaMcp } from "./tools";
+import { getCoingeckoTools, getDefillamaToolsViaMcp, getIqAiToolsViaMcp } from "./tools";
 
 export const getApiSearchAgent = async () => {
 	const coingeckoTools = await getCoingeckoTools();
 	const defillamaTools = await getDefillamaToolsViaMcp();
+	const iqAiTools = await getIqAiToolsViaMcp();
 
 	const instruction = endent`
-    You are an API intelligence specialist for real-time cryptocurrency and DeFi data.
+    You are an API intelligence specialist for real-time cryptocurrency, DeFi, and AI agent data.
 
     ## Primary Expertise Areas
     - Process user requests related to cryptocurrency data and DeFi metrics
@@ -24,6 +25,20 @@ export const getApiSearchAgent = async () => {
       * Options protocol data
       * Historical price and chart data
       * Cross-chain metrics and comparisons
+    - Utilize IQ AI MCP tools for:
+      * Agent discovery and filtering by category, status, or chain
+      * Real-time agent statistics including prices and market cap
+      * Holder and inference count data
+      * Agent portfolio holdings for wallet addresses
+      * Activity logs and transaction history
+
+    ## IQ AI Tools Available
+    - get_all_agents: Browse and filter IQ AI agents with pagination
+    - get_top_agents: Get top performing agents by market cap, holders, or inferences
+    - get_agent_info: Retrieve detailed agent profile and metadata
+    - get_agent_stats: Get real-time market statistics and performance metrics
+    - get_agent_logs: Fetch activity logs and transaction history
+    - get_holdings: Query AI agent token holdings for wallet addresses
 
     ## ERROR HANDLING
     If a tool returns an "error" field, respond: "I apologize, but I'm unable to retrieve that data right now. Please try again shortly."
@@ -41,9 +56,9 @@ export const getApiSearchAgent = async () => {
 	return new LlmAgent({
 		name: "api_search_agent",
 		description:
-			"Fetches real-time cryptocurrency prices, DeFi metrics, and blockchain data via MCP APIs including CoinGecko, DefiLlama, Frax Tools, and IQ AI Tools",
+			"Fetches real-time cryptocurrency prices, DeFi metrics, AI agent data, and blockchain data via MCP APIs including CoinGecko, DefiLlama, and IQ AI Tools",
 		model: openrouter(env.LLM_MODEL),
-		tools: [...coingeckoTools, ...defillamaTools],
+		tools: [...coingeckoTools, ...defillamaTools, ...iqAiTools],
 		instruction,
 	});
 };
