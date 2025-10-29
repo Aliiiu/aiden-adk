@@ -24,6 +24,8 @@ const google = createGoogleGenerativeAI({
 	apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 
+const gemini25Flash = "gemini-2.5-flash";
+
 /**
  * Detect if a value needs resolution based on its format
  */
@@ -86,7 +88,7 @@ export async function resolveProtocol(name: string): Promise<string | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.5-flash"),
+			model: google(gemini25Flash),
 			prompt,
 			system: endent`
 				You are a precise protocol matcher. Return ONLY the slug or NOT_FOUND. No explanations.
@@ -152,7 +154,7 @@ export async function resolveChain(name: string): Promise<string | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.5-flash"),
+			model: google(gemini25Flash),
 			prompt,
 			system: endent`
 				You are a precise chain matcher. Return ONLY the exact chain name or NOT_FOUND. No explanations.
@@ -217,7 +219,7 @@ export async function resolveStablecoin(name: string): Promise<string | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.5-flash"),
+			model: google(gemini25Flash),
 			prompt,
 			system: endent`
 				You are a precise stablecoin matcher. Return ONLY the numeric ID or NOT_FOUND. No explanations.
@@ -280,7 +282,7 @@ export async function resolveBridge(name: string): Promise<number | null> {
 		`;
 
 		const result = await generateText({
-			model: google("gemini-2.5-flash"),
+			model: google(gemini25Flash),
 			prompt,
 			system: endent`
 				You are a precise bridge matcher. Return ONLY the numeric ID or NOT_FOUND. No explanations.
