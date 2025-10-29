@@ -5,9 +5,11 @@ import { openrouter } from "../../../../../lib/integrations/openrouter";
 import { getCoingeckoTools, getDefillamaToolsViaMcp, getIqAiToolsViaMcp } from "./tools";
 
 export const getApiSearchAgent = async () => {
-	const coingeckoTools = await getCoingeckoTools();
-	const defillamaTools = await getDefillamaToolsViaMcp();
-	const iqAiTools = await getIqAiToolsViaMcp();
+  const [coingeckoTools, defillamaTools, iqAiTools] = await Promise.all([
+    getCoingeckoTools(),
+    getDefillamaToolsViaMcp(),
+    getIqAiToolsViaMcp(),
+  ]);
 
 	const instruction = endent`
     You are an API intelligence specialist for real-time cryptocurrency, DeFi, and AI agent data.

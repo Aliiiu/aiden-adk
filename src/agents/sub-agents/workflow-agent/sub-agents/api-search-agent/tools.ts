@@ -33,31 +33,42 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	return tool;
 }
 
-export const getCoingeckoTools = async () => {
-	try {
-		const toolset = new McpToolset({
-			name: "Coingecko MCP",
-			description: "mcp for coingecko",
-			debug: false, // Set to true to see detailed MCP logs
-			transport: {
-				mode: "stdio",
-				command: "npx",
-				args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
-			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
-		});
+// Singleton caches to ensure MCP tool discovery happens only once per process
+let coingeckoToolsPromise: Promise<BaseTool[]> | null = null;
+let defillamaMcpToolsPromise: Promise<BaseTool[]> | null = null;
+let iqAiToolsPromise: Promise<BaseTool[]> | null = null;
+let defillamaDirectToolsCache: BaseTool[] | null = null;
 
-		const tools = await toolset.getTools();
-		logger.info(`Loaded ${tools.length} CoinGecko tools`);
+export const getCoingeckoTools = async (forceReload = false): Promise<BaseTool[]> => {
+	if (!forceReload && coingeckoToolsPromise) return coingeckoToolsPromise;
 
-		return tools.map((tool) => wrapToolWithErrorHandling(tool));
-	} catch (error) {
-		logger.warn("Failed to load CoinGecko MCP tools", error as Error);
-		return [];
-	}
+	coingeckoToolsPromise = (async () => {
+		try {
+			const toolset = new McpToolset({
+				name: "Coingecko MCP",
+				description: "mcp for coingecko",
+				debug: false, // Set to true to see detailed MCP logs
+				transport: {
+					mode: "stdio",
+					command: "npx",
+					args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
+				},
+				retryOptions: {
+					maxRetries: 1,
+					initialDelay: 1000,
+				},
+			});
+
+			const tools = await toolset.getTools();
+			logger.info(`Loaded ${tools.length} CoinGecko tools`);
+			return tools.map((tool) => wrapToolWithErrorHandling(tool));
+		} catch (error) {
+			logger.warn("Failed to load CoinGecko MCP tools", error as Error);
+			return [];
+		}
+	})();
+
+	return coingeckoToolsPromise;
 };
 
 /**
@@ -67,10 +78,12 @@ export const getCoingeckoTools = async () => {
  * 1. Direct import (current) - Simpler, faster, already working
  * 2. MCP Server via McpToolset - True MCP protocol, can be shared with other clients
  */
-export const getDefillamaToolsWrapped = () => {
+export const getDefillamaToolsWrapped = (): BaseTool[] => {
 	// OPTION 1: Direct import (current implementation - simpler and faster)
+	if (defillamaDirectToolsCache) return defillamaDirectToolsCache;
 	const tools = getDefillamaTools();
-	return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
+	defillamaDirectToolsCache = tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
+	return defillamaDirectToolsCache;
 };
 
 /**
@@ -78,85 +91,97 @@ export const getDefillamaToolsWrapped = () => {
  * Replace getDefillamaToolsWrapped() usage in agent.ts with this function
  * to use the true MCP protocol approach
  */
-export const getDefillamaToolsViaMcp = async () => {
-	try {
-		const projectRoot = process.cwd();
-		const defillamaMcpPath = path.join(
-			projectRoot,
-			"src/mcp-servers/defillama-mcp/index.ts",
-		);
+export const getDefillamaToolsViaMcp = async (forceReload = false): Promise<BaseTool[]> => {
+	if (!forceReload && defillamaMcpToolsPromise) return defillamaMcpToolsPromise;
 
-		// Verify file exists
-		if (!fs.existsSync(defillamaMcpPath)) {
-			throw new Error(
-				`DefiLlama MCP server not found at: ${defillamaMcpPath}\nCurrent working directory: ${projectRoot}`,
+	defillamaMcpToolsPromise = (async () => {
+		try {
+			const projectRoot = process.cwd();
+			const defillamaMcpPath = path.join(
+				projectRoot,
+				"src/mcp-servers/defillama-mcp/index.ts",
 			);
+
+			// Verify file exists
+			if (!fs.existsSync(defillamaMcpPath)) {
+				throw new Error(
+					`DefiLlama MCP server not found at: ${defillamaMcpPath}\nCurrent working directory: ${projectRoot}`,
+				);
+			}
+
+			const toolset = new McpToolset({
+				name: "DefiLlama MCP",
+				description: "DeFi data via DefiLlama MCP server",
+				debug: false, // Set to true for detailed MCP logs
+				transport: {
+					mode: "stdio",
+					command: "npx",
+					args: ["tsx", defillamaMcpPath],
+				},
+				retryOptions: {
+					maxRetries: 1,
+					initialDelay: 1000,
+				},
+			});
+
+			const tools = await toolset.getTools();
+			logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
+			return tools.map((tool) => wrapToolWithErrorHandling(tool));
+		} catch (error) {
+			logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
+			// Fallback to direct import if MCP fails
+			return getDefillamaToolsWrapped();
 		}
+	})();
 
-		const toolset = new McpToolset({
-			name: "DefiLlama MCP",
-			description: "DeFi data via DefiLlama MCP server",
-			debug: false, // Set to true for detailed MCP logs
-			transport: {
-				mode: "stdio",
-				command: "npx",
-				args: ["tsx", defillamaMcpPath],
-			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
-		});
-
-		const tools = await toolset.getTools();
-		logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
-		return tools.map((tool) => wrapToolWithErrorHandling(tool));
-	} catch (error) {
-		logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
-		// Fallback to direct import if MCP fails
-		return getDefillamaToolsWrapped();
-	}
+	return defillamaMcpToolsPromise;
 };
 
 /**
  * Get IQ AI tools via MCP Server
  * Loads agent discovery, stats, holdings, and activity log tools
  */
-export const getIqAiToolsViaMcp = async () => {
-	try {
-		const projectRoot = process.cwd();
-		const iqAiMcpPath = path.join(
-			projectRoot,
-			"src/mcp-servers/iqai/index.ts",
-		);
+export const getIqAiToolsViaMcp = async (forceReload = false): Promise<BaseTool[]> => {
+	if (!forceReload && iqAiToolsPromise) return iqAiToolsPromise;
 
-		// Verify file exists
-		if (!fs.existsSync(iqAiMcpPath)) {
-			throw new Error(
-				`IQ AI MCP server not found at: ${iqAiMcpPath}\nCurrent working directory: ${projectRoot}`,
+	iqAiToolsPromise = (async () => {
+		try {
+			const projectRoot = process.cwd();
+			const iqAiMcpPath = path.join(
+				projectRoot,
+				"src/mcp-servers/iqai/index.ts",
 			);
+
+			// Verify file exists
+			if (!fs.existsSync(iqAiMcpPath)) {
+				throw new Error(
+					`IQ AI MCP server not found at: ${iqAiMcpPath}\nCurrent working directory: ${projectRoot}`,
+				);
+			}
+
+			const toolset = new McpToolset({
+				name: "IQ AI MCP",
+				description: "IQ AI agent data via IQ AI MCP server",
+				debug: false, // Set to true for detailed MCP logs
+				transport: {
+					mode: "stdio",
+					command: "npx",
+					args: ["tsx", iqAiMcpPath],
+				},
+				retryOptions: {
+					maxRetries: 1,
+					initialDelay: 1000,
+				},
+			});
+
+			const tools = await toolset.getTools();
+			logger.info(`Loaded ${tools.length} IQ AI tools via MCP`);
+			return tools.map((tool) => wrapToolWithErrorHandling(tool));
+		} catch (error) {
+			logger.warn("Failed to load IQ AI tools via MCP", error as Error);
+			return [];
 		}
+	})();
 
-		const toolset = new McpToolset({
-			name: "IQ AI MCP",
-			description: "IQ AI agent data via IQ AI MCP server",
-			debug: false, // Set to true for detailed MCP logs
-			transport: {
-				mode: "stdio",
-				command: "npx",
-				args: ["tsx", iqAiMcpPath],
-			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
-		});
-
-		const tools = await toolset.getTools();
-		logger.info(`Loaded ${tools.length} IQ AI tools via MCP`);
-		return tools.map((tool) => wrapToolWithErrorHandling(tool));
-	} catch (error) {
-		logger.warn("Failed to load IQ AI tools via MCP", error as Error);
-		return [];
-	}
+	return iqAiToolsPromise;
 };
