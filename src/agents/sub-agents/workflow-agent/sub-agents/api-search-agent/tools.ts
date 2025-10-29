@@ -84,6 +84,7 @@ export const getCoingeckoTools = async () => {
 				command: "npx",
 				args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
 			},
+			timeout: 120000, // 3 minutes (180s) for remote API calls
 			retryOptions: {
 				maxRetries: 1,
 				initialDelay: 1000,
@@ -141,6 +142,7 @@ export const getDefillamaToolsViaMcp = async () => {
 				command: "npx",
 				args: ["tsx", defillamaMcpPath],
 			},
+			timeout: 120000, // 3 minutes (180s) for large responses with AI processing
 		});
 
 		const tools = await toolset.getTools();
@@ -188,6 +190,7 @@ export const getDebankToolsViaMcp = async () => {
 				command: "npx",
 				args: ["tsx", debankMcpPath],
 			},
+			timeout: 120000, // 3 minutes (180s) for large responses with AI processing
 		});
 
 		const tools = await toolset.getTools();
