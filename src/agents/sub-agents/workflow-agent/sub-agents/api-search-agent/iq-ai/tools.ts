@@ -15,7 +15,13 @@ Supports:
 
 Returns full agent data including prices, holder counts, inference counts, contracts, and metadata.
 
-Use this for: agent discovery dashboards, browsing interfaces, market overviews, filtered searches, and looking up agent addresses/tickers for other tools.`,
+⚠️ IMPORTANT: This is the PRIMARY lookup tool. ALWAYS use this first to:
+- Find agent addresses/tickers before calling other tools
+- Search for agents by name, category, or characteristics
+- Get token contract addresses needed for get_agent_info, get_agent_stats, get_agent_logs
+- Get agent contract addresses needed for get_holdings
+
+Use this for: agent discovery dashboards, browsing interfaces, market overviews, filtered searches, and REQUIRED lookups before using other tools.`,
   schema: z.object({
     sort: z.enum(["latest", "marketCap", "holders", "inferences"]).optional().describe("Sort field (default: marketCap)"),
     order: z.enum(["asc", "desc"]).optional().describe("Sort order (default: desc)"),
@@ -113,6 +119,8 @@ export const getAgentInfoTool = createTool({
   name: "get_agent_info",
   description: `Retrieve comprehensive identity and metadata for an IQ AI agent by address or ticker.
 
+⚠️ LOOKUP REQUIRED: If you don't have the exact token contract address or ticker, you MUST call get_all_agents first to search and find the agent.
+
 Returns complete profile including:
 - Identity: name, ticker, bio, avatar (multiple sizes)
 - AI config: framework, model, category, knowledge base
@@ -123,13 +131,13 @@ Note: When querying by ticker, returns an array (multiple agents can share ticke
 
 Use this for: profile pages, agent cards, detailed views, social bot configuration.`,
   schema: z.object({
-    address: z.string().optional().describe("Token contract address of the agent (use get_all_agents to lookup)"),
-    ticker: z.string().optional().describe("Agent ticker symbol (may return multiple agents, use get_all_agents to lookup)"),
+    address: z.string().optional().describe("Token contract address of the agent (MUST be obtained from get_all_agents first)"),
+    ticker: z.string().optional().describe("Agent ticker symbol (may return multiple agents, MUST be obtained from get_all_agents first)"),
   }),
   fn: async ({ address, ticker }): Promise<string> => {
     try {
       if (!address && !ticker) {
-        return "Error: Provide either 'address' or 'ticker' parameter.";
+        return "Error: Provide either 'address' or 'ticker' parameter.\n\n⚠️ REQUIRED: Use get_all_agents tool first to find the agent's token contract address or ticker.";
       }
 
       const response = await callIqAiApi(
@@ -140,7 +148,7 @@ Use this for: profile pages, agent cards, detailed views, social bot configurati
 
       if (Array.isArray(response)) {
         if (response.length === 0) {
-          return `No agents found with ticker: ${ticker}`;
+          return `No agents found with ticker: ${ticker}\n\n⚠️ TIP: Use get_all_agents to search for the agent by name or characteristics.`;
         }
 
         let result = `Found ${response.length} agent(s) with ticker "${ticker}":\n\n`;
@@ -173,7 +181,8 @@ Use this for: profile pages, agent cards, detailed views, social bot configurati
 
       return formatData(headers, rows);
     } catch (err) {
-      return `Unable to retrieve agent info: ${err instanceof Error ? err.message : "Unknown error"}.`;
+      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+      return `Unable to retrieve agent info: ${errorMsg}\n\n⚠️ TIP: If the address/ticker is incorrect, use get_all_agents to find the correct one.`;
     }
   },
 });
@@ -181,6 +190,8 @@ Use this for: profile pages, agent cards, detailed views, social bot configurati
 export const getAgentStatsTool = createTool({
   name: "get_agent_stats",
   description: `Retrieve real-time market and performance statistics for an IQ AI agent.
+
+⚠️ LOOKUP REQUIRED: If you don't have the exact token contract address or ticker, you MUST call get_all_agents first to search and find the agent.
 
 Returns live data including:
 - Pricing: current price in IQ and USD, market cap
@@ -192,14 +203,14 @@ Note: Ticker queries return basic stats array. Address queries support extended 
 
 Use this for: price displays, market analytics, performance tracking, trading dashboards.`,
   schema: z.object({
-    address: z.string().optional().describe("Token contract address (use get_all_agents to lookup)"),
-    ticker: z.string().optional().describe("Agent ticker (returns array of basic stats, use get_all_agents to lookup)"),
+    address: z.string().optional().describe("Token contract address (MUST be obtained from get_all_agents first)"),
+    ticker: z.string().optional().describe("Agent ticker (returns array of basic stats, MUST be obtained from get_all_agents first)"),
     extendedStats: z.boolean().optional().describe("Include ATH/ATL, timelines, 24h trading data (address only)"),
   }),
   fn: async ({ address, ticker, extendedStats }): Promise<string> => {
     try {
       if (!address && !ticker) {
-        return "Error: Provide either 'address' or 'ticker' parameter.";
+        return "Error: Provide either 'address' or 'ticker' parameter.\n\n⚠️ REQUIRED: Use get_all_agents tool first to find the agent's token contract address or ticker.";
       }
 
       if (ticker && extendedStats) {
@@ -214,7 +225,7 @@ Use this for: price displays, market analytics, performance tracking, trading da
 
       if (Array.isArray(response)) {
         if (response.length === 0) {
-          return `No stats found for ticker: ${ticker}`;
+          return `No stats found for ticker: ${ticker}\n\n⚠️ TIP: Use get_all_agents to search for the agent by name or characteristics.`;
         }
 
         let result = `Stats for ${response.length} agent(s) with ticker "${ticker}":\n\n`;
@@ -271,7 +282,8 @@ Use this for: price displays, market analytics, performance tracking, trading da
 
       return result;
     } catch (err) {
-      return `Unable to retrieve agent stats: ${err instanceof Error ? err.message : "Unknown error"}.`;
+      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+      return `Unable to retrieve agent stats: ${errorMsg}\n\n⚠️ TIP: If the address/ticker is incorrect, use get_all_agents to find the correct one.`;
     }
   },
 });
@@ -279,6 +291,8 @@ Use this for: price displays, market analytics, performance tracking, trading da
 export const getAgentLogsTool = createTool({
   name: "get_agent_logs",
   description: `Retrieve paginated activity logs for an IQ AI agent.
+
+⚠️ LOOKUP REQUIRED: If you don't have the exact token contract address, you MUST call get_all_agents first to find it.
 
 Returns chronological event history including:
 - Log content and event type
@@ -288,7 +302,7 @@ Returns chronological event history including:
 
 Use this for: activity timelines, audit trails, event monitoring, transaction tracking.`,
   schema: z.object({
-    agentTokenContract: z.string().describe("Token contract address of the agent (required, use get_all_agents to lookup)"),
+    agentTokenContract: z.string().describe("Token contract address of the agent (REQUIRED - MUST be obtained from get_all_agents first)"),
     page: z.number().optional().describe("Page number for pagination (default: 1)"),
     limit: z.number().optional().describe("Logs per page, max 100 (default: 10)"),
   }),
@@ -301,7 +315,7 @@ Use this for: activity timelines, audit trails, event monitoring, transaction tr
       );
 
       if (!response.logs || response.logs.length === 0) {
-        return `No activity logs found for agent ${agentTokenContract}.`;
+        return `No activity logs found for agent ${agentTokenContract}.\n\n⚠️ TIP: Verify the token contract address using get_all_agents if logs are expected.`;
       }
 
       let result = `Page ${response.page}/${response.totalPages} | Total Logs: ${response.total}\n`;
@@ -320,7 +334,8 @@ Use this for: activity timelines, audit trails, event monitoring, transaction tr
 
       return result;
     } catch (err) {
-      return `Unable to retrieve logs: ${err instanceof Error ? err.message : "Unknown error"}.`;
+      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+      return `Unable to retrieve logs: ${errorMsg}\n\n⚠️ TIP: If the address is incorrect, use get_all_agents to find the correct token contract address.`;
     }
   },
 });
@@ -328,6 +343,8 @@ Use this for: activity timelines, audit trails, event monitoring, transaction tr
 export const getHoldingsTool = createTool({
   name: "get_holdings",
   description: `Fetch AI agent token holdings for a wallet address.
+
+⚠️ LOOKUP REQUIRED: If you need to find a wallet address or verify an agent's contract address, use get_all_agents first.
 
 Returns portfolio of agent tokens including:
 - Token contract addresses
@@ -339,7 +356,7 @@ Filtered to known IQ AI agent tokens only.
 
 Use this for: portfolio displays, wallet analysis, holdings tracking, valuation calculations.`,
   schema: z.object({
-    address: z.string().describe("Wallet address to query (use get_all_agents to lookup)"),
+    address: z.string().describe("Wallet address to query (verify using get_all_agents if needed)"),
     chainId: z.string().optional().describe("Chain ID of the agent").default("252"),
   }),
   fn: async ({ address, chainId = "252" }): Promise<string> => {
@@ -351,7 +368,7 @@ Use this for: portfolio displays, wallet analysis, holdings tracking, valuation 
       );
 
       if (response.count === 0) {
-        return `No agent token holdings found for address ${address}.`;
+        return `No agent token holdings found for address ${address}.\n\n⚠️ TIP: Verify the wallet address is correct. Use get_all_agents to check agent contract addresses.`;
       }
 
       let result = `Holdings for ${address} (Chain: ${chainId})\n`;
@@ -379,7 +396,8 @@ Use this for: portfolio displays, wallet analysis, holdings tracking, valuation 
 
       return result;
     } catch (err) {
-      return `Unable to retrieve holdings: ${err instanceof Error ? err.message : "Unknown error"}.`;
+      const errorMsg = err instanceof Error ? err.message : "Unknown error";
+      return `Unable to retrieve holdings: ${errorMsg}\n\n⚠️ TIP: Verify the wallet address is correct.`;
     }
   },
 });

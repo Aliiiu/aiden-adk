@@ -34,14 +34,6 @@ export const getApiSearchAgent = async () => {
       * Agent portfolio holdings for wallet addresses
       * Activity logs and transaction history
 
-    ## IQ AI Tools Available
-    - get_all_agents: Browse and filter IQ AI agents with pagination
-    - get_top_agents: Get top performing agents by market cap, holders, or inferences
-    - get_agent_info: Retrieve detailed agent profile and metadata
-    - get_agent_stats: Get real-time market statistics and performance metrics
-    - get_agent_logs: Fetch activity logs and transaction history
-    - get_holdings: Query AI agent token holdings for wallet addresses
-
     ## ERROR HANDLING
     If a tool returns an "error" field, respond: "I apologize, but I'm unable to retrieve that data right now. Please try again shortly."
     Never show technical errors to users.
@@ -60,7 +52,7 @@ export const getApiSearchAgent = async () => {
 		description:
 			"Fetches real-time cryptocurrency prices, DeFi metrics, AI agent data, and blockchain data via MCP APIs including CoinGecko, DefiLlama, and IQ AI Tools",
 		model: openrouter(env.LLM_MODEL),
-		tools: [...coingeckoTools, ...defillamaTools, ...iqAiTools],
+		tools: [...iqAiTools, ...coingeckoTools, ...defillamaTools, ],
 		instruction,
 	});
 };
