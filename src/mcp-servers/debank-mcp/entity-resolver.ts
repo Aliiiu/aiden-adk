@@ -1,3 +1,5 @@
+import { google } from "@ai-sdk/google";
+import { GoogleAICacheManager } from "@google/generative-ai/server";
 import { generateText } from "ai";
 import endent from "endent";
 import { createChildLogger } from "../../lib/utils";
@@ -6,6 +8,120 @@ import { chainIds } from "./enums/chains";
 const logger = createChildLogger("DeBank Entity Resolver");
 const gemini25Flash = "gemini-2.5-flash";
 const NOT_FOUND_TOKEN = "__NOT_FOUND__";
+
+// Cache manager for Gemini context caching
+let cacheManager: GoogleAICacheManager | null = null;
+let cachedContentName: string | null = null;
+
+/**
+ * Initializes the Gemini cache manager and creates cached content for chain list
+ * This caches the chain enum list to reduce token costs and improve performance
+ */
+async function initializeCacheManager(): Promise<void> {
+	if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+		logger.warn(
+			"GOOGLE_GENERATIVE_AI_API_KEY not found, caching will be disabled",
+		);
+		return;
+	}
+
+	try {
+		cacheManager = new GoogleAICacheManager(
+			process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+		);
+
+		// Prepare chain list for caching with additional context to meet minimum token requirement
+		// Google AI requires minimum 1024 tokens for caching
+		const chainList = chainIds
+			.map((chain) => `${chain.name}: ${chain.id}`)
+			.join("\n");
+
+		const systemInstruction = endent`
+			You are a blockchain chain resolver for DeBank API integration.
+			Your task is to match user-provided blockchain names to their corresponding DeBank chain IDs.
+
+			DeBank supports 145+ blockchain networks across various ecosystems including:
+			- Layer 1 blockchains (Ethereum, BNB Chain, Solana, etc.)
+			- Layer 2 scaling solutions (Arbitrum, Optimism, zkSync, Polygon zkEVM, etc.)
+			- Alternative Layer 1s (Avalanche, Fantom, Cronos, etc.)
+			- EVM-compatible chains (most networks support Ethereum Virtual Machine)
+			- Non-EVM chains (Solana, Near, Aptos, Sui, etc.)
+
+			IMPORTANT MATCHING RULES:
+			1. Match the user input to the most appropriate chain from the available list below
+			2. Handle common variations, abbreviations, and naming conventions:
+
+			   MAJOR NETWORKS:
+			   - "BSC", "BNB", "Binance", "Binance Smart Chain" → "BNB Chain" (ID: bsc)
+			   - "ETH", "Ethereum Mainnet", "Ethereum Network" → "Ethereum" (ID: eth)
+			   - "Polygon", "MATIC", "Polygon Network" → "Polygon" (ID: matic)
+			   - "ARB", "Arbitrum One", "Arbitrum Network" → "Arbitrum" (ID: arb)
+			   - "OP", "Optimism Mainnet", "Optimism Network" → "Optimism" (ID: op)
+
+			   LAYER 2s:
+			   - "Base", "Base Network", "Coinbase Base" → "Base" (ID: base)
+			   - "zkSync", "zkSync Era" → "zkSync Era" (ID: era)
+			   - "Linea", "Linea Network" → "Linea" (ID: linea)
+			   - "Scroll", "Scroll Network" → "Scroll" (ID: scrl)
+
+			   ALT L1s:
+			   - "AVAX", "Avalanche C-Chain", "Avalanche Network" → "Avalanche" (ID: avax)
+			   - "FTM", "Fantom Network", "Fantom Opera" → "Fantom" (ID: ftm)
+			   - "SOL", "Solana Network", "Solana Mainnet" → "Solana" (ID: sol)
+			   - "CRO", "Cronos Network", "Cronos Chain" → "Cronos" (ID: cro)
+
+			   SPECIALIZED:
+			   - "Aurora", "Aurora Network" → "Aurora" (ID: aurora)
+			   - "Moonbeam", "Moonbeam Network" → "Moonbeam" (ID: mobm)
+			   - "Moonriver", "Moonriver Network" → "Moonriver" (ID: movr)
+
+			3. Return ONLY the chain ID (the lowercase identifier after the colon in the chain list)
+			4. If no match is found, return exactly this token: __NOT_FOUND__
+			5. Be flexible with naming variations but prioritize exact matches when available
+			6. Handle case-insensitive matching for all inputs
+			7. Consider common abbreviations, ticker symbols, and network naming conventions
+			8. Some networks have multiple valid names (use any to match)
+
+			OUTPUT FORMAT:
+			- Success: Return just the chain ID (e.g., "eth", "bsc", "matic")
+			- Failure: Return exactly "__NOT_FOUND__" (no quotes, just the token)
+			- Never return explanations, just the chain ID or __NOT_FOUND__
+
+			Available DeBank Chains (format: Chain Name: chain_id):
+		`;
+
+		// Create cached content with the chain list and system instruction
+		const { name } = await cacheManager.create({
+			model: gemini25Flash,
+			systemInstruction,
+			contents: [
+				{
+					role: "user",
+					parts: [
+						{
+							text: chainList,
+						},
+					],
+				},
+			],
+			ttlSeconds: 3600, // 1 hour cache
+		});
+
+		cachedContentName = name ?? null;
+		logger.info(
+			`Gemini context cache initialized successfully (cache: ${cachedContentName})`,
+		);
+	} catch (error) {
+		logger.error("Failed to initialize Gemini cache manager:", error);
+		cacheManager = null;
+		cachedContentName = null;
+	}
+}
+
+// Initialize cache on module load
+initializeCacheManager().catch((error) => {
+	logger.error("Error during cache initialization:", error);
+});
 
 const isNotFoundResponse = (output: string): boolean => {
 	return output.toUpperCase().includes(NOT_FOUND_TOKEN);
@@ -63,50 +179,44 @@ export function needsResolution(
  */
 export async function resolveChain(name: string): Promise<string | null> {
 	try {
-		// Prepare chain list for AI context
-		const chainList = chainIds
-			.map((chain) => `${chain.name}: ${chain.id}`)
-			.join("\n");
-
-		const prompt = endent`
-			You are a blockchain chain resolver. Given a user's input for a blockchain name, find the matching DeBank chain ID.
-
-			Available chains (format: Name: id):
-			${chainList}
-
-			User input: "${name}"
-
-			Rules:
-			1. Match the user input to the most appropriate chain from the list
-			2. Handle common variations and abbreviations (e.g., "BSC" = "BNB Chain", "Polygon" = "Polygon", "ETH" = "Ethereum")
-			3. Return ONLY the chain ID (the part after the colon), nothing else
-			4. If no match is found, return the exact token "__NOT_FOUND__"
-
-			Examples:
-			- Input: "Ethereum" → Output: eth
-			- Input: "BSC" → Output: bsc
-			- Input: "Binance Smart Chain" → Output: bsc
-			- Input: "Polygon" → Output: matic
-			- Input: "Arbitrum" → Output: arb
-			- Input: "Made Up Chain" → Output: __NOT_FOUND__
-
-			Your response (chain ID only, or "__NOT_FOUND__" if no match):
-		`;
-
-		const result = await generateText({
-			model: gemini25Flash,
-			prompt,
-			providerOptions: {
-				google: {
-					cacheControl: true,
-					// Cache the chain list since it rarely changes
-					cachedContent: {
-						content: chainList,
-						ttlSeconds: 3600, // 1 hour
+		// Use cached content if available, otherwise fall back to inline prompt
+		const result = cachedContentName
+			? await generateText({
+					model: google(gemini25Flash),
+					prompt: `User input: "${name}"\n\nYour response (chain ID only, or "__NOT_FOUND__" if no match):`,
+					providerOptions: {
+						google: {
+							cachedContent: cachedContentName,
+						},
 					},
-				},
-			},
-		});
+				})
+			: await generateText({
+					model: google(gemini25Flash),
+					prompt: endent`
+						You are a blockchain chain resolver. Given a user's input for a blockchain name, find the matching DeBank chain ID.
+
+						Available chains (format: Name: id):
+						${chainIds.map((chain) => `${chain.name}: ${chain.id}`).join("\n")}
+
+						User input: "${name}"
+
+						Rules:
+						1. Match the user input to the most appropriate chain from the list
+						2. Handle common variations and abbreviations (e.g., "BSC" = "BNB Chain", "Polygon" = "Polygon", "ETH" = "Ethereum")
+						3. Return ONLY the chain ID (the part after the colon), nothing else
+						4. If no match is found, return the exact token "__NOT_FOUND__"
+
+						Examples:
+						- Input: "Ethereum" → Output: eth
+						- Input: "BSC" → Output: bsc
+						- Input: "Binance Smart Chain" → Output: bsc
+						- Input: "Polygon" → Output: matic
+						- Input: "Arbitrum" → Output: arb
+						- Input: "Made Up Chain" → Output: __NOT_FOUND__
+
+						Your response (chain ID only, or "__NOT_FOUND__" if no match):
+					`,
+				});
 
 		const rawOutput = result.text.trim();
 		if (isNotFoundResponse(rawOutput)) {
