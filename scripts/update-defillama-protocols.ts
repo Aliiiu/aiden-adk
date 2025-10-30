@@ -126,19 +126,6 @@ async function main() {
 
 		console.log("\n📊 Statistics:");
 		console.log(`   Total protocols: ${protocols.length}`);
-
-		const compoundProtocols = protocols.filter((p) =>
-			p.name.toLowerCase().includes("compound"),
-		);
-		console.log(`   Protocols with "compound": ${compoundProtocols.length}`);
-		if (compoundProtocols.length > 0) {
-			console.log("\n   Compound-related protocols:");
-			for (const p of compoundProtocols) {
-				console.log(`      - ${p.name} (slug: ${p.slug})`);
-			}
-		}
-
-		console.log("\n✨ Done!");
 	} catch (error) {
 		console.error("❌ Error:", error);
 		process.exit(1);
