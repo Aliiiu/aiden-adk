@@ -25,6 +25,34 @@ const google = createGoogleGenerativeAI({
 });
 
 const gemini25Flash = "gemini-2.5-flash";
+const NOT_FOUND_TOKEN = "__NOT_FOUND__";
+
+const isNotFoundResponse = (output: string): boolean => {
+	return output.toUpperCase().includes(NOT_FOUND_TOKEN);
+};
+
+const stripDecorations = (output: string): string => {
+	return output
+		.trim()
+		.replace(/^[`"'“”‘’]+/, "")
+		.replace(/[`"'“”‘’]+$/, "")
+		.replace(/[.!?]+$/, "")
+		.trim();
+};
+
+const sanitizeSlug = (output: string): string => {
+	return stripDecorations(output)
+		.toLowerCase()
+		.replace(/[^a-z0-9_-]/g, "");
+};
+
+const sanitizeChainName = (output: string): string => {
+	return stripDecorations(output);
+};
+
+const sanitizeNumericString = (output: string): string => {
+	return stripDecorations(output).replace(/[^0-9]/g, "");
+};
 
 /**
  * Detect if a value needs resolution based on its format
@@ -75,7 +103,7 @@ export async function resolveProtocol(name: string): Promise<string | null> {
 			1. Return ONLY the slug, nothing else
 			2. Match the user's query to the most appropriate protocol from the list
 			3. For protocols with multiple versions, prefer the latest/most commonly used version unless the user explicitly specifies a version
-			4. If no good match exists, return "NOT_FOUND"
+			4. If no good match exists, return the exact token "__NOT_FOUND__"
 			5. Be case-insensitive and flexible with spacing and punctuation
 
 			Examples:
@@ -83,6 +111,7 @@ export async function resolveProtocol(name: string): Promise<string | null> {
 			- User: "Aave V3" → "aave-v3"
 			- User: "Curve" → "curve-dex"
 			- User: "MakerDAO" → "makerdao"
+			- User: "Unknown Protocol" → "__NOT_FOUND__"
 
 			Now find the slug for the user query above:
 		`;
@@ -91,14 +120,20 @@ export async function resolveProtocol(name: string): Promise<string | null> {
 			model: google(gemini25Flash),
 			prompt,
 			system: endent`
-				You are a precise protocol matcher. Return ONLY the slug or NOT_FOUND. No explanations.
+				You are a precise protocol matcher. Return ONLY the slug or __NOT_FOUND__. No explanations.
 			`,
 		});
 
-		const slug = result.text.trim().toLowerCase();
-
-		if (slug === "not_found") {
+		const rawOutput = result.text.trim();
+		if (isNotFoundResponse(rawOutput)) {
 			logger.warn(`Could not resolve protocol: ${name}`);
+			return null;
+		}
+
+		const slug = sanitizeSlug(rawOutput);
+
+		if (!slug) {
+			logger.warn(`Gemini returned empty protocol slug for: ${name}`);
 			return null;
 		}
 
@@ -140,7 +175,7 @@ export async function resolveChain(name: string): Promise<string | null> {
 			1. Return ONLY the exact chain name as it appears in the list, nothing else
 			2. Match the user's query to the most appropriate chain
 			3. Handle variations: "BSC" = "Binance Smart Chain", "ETH" = "Ethereum", "Matic" = "Polygon"
-			4. If no good match exists, return "NOT_FOUND"
+			4. If no good match exists, return the exact token "__NOT_FOUND__"
 			5. Be case-sensitive for the output - return the exact name from the list
 
 			Examples:
@@ -149,6 +184,7 @@ export async function resolveChain(name: string): Promise<string | null> {
 			- User: "Binance Smart Chain" → "BSC"
 			- User: "Polygon" → "Polygon"
 			- User: "Matic" → "Polygon"
+			- User: "Unknown Chain" → "__NOT_FOUND__"
 
 			Now find the chain name for the user query above:
 		`;
@@ -157,14 +193,20 @@ export async function resolveChain(name: string): Promise<string | null> {
 			model: google(gemini25Flash),
 			prompt,
 			system: endent`
-				You are a precise chain matcher. Return ONLY the exact chain name or NOT_FOUND. No explanations.
+				You are a precise chain matcher. Return ONLY the exact chain name or __NOT_FOUND__. No explanations.
 			`,
 		});
 
-		const chainName = result.text.trim();
-
-		if (chainName === "NOT_FOUND") {
+		const rawOutput = result.text.trim();
+		if (isNotFoundResponse(rawOutput)) {
 			logger.warn(`Could not resolve chain: ${name}`);
+			return null;
+		}
+
+		const chainName = sanitizeChainName(rawOutput);
+
+		if (!chainName) {
+			logger.warn(`Gemini returned empty chain name for: ${name}`);
 			return null;
 		}
 
@@ -206,7 +248,7 @@ export async function resolveStablecoin(name: string): Promise<string | null> {
 			1. Return ONLY the numeric ID, nothing else
 			2. Match the user's query to the most appropriate stablecoin by name or symbol
 			3. Handle variations: "USDC" = "USD Coin" (ID: 2), "Tether" = "USDT" (ID: 1)
-			4. If no good match exists, return "NOT_FOUND"
+			4. If no good match exists, return the exact token "__NOT_FOUND__"
 
 			Examples:
 			- User: "USDC" → "2"
@@ -214,6 +256,7 @@ export async function resolveStablecoin(name: string): Promise<string | null> {
 			- User: "Tether" → "1"
 			- User: "USDT" → "1"
 			- User: "DAI" → "5"
+			- User: "Unknown Stablecoin" → "__NOT_FOUND__"
 
 			Now find the ID for the user query above:
 		`;
@@ -222,14 +265,20 @@ export async function resolveStablecoin(name: string): Promise<string | null> {
 			model: google(gemini25Flash),
 			prompt,
 			system: endent`
-				You are a precise stablecoin matcher. Return ONLY the numeric ID or NOT_FOUND. No explanations.
+				You are a precise stablecoin matcher. Return ONLY the numeric ID or __NOT_FOUND__. No explanations.
 			`,
 		});
 
-		const id = result.text.trim();
+		const rawOutput = result.text.trim();
 
-		if (id === "NOT_FOUND") {
+		if (isNotFoundResponse(rawOutput)) {
 			logger.warn(`Could not resolve stablecoin: ${name}`);
+			return null;
+		}
+
+		const id = sanitizeNumericString(rawOutput);
+		if (!id) {
+			logger.warn(`Gemini returned invalid stablecoin ID: ${rawOutput}`);
 			return null;
 		}
 
@@ -271,12 +320,13 @@ export async function resolveBridge(name: string): Promise<number | null> {
 			1. Return ONLY the numeric ID, nothing else
 			2. Match the user's query to the most appropriate bridge by name or display name
 			3. Handle variations in naming
-			4. If no good match exists, return "NOT_FOUND"
+			4. If no good match exists, return the exact token "__NOT_FOUND__"
 
 			Examples:
 			- User: "Polygon Bridge" → "1"
 			- User: "Stargate" → "12"
 			- User: "Arbitrum" → "2"
+			- User: "Fictional Bridge" → "__NOT_FOUND__"
 
 			Now find the ID for the user query above:
 		`;
@@ -285,14 +335,20 @@ export async function resolveBridge(name: string): Promise<number | null> {
 			model: google(gemini25Flash),
 			prompt,
 			system: endent`
-				You are a precise bridge matcher. Return ONLY the numeric ID or NOT_FOUND. No explanations.
+				You are a precise bridge matcher. Return ONLY the numeric ID or __NOT_FOUND__. No explanations.
 			`,
 		});
 
-		const idStr = result.text.trim();
+		const rawOutput = result.text.trim();
 
-		if (idStr === "NOT_FOUND") {
+		if (isNotFoundResponse(rawOutput)) {
 			logger.warn(`Could not resolve bridge: ${name}`);
+			return null;
+		}
+
+		const idStr = sanitizeNumericString(rawOutput);
+		if (!idStr) {
+			logger.warn(`Gemini returned invalid bridge ID: ${rawOutput}`);
 			return null;
 		}
 

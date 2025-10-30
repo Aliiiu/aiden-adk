@@ -5,6 +5,15 @@ import { chainIds } from "./enums/chains";
 
 const logger = createChildLogger("DeBank Entity Resolver");
 const gemini25Flash = "gemini-2.5-flash";
+const NOT_FOUND_TOKEN = "__NOT_FOUND__";
+
+const isNotFoundResponse = (output: string): boolean => {
+	return output.toUpperCase().includes(NOT_FOUND_TOKEN);
+};
+
+const sanitizeChainId = (output: string): string => {
+	return output.toLowerCase().replace(/[^a-z0-9_-]/g, "");
+};
 
 /**
  * Determines if a value needs resolution based on its format
@@ -71,7 +80,7 @@ export async function resolveChain(name: string): Promise<string | null> {
 			1. Match the user input to the most appropriate chain from the list
 			2. Handle common variations and abbreviations (e.g., "BSC" = "BNB Chain", "Polygon" = "Polygon", "ETH" = "Ethereum")
 			3. Return ONLY the chain ID (the part after the colon), nothing else
-			4. If no match is found, return "null"
+			4. If no match is found, return the exact token "__NOT_FOUND__"
 
 			Examples:
 			- Input: "Ethereum" → Output: eth
@@ -79,8 +88,9 @@ export async function resolveChain(name: string): Promise<string | null> {
 			- Input: "Binance Smart Chain" → Output: bsc
 			- Input: "Polygon" → Output: matic
 			- Input: "Arbitrum" → Output: arb
+			- Input: "Made Up Chain" → Output: __NOT_FOUND__
 
-			Your response (chain ID only):
+			Your response (chain ID only, or "__NOT_FOUND__" if no match):
 		`;
 
 		const result = await generateText({
@@ -98,18 +108,24 @@ export async function resolveChain(name: string): Promise<string | null> {
 			},
 		});
 
-		const resolved = result.text.trim().toLowerCase();
-
-		// Validate that the resolved ID exists in our chain list
-		const chainExists = chainIds.some((chain) => chain.id === resolved);
-
-		if (!chainExists || resolved === "null") {
+		const rawOutput = result.text.trim();
+		if (isNotFoundResponse(rawOutput)) {
 			logger.warn(`Could not resolve chain: ${name}`);
 			return null;
 		}
 
-		logger.info(`Resolved chain "${name}" → "${resolved}"`);
-		return resolved;
+		const sanitized = sanitizeChainId(rawOutput);
+
+		// Validate that the resolved ID exists in our chain list
+		const chainExists = chainIds.some((chain) => chain.id === sanitized);
+
+		if (!chainExists || sanitized.length === 0) {
+			logger.warn(`Could not resolve chain: ${name}`);
+			return null;
+		}
+
+		logger.info(`Resolved chain "${name}" → "${sanitized}"`);
+		return sanitized;
 	} catch (error) {
 		logger.error(`Error resolving chain ${name}:`, error);
 		return null;
