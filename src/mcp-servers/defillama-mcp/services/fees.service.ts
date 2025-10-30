@@ -1,5 +1,19 @@
+import { createChildLogger } from "../../../lib/utils";
 import type { FeesOverviewResponse } from "../types";
 import { BaseService } from "./base.service";
+
+const logger = createChildLogger("DefiLlama Fees Service");
+
+const logAndWrapError = (context: string, error: unknown): Error => {
+	if (error instanceof Error) {
+		logger.error(context, error);
+		return error;
+	}
+
+	const wrappedError = new Error(String(error));
+	logger.error(context, wrappedError);
+	return wrappedError;
+};
 
 /**
  * Fees & Revenue Service
@@ -15,44 +29,54 @@ export class FeesService extends BaseService {
 		sortCondition: string;
 		order: "asc" | "desc";
 	}): Promise<string> {
-		const excludeTotalDataChart =
-			args.excludeTotalDataChart !== undefined
-				? args.excludeTotalDataChart
-				: true;
-		const excludeTotalDataChartBreakdown =
-			args.excludeTotalDataChartBreakdown !== undefined
-				? args.excludeTotalDataChartBreakdown
-				: true;
-		const dataType = args.dataType ?? "dailyFees";
+		try {
+			const excludeTotalDataChart =
+				args.excludeTotalDataChart !== undefined
+					? args.excludeTotalDataChart
+					: true;
+			const excludeTotalDataChartBreakdown =
+				args.excludeTotalDataChartBreakdown !== undefined
+					? args.excludeTotalDataChartBreakdown
+					: true;
+			const dataType = args.dataType ?? "dailyFees";
 
-		const params = new URLSearchParams({
-			excludeTotalDataChart: String(excludeTotalDataChart),
-			excludeTotalDataChartBreakdown: String(excludeTotalDataChartBreakdown),
-			dataType,
-		});
+			const params = new URLSearchParams({
+				excludeTotalDataChart: String(excludeTotalDataChart),
+				excludeTotalDataChartBreakdown: String(excludeTotalDataChartBreakdown),
+				dataType,
+			});
 
-		if (args.protocol) {
-			const url = `${this.BASE_URL}/summary/fees/${args.protocol}?${params.toString()}`;
+			if (args.protocol) {
+				const url = `${this.BASE_URL}/summary/fees/${args.protocol}?${params.toString()}`;
+				const data = await this.fetchData<FeesOverviewResponse>(url);
+
+				return await this.formatResponse(data, {
+					title: `Fees & Revenue: ${args.protocol}`,
+					currencyFields: [
+						"dailyUserFees",
+						"dailyHoldersRevenue",
+						"dailySupplySideRevenue",
+						"holdersRevenue30d",
+					],
+					numberFields: ["change_1d", "change_7d", "change_1m"],
+				});
+			}
+
+			const url = args.chain
+				? `${this.BASE_URL}/overview/fees/${args.chain}?${params.toString()}`
+				: `${this.BASE_URL}/overview/fees?${params.toString()}`;
 			const data = await this.fetchData<FeesOverviewResponse>(url);
 
-			return await this.formatResponse(data, {
-				title: `Fees & Revenue: ${args.protocol}`,
-				currencyFields: [
-					"dailyUserFees",
-					"dailyHoldersRevenue",
-					"dailySupplySideRevenue",
-					"holdersRevenue30d",
-				],
-				numberFields: ["change_1d", "change_7d", "change_1m"],
-			});
+			return await this.processFeesResponse(data, args);
+		} catch (error) {
+			const target =
+				args.protocol ??
+				(args.chain ? `chain ${args.chain}` : "global overview");
+			throw logAndWrapError(
+				`Failed to fetch fees and revenue data for ${target}`,
+				error,
+			);
 		}
-
-		const url = args.chain
-			? `${this.BASE_URL}/overview/fees/${args.chain}?${params.toString()}`
-			: `${this.BASE_URL}/overview/fees?${params.toString()}`;
-		const data = await this.fetchData<FeesOverviewResponse>(url);
-
-		return this.processFeesResponse(data, args);
 	}
 
 	/**

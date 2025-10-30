@@ -1,3 +1,4 @@
+import { createChildLogger } from "../../../lib/utils";
 import type {
 	BatchHistoricalResponse,
 	ChartResponse,
@@ -6,6 +7,19 @@ import type {
 	PercentageResponse,
 } from "../types";
 import { BaseService } from "./base.service";
+
+const logger = createChildLogger("DefiLlama Price Service");
+
+const logAndWrapError = (context: string, error: unknown): Error => {
+	if (error instanceof Error) {
+		logger.error(context, error);
+		return error;
+	}
+
+	const wrappedError = new Error(String(error));
+	logger.error(context, wrappedError);
+	return wrappedError;
+};
 
 /**
  * Price Service
@@ -19,34 +33,48 @@ export class PriceService extends BaseService {
 		coins: string;
 		searchWidth?: string | number;
 	}): Promise<string> {
-		const coinsSegment = encodeURIComponent(args.coins);
-		const params = new URLSearchParams();
+		try {
+			const coinsSegment = encodeURIComponent(args.coins);
+			const params = new URLSearchParams();
 
-		if (args.searchWidth !== undefined) {
-			params.append("searchWidth", String(args.searchWidth));
+			if (args.searchWidth !== undefined) {
+				params.append("searchWidth", String(args.searchWidth));
+			}
+
+			const url = `${this.COINS_URL}/prices/current/${coinsSegment}${
+				params.toString() ? `?${params.toString()}` : ""
+			}`;
+
+			const data = await this.fetchData<CurrentPricesResponse>(url);
+			return await this.formatResponse(data, {
+				title: "Current Coin Prices",
+				currencyFields: ["price"],
+			});
+		} catch (error) {
+			throw logAndWrapError(
+				`Failed to fetch current prices for coins ${args.coins}`,
+				error,
+			);
 		}
-
-		const url = `${this.COINS_URL}/prices/current/${coinsSegment}${
-			params.toString() ? `?${params.toString()}` : ""
-		}`;
-
-		const data = await this.fetchData<CurrentPricesResponse>(url);
-		return await this.formatResponse(data, {
-			title: "Current Coin Prices",
-			currencyFields: ["price"],
-		});
 	}
 
 	/**
 	 * Get first recorded prices for coins
 	 */
 	async getPricesFirstCoins(args: { coins: string }): Promise<string> {
-		const url = `${this.COINS_URL}/prices/first/${args.coins}`;
-		const data = await this.fetchData<FirstPricesResponse>(url);
-		return await this.formatResponse(data, {
-			title: "First Recorded Prices",
-			currencyFields: ["price"],
-		});
+		try {
+			const url = `${this.COINS_URL}/prices/first/${args.coins}`;
+			const data = await this.fetchData<FirstPricesResponse>(url);
+			return await this.formatResponse(data, {
+				title: "First Recorded Prices",
+				currencyFields: ["price"],
+			});
+		} catch (error) {
+			throw logAndWrapError(
+				`Failed to fetch first recorded prices for coins ${args.coins}`,
+				error,
+			);
+		}
 	}
 
 	/**
@@ -56,21 +84,28 @@ export class PriceService extends BaseService {
 		coins: string;
 		searchWidth?: string | number;
 	}): Promise<string> {
-		const params = new URLSearchParams({
-			coins: args.coins,
-		});
+		try {
+			const params = new URLSearchParams({
+				coins: args.coins,
+			});
 
-		if (args.searchWidth !== undefined) {
-			params.append("searchWidth", String(args.searchWidth));
+			if (args.searchWidth !== undefined) {
+				params.append("searchWidth", String(args.searchWidth));
+			}
+
+			const url = `${this.COINS_URL}/batchHistorical?${params.toString()}`;
+
+			const data = await this.fetchData<BatchHistoricalResponse>(url);
+			return await this.formatResponse(data, {
+				title: "Batch Historical Prices",
+				currencyFields: ["price"],
+			});
+		} catch (error) {
+			throw logAndWrapError(
+				`Failed to fetch batch historical prices for coins ${args.coins}`,
+				error,
+			);
 		}
-
-		const url = `${this.COINS_URL}/batchHistorical?${params.toString()}`;
-
-		const data = await this.fetchData<BatchHistoricalResponse>(url);
-		return await this.formatResponse(data, {
-			title: "Batch Historical Prices",
-			currencyFields: ["price"],
-		});
 	}
 
 	/**
@@ -81,23 +116,30 @@ export class PriceService extends BaseService {
 		timestamp: string | number;
 		searchWidth?: string | number;
 	}): Promise<string> {
-		const unixTime = this.toUnixSeconds(args.timestamp);
-		const coinsSegment = encodeURIComponent(args.coins);
-		const params = new URLSearchParams();
+		try {
+			const unixTime = this.toUnixSeconds(args.timestamp);
+			const coinsSegment = encodeURIComponent(args.coins);
+			const params = new URLSearchParams();
 
-		if (args.searchWidth !== undefined) {
-			params.append("searchWidth", String(args.searchWidth));
+			if (args.searchWidth !== undefined) {
+				params.append("searchWidth", String(args.searchWidth));
+			}
+
+			const url = `${this.COINS_URL}/prices/historical/${unixTime}/${coinsSegment}${
+				params.toString() ? `?${params.toString()}` : ""
+			}`;
+
+			const data = await this.fetchData<CurrentPricesResponse>(url);
+			return await this.formatResponse(data, {
+				title: `Historical Prices at ${new Date(unixTime * 1000).toISOString()}`,
+				currencyFields: ["price"],
+			});
+		} catch (error) {
+			throw logAndWrapError(
+				`Failed to fetch historical prices for coins ${args.coins} at timestamp ${args.timestamp}`,
+				error,
+			);
 		}
-
-		const url = `${this.COINS_URL}/prices/historical/${unixTime}/${coinsSegment}${
-			params.toString() ? `?${params.toString()}` : ""
-		}`;
-
-		const data = await this.fetchData<CurrentPricesResponse>(url);
-		return await this.formatResponse(data, {
-			title: `Historical Prices at ${new Date(unixTime * 1000).toISOString()}`,
-			currencyFields: ["price"],
-		});
 	}
 
 	/**
@@ -109,24 +151,31 @@ export class PriceService extends BaseService {
 		lookForward?: boolean;
 		timestamp?: string | number;
 	}): Promise<string> {
-		const coinsSegment = encodeURIComponent(args.coins);
-		const params = new URLSearchParams();
+		try {
+			const coinsSegment = encodeURIComponent(args.coins);
+			const params = new URLSearchParams();
 
-		if (args.period) params.append("period", args.period);
-		if (args.lookForward) params.append("lookForward", "true");
-		if (args.timestamp) {
-			const unixTime = this.toUnixSeconds(args.timestamp);
-			params.append("timestamp", unixTime.toString());
+			if (args.period) params.append("period", args.period);
+			if (args.lookForward) params.append("lookForward", "true");
+			if (args.timestamp) {
+				const unixTime = this.toUnixSeconds(args.timestamp);
+				params.append("timestamp", unixTime.toString());
+			}
+
+			const url = `${this.COINS_URL}/percentage/${coinsSegment}${
+				params.toString() ? `?${params.toString()}` : ""
+			}`;
+			const data = await this.fetchData<PercentageResponse>(url);
+			return await this.formatResponse(data, {
+				title: "Price Percentage Change",
+				numberFields: ["percentage"],
+			});
+		} catch (error) {
+			throw logAndWrapError(
+				`Failed to fetch percentage changes for coins ${args.coins}`,
+				error,
+			);
 		}
-
-		const url = `${this.COINS_URL}/percentage/${coinsSegment}${
-			params.toString() ? `?${params.toString()}` : ""
-		}`;
-		const data = await this.fetchData<PercentageResponse>(url);
-		return await this.formatResponse(data, {
-			title: "Price Percentage Change",
-			numberFields: ["percentage"],
-		});
 	}
 
 	/**
@@ -140,22 +189,29 @@ export class PriceService extends BaseService {
 		period?: string;
 		searchWidth?: string | number;
 	}): Promise<string> {
-		let url = `${this.COINS_URL}/chart/${args.coins}`;
-		const params = new URLSearchParams();
+		try {
+			let url = `${this.COINS_URL}/chart/${args.coins}`;
+			const params = new URLSearchParams();
 
-		if (args.start !== undefined) params.append("start", String(args.start));
-		if (args.end !== undefined) params.append("end", String(args.end));
-		if (args.span !== undefined) params.append("span", args.span.toString());
-		if (args.period) params.append("period", args.period);
-		if (args.searchWidth !== undefined)
-			params.append("searchWidth", String(args.searchWidth));
+			if (args.start !== undefined) params.append("start", String(args.start));
+			if (args.end !== undefined) params.append("end", String(args.end));
+			if (args.span !== undefined) params.append("span", args.span.toString());
+			if (args.period) params.append("period", args.period);
+			if (args.searchWidth !== undefined)
+				params.append("searchWidth", String(args.searchWidth));
 
-		if (params.toString()) url += `?${params.toString()}`;
+			if (params.toString()) url += `?${params.toString()}`;
 
-		const data = await this.fetchData<ChartResponse>(url);
-		return await this.formatResponse(data, {
-			title: "Price Chart Data",
-			currencyFields: ["price"],
-		});
+			const data = await this.fetchData<ChartResponse>(url);
+			return await this.formatResponse(data, {
+				title: "Price Chart Data",
+				currencyFields: ["price"],
+			});
+		} catch (error) {
+			throw logAndWrapError(
+				`Failed to fetch chart data for coins ${args.coins}`,
+				error,
+			);
+		}
 	}
 }

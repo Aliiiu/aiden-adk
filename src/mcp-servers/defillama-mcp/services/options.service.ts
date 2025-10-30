@@ -1,5 +1,19 @@
+import { createChildLogger } from "../../../lib/utils";
 import type { OptionsOverviewResponse } from "../types";
 import { BaseService } from "./base.service";
+
+const logger = createChildLogger("DefiLlama Options Service");
+
+const logAndWrapError = (context: string, error: unknown): Error => {
+	if (error instanceof Error) {
+		logger.error(context, error);
+		return error;
+	}
+
+	const wrappedError = new Error(String(error));
+	logger.error(context, wrappedError);
+	return wrappedError;
+};
 
 /**
  * Options Service
@@ -18,42 +32,52 @@ export class OptionsService extends BaseService {
 		excludeTotalDataChart?: boolean;
 		excludeTotalDataChartBreakdown?: boolean;
 	}): Promise<string> {
-		const excludeTotalDataChart =
-			args.excludeTotalDataChart !== undefined
-				? args.excludeTotalDataChart
-				: true;
-		const excludeTotalDataChartBreakdown =
-			args.excludeTotalDataChartBreakdown !== undefined
-				? args.excludeTotalDataChartBreakdown
-				: true;
-		const dataType = args.dataType ?? "dailyNotionalVolume";
+		try {
+			const excludeTotalDataChart =
+				args.excludeTotalDataChart !== undefined
+					? args.excludeTotalDataChart
+					: true;
+			const excludeTotalDataChartBreakdown =
+				args.excludeTotalDataChartBreakdown !== undefined
+					? args.excludeTotalDataChartBreakdown
+					: true;
+			const dataType = args.dataType ?? "dailyNotionalVolume";
 
-		const params = new URLSearchParams({
-			excludeTotalDataChart: String(excludeTotalDataChart),
-			excludeTotalDataChartBreakdown: String(excludeTotalDataChartBreakdown),
-			dataType,
-		});
-
-		if (args.protocol) {
-			const summaryParams = new URLSearchParams({
+			const params = new URLSearchParams({
+				excludeTotalDataChart: String(excludeTotalDataChart),
+				excludeTotalDataChartBreakdown: String(excludeTotalDataChartBreakdown),
 				dataType,
 			});
-			const url = `${this.BASE_URL}/summary/options/${args.protocol}?${summaryParams.toString()}`;
+
+			if (args.protocol) {
+				const summaryParams = new URLSearchParams({
+					dataType,
+				});
+				const url = `${this.BASE_URL}/summary/options/${args.protocol}?${summaryParams.toString()}`;
+				const data = await this.fetchData<OptionsOverviewResponse>(url);
+
+				return await this.formatResponse(data, {
+					title: `Options Protocol: ${args.protocol}`,
+					currencyFields: ["total24h", "total7d", "total30d"],
+					numberFields: ["change_1d", "change_7d", "change_1m"],
+				});
+			}
+
+			const url = args.chain
+				? `${this.BASE_URL}/overview/options/${args.chain}?${params.toString()}`
+				: `${this.BASE_URL}/overview/options?${params.toString()}`;
 			const data = await this.fetchData<OptionsOverviewResponse>(url);
 
-			return await this.formatResponse(data, {
-				title: `Options Protocol: ${args.protocol}`,
-				currencyFields: ["total24h", "total7d", "total30d"],
-				numberFields: ["change_1d", "change_7d", "change_1m"],
-			});
+			return await this.processOptionsResponse(data, args);
+		} catch (error) {
+			const target =
+				args.protocol ??
+				(args.chain ? `chain ${args.chain}` : "global overview");
+			throw logAndWrapError(
+				`Failed to fetch options data for ${target}`,
+				error,
+			);
 		}
-
-		const url = args.chain
-			? `${this.BASE_URL}/overview/options/${args.chain}?${params.toString()}`
-			: `${this.BASE_URL}/overview/options?${params.toString()}`;
-		const data = await this.fetchData<OptionsOverviewResponse>(url);
-
-		return this.processOptionsResponse(data, args);
 	}
 
 	/**
