@@ -2,14 +2,55 @@ import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
 import { openrouter } from "../../../../../lib/integrations/openrouter";
-import { getCoingeckoTools, getDefillamaToolsViaMcp } from "./tools";
+import {
+	getCoingeckoTools,
+	getDebankToolsViaMcp,
+	getDefillamaToolsViaMcp,
+} from "./tools";
 
 export const getApiSearchAgent = async () => {
 	const coingeckoTools = await getCoingeckoTools();
 	const defillamaTools = await getDefillamaToolsViaMcp();
+	const debankTools = await getDebankToolsViaMcp();
+
+	// Build comprehensive list of all available tools
+	const allTools = [...coingeckoTools, ...defillamaTools, ...debankTools];
+
+	const todayUtc = new Intl.DateTimeFormat("en-GB", {
+		timeZone: "UTC",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}).format(new Date());
 
 	const instruction = endent`
     You are an API intelligence specialist for real-time cryptocurrency and DeFi data.
+
+    ## PRIMARY RULE: ONLY USE AVAILABLE TOOLS
+    **CRITICAL**: You can ONLY call tools that exist in your tools list.
+    **NEVER** invent, guess, or hallucinate tool names.
+
+    ## Tool Usage Protocol
+    - Read the tool list before calling anything.
+    - Only call tools whose name exactly matches an entry in the list (case-sensitive, no dotted namespaces).
+    - If the required capability is missing, explain the limitation instead of constructing a new tool name.
+
+    Available tool count:
+    - CoinGecko tools: ${coingeckoTools.length}
+    - DefiLlama tools: ${defillamaTools.length}
+    - DeBank tools: ${debankTools.length}
+    Total: ${allTools.length} tools
+
+    ## Current UTC Date
+    - Treat ${todayUtc} as "today" for any tool requiring a date input.
+
+    If you're not sure a tool exists:
+    1. Check the tool list carefully
+    2. Use the closest matching tool
+    3. If no suitable tool exists, explain you cannot retrieve that specific data
+
+    **DO NOT** call non-existent tools like:
+    - Any tool name you think "should" exist but isn't in your list
 
     ## Primary Expertise Areas
     - Process user requests related to cryptocurrency data and DeFi metrics
@@ -24,6 +65,17 @@ export const getApiSearchAgent = async () => {
       * Options protocol data
       * Historical price and chart data
       * Cross-chain metrics and comparisons
+    - Utilize DeBank MCP tools for:
+      * User-specific blockchain data and portfolios
+      * Chain information and supported networks
+      * Protocol positions and user balances
+      * Token holdings across multiple chains
+      * NFT collections and holdings
+      * Transaction history and authorizations
+      * Gas prices for transaction optimization
+      * Transaction simulation and explanation
+      * Top holders of protocols and tokens
+      * Historical token prices
 
     ## ERROR HANDLING
     If a tool returns an "error" field, respond: "I apologize, but I'm unable to retrieve that data right now. Please try again shortly."
@@ -41,9 +93,9 @@ export const getApiSearchAgent = async () => {
 	return new LlmAgent({
 		name: "api_search_agent",
 		description:
-			"Fetches real-time cryptocurrency prices, DeFi metrics, and blockchain data via MCP APIs including CoinGecko, DefiLlama, Frax Tools, and IQ AI Tools",
+			"Fetches real-time cryptocurrency prices, DeFi metrics, user portfolios, and blockchain data via MCP APIs including CoinGecko, DefiLlama, and DeBank",
 		model: openrouter(env.LLM_MODEL),
-		tools: [...coingeckoTools, ...defillamaTools],
+		tools: allTools,
 		instruction,
 	});
 };
