@@ -8,8 +8,11 @@ import axios from "axios";
 import { Tiktoken } from "js-tiktoken/lite";
 import cl100k_base from "js-tiktoken/ranks/cl100k_base";
 import { env } from "../../../env";
+import { createChildLogger } from "../../../lib/utils";
 import { config } from "../config";
 import { LLMDataFilter } from "../utils/data-filter";
+
+const logger = createChildLogger("DeBank Base Service");
 
 // Initialize tiktoken encoder for token counting
 const encoder = new Tiktoken(cl100k_base);
@@ -116,6 +119,11 @@ export abstract class BaseService {
 		// Check token count and filter if necessary
 		const tokenLength = encoder.encode(markdownOutput).length;
 
+		logger.info(`Response token length: ${tokenLength}`);
+		logger.info(
+			`Need to filter: ${this.dataFilter && this.currentQuery && tokenLength > config.maxTokens ? "yes" : "no"}`,
+		);
+
 		if (
 			tokenLength > config.maxTokens &&
 			this.dataFilter &&
@@ -128,6 +136,9 @@ export abstract class BaseService {
 					jsonData,
 					this.currentQuery,
 				);
+
+				logger.info("Successfully filtered response data");
+				logger.info(`New token length: ${encoder.encode(filteredJson).length}`);
 
 				// Format the filtered data
 				return toMarkdown(JSON.parse(filteredJson), {
