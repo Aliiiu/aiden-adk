@@ -2,6 +2,7 @@ import type { LanguageModel } from "ai";
 import { Tiktoken } from "js-tiktoken/lite";
 import cl100k_base from "js-tiktoken/ranks/cl100k_base";
 import { createChildLogger } from "../../../lib/utils";
+import { toMarkdown } from "../../../lib/utils/markdown-formatter";
 import { LLMDataFilter } from "../../debank-mcp/utils/data-filter";
 import { config } from "../config";
 import type { CacheEntry } from "../types";
@@ -100,7 +101,6 @@ export abstract class BaseService {
 			numberFields?: string[];
 		},
 	): Promise<string> {
-		const { toMarkdown } = require("../../../lib/utils/markdown-formatter");
 		let markdownOutput = toMarkdown(data, options);
 
 		const tokenLength = encoder.encode(markdownOutput).length;

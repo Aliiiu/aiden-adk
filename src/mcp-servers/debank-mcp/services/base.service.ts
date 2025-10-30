@@ -9,6 +9,7 @@ import { Tiktoken } from "js-tiktoken/lite";
 import cl100k_base from "js-tiktoken/ranks/cl100k_base";
 import { env } from "../../../env";
 import { createChildLogger } from "../../../lib/utils";
+import { toMarkdown } from "../../../lib/utils/markdown-formatter";
 import { config } from "../config";
 import { LLMDataFilter } from "../utils/data-filter";
 
@@ -113,7 +114,6 @@ export abstract class BaseService {
 			numberFields?: string[];
 		},
 	): Promise<string> {
-		const { toMarkdown } = require("../../../lib/utils/markdown-formatter");
 		const markdownOutput = toMarkdown(data, options);
 
 		// Check token count and filter if necessary
