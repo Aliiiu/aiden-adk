@@ -43,7 +43,7 @@ function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 }
 
 /**
- * Wraps an MCP tool to catch errors and extract text content from MCP responses
+ * Wraps an MCP tool to catch errors and return them as safe, structured objects.
  */
 function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
