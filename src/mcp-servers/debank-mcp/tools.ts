@@ -1,6 +1,6 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
-import { logger } from "../../lib/utils";
+import { createChildLogger } from "../../lib/utils";
 import {
 	needsResolution,
 	resolveChain,
@@ -13,6 +13,8 @@ import {
 	transactionService,
 	userService,
 } from "./services";
+
+const logger = createChildLogger("DeBank MCP Tools");
 
 /**
  * Helper to set query on all services when _userQuery is provided in args

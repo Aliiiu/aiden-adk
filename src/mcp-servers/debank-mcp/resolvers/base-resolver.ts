@@ -1,6 +1,5 @@
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
-import endent from "endent";
 import { createChildLogger } from "../../../lib/utils";
 import { isNotFoundResponse } from "../utils/validators";
 
@@ -55,7 +54,6 @@ export async function createResolver<T>(
 			}
 
 			if (config.validate(sanitized, config.entities)) {
-				logger.info(`Resolved ${config.entityType} "${name}" → "${sanitized}"`);
 				return sanitized;
 			}
 

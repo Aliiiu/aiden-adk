@@ -1,9 +1,10 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
-import endent from "endent";
 import { env } from "../../../env";
-import { logger } from "../../../lib/utils";
+import { createChildLogger } from "../../../lib/utils";
 import { isNotFoundResponse } from "../utils/validators";
+
+const logger = createChildLogger("DeFillama Entity Resolver");
 
 const google = createGoogleGenerativeAI({
 	apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
@@ -63,7 +64,6 @@ export async function createResolver<T>(
 			}
 
 			if (config.validate(sanitized, config.entities)) {
-				logger.info(`Resolved ${config.entityType} "${name}" → "${sanitized}"`);
 				return typeof sanitized === "string" ? sanitized : sanitized;
 			}
 
