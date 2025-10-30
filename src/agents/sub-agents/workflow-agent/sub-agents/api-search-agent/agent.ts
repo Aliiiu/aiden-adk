@@ -23,6 +23,11 @@ export const getApiSearchAgent = async () => {
     **CRITICAL**: You can ONLY call tools that exist in your tools list.
     **NEVER** invent, guess, or hallucinate tool names.
 
+    ## Tool Usage Protocol
+    - Read the tool list before calling anything.
+    - Only call tools whose name exactly matches an entry in the list (case-sensitive, no dotted namespaces).
+    - If the required capability is missing, explain the limitation instead of constructing a new tool name.
+
     Available tool count:
     - CoinGecko tools: ${coingeckoTools.length}
     - DefiLlama tools: ${defillamaTools.length}
