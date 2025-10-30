@@ -27,11 +27,37 @@ export class TransactionService extends BaseService {
 		pending_tx_list?: string;
 	}): Promise<string> {
 		try {
+			let txPayload: unknown;
+			try {
+				txPayload = JSON.parse(args.tx);
+			} catch (error) {
+				if (error instanceof SyntaxError) {
+					throw new Error(
+						`Invalid JSON format for tx: ${(error as SyntaxError).message}`,
+					);
+				}
+				throw error;
+			}
+
+			let pendingPayload: unknown;
+			if (args.pending_tx_list) {
+				try {
+					pendingPayload = JSON.parse(args.pending_tx_list);
+				} catch (error) {
+					if (error instanceof SyntaxError) {
+						throw new Error(
+							`Invalid JSON format for pending_tx_list: ${(error as SyntaxError).message}`,
+						);
+					}
+					throw error;
+				}
+			}
+
 			const body = {
-				tx: JSON.parse(args.tx),
-				...(args.pending_tx_list && {
-					pending_tx_list: JSON.parse(args.pending_tx_list),
-				}),
+				tx: txPayload,
+				...(pendingPayload !== undefined
+					? { pending_tx_list: pendingPayload }
+					: {}),
 			};
 
 			const data = await this.postWithToolConfig<PreExecResult>(
@@ -48,8 +74,20 @@ export class TransactionService extends BaseService {
 
 	async explainTransaction(args: { tx: string }): Promise<string> {
 		try {
+			let txPayload: unknown;
+			try {
+				txPayload = JSON.parse(args.tx);
+			} catch (error) {
+				if (error instanceof SyntaxError) {
+					throw new Error(
+						`Invalid JSON format for tx: ${(error as SyntaxError).message}`,
+					);
+				}
+				throw error;
+			}
+
 			const body = {
-				tx: JSON.parse(args.tx),
+				tx: txPayload,
 			};
 
 			const data = await this.postWithToolConfig<TransactionExplanation>(
