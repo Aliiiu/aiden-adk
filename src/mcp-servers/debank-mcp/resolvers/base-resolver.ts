@@ -1,0 +1,69 @@
+import { google } from "@ai-sdk/google";
+import { generateText } from "ai";
+import endent from "endent";
+import { createChildLogger } from "../../../lib/utils";
+import { isNotFoundResponse } from "../utils/validators";
+
+const logger = createChildLogger("DeBank Entity Resolver");
+const gemini25Flash = "gemini-2.5-flash";
+
+interface ResolverConfig<T> {
+	entityType: string;
+	cacheName: string | null;
+	entities: T[];
+	getContext: (entities: T[]) => string;
+	sanitize: (output: string) => string;
+	validate: (sanitized: string, entities: T[]) => boolean;
+	fallbackPrompt: (name: string, context: string) => string;
+}
+
+export async function createResolver<T>(
+	config: ResolverConfig<T>,
+): Promise<(name: string) => Promise<string | null>> {
+	return async (name: string) => {
+		try {
+			const result = config.cacheName
+				? await generateText({
+						model: google(gemini25Flash),
+						prompt: `User input: "${name}"\n\nYour response (chain ID only, or "__NOT_FOUND__" if no match):`,
+						providerOptions: {
+							google: {
+								cachedContent: config.cacheName,
+							},
+						},
+					})
+				: await generateText({
+						model: google(gemini25Flash),
+						prompt: config.fallbackPrompt(
+							name,
+							config.getContext(config.entities),
+						),
+					});
+
+			const rawOutput = result.text.trim();
+
+			if (isNotFoundResponse(rawOutput)) {
+				logger.warn(`Could not resolve ${config.entityType}: ${name}`);
+				return null;
+			}
+
+			const sanitized = config.sanitize(rawOutput);
+
+			if (!sanitized) {
+				logger.warn(`Gemini returned empty ${config.entityType} for: ${name}`);
+				return null;
+			}
+
+			if (config.validate(sanitized, config.entities)) {
+				logger.info(`Resolved ${config.entityType} "${name}" → "${sanitized}"`);
+				return sanitized;
+			}
+
+			logger.warn(`Gemini returned invalid ${config.entityType}: ${sanitized}`);
+			return null;
+		} catch (error) {
+			logger.error(`Error resolving ${config.entityType}:`, error);
+			return null;
+		}
+	};
+}
