@@ -16,6 +16,13 @@ export const getApiSearchAgent = async () => {
 	// Build comprehensive list of all available tools
 	const allTools = [...coingeckoTools, ...defillamaTools, ...debankTools];
 
+	const todayUtc = new Intl.DateTimeFormat("en-GB", {
+		timeZone: "UTC",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}).format(new Date());
+
 	const instruction = endent`
     You are an API intelligence specialist for real-time cryptocurrency and DeFi data.
 
@@ -33,6 +40,9 @@ export const getApiSearchAgent = async () => {
     - DefiLlama tools: ${defillamaTools.length}
     - DeBank tools: ${debankTools.length}
     Total: ${allTools.length} tools
+
+    ## Current UTC Date
+    - Treat ${todayUtc} as "today" for any tool requiring a date input.
 
     If you're not sure a tool exists:
     1. Check the tool list carefully
