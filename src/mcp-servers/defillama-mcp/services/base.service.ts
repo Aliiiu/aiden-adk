@@ -1,11 +1,12 @@
 import type { LanguageModel } from "ai";
+import axios from "axios";
 import { Tiktoken } from "js-tiktoken/lite";
 import cl100k_base from "js-tiktoken/ranks/cl100k_base";
+import { env } from "../../../env";
 import { createChildLogger } from "../../../lib/utils";
 import { toMarkdown } from "../../../lib/utils/markdown-formatter";
 import { LLMDataFilter } from "../../debank-mcp/utils/data-filter";
 import { config } from "../config";
-import type { CacheEntry } from "../types";
 
 const logger = createChildLogger("DefiLlama Base Service");
 
@@ -42,31 +43,41 @@ export abstract class BaseService {
 	protected readonly COINS_URL = "https://coins.llama.fi";
 	protected readonly STABLECOINS_URL = "https://stablecoins.llama.fi";
 	protected readonly YIELDS_URL = "https://yields.llama.fi";
-	protected readonly DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+	protected readonly DEFAULT_CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 
-	private cache = new Map<string, CacheEntry>();
-
-	protected async getCachedData<T>(
-		key: string,
-		fetcher: () => Promise<T>,
-		ttlMs: number = this.DEFAULT_CACHE_TTL_MS,
+	protected async fetchData<T>(
+		url: string,
+		cacheDurationSeconds: number = this.DEFAULT_CACHE_TTL_SECONDS,
 	): Promise<T> {
-		const cached = this.cache.get(key);
-		if (cached && cached.expiresAt > Date.now()) {
-			return cached.data as T;
+		const proxyUrl = new URL(env.IQ_GATEWAY_URL);
+		proxyUrl.searchParams.append("url", url);
+		proxyUrl.searchParams.append("projectName", "defillama_mcp");
+		if (cacheDurationSeconds >= 0) {
+			proxyUrl.searchParams.append(
+				"cacheDuration",
+				Math.floor(cacheDurationSeconds).toString(),
+			);
 		}
 
-		const data = await fetcher();
-		this.cache.set(key, { data, expiresAt: Date.now() + ttlMs });
-		return data;
-	}
-
-	protected async fetchData<T>(url: string): Promise<T> {
-		const response = await fetch(url);
-		if (!response.ok) {
-			throw new Error(`API request failed: ${response.statusText}`);
+		try {
+			const response = await axios.get<T>(proxyUrl.href, {
+				headers: {
+					"Content-Type": "application/json",
+					"x-api-key": env.IQ_GATEWAY_KEY,
+				},
+			});
+			return response.data;
+		} catch (error: unknown) {
+			if (axios.isAxiosError(error)) {
+				const errorPayload = error.response?.data ?? error.message;
+				const errorMessage =
+					typeof errorPayload === "string"
+						? errorPayload
+						: JSON.stringify(errorPayload);
+				throw new Error(errorMessage);
+			}
+			throw error instanceof Error ? error : new Error(String(error));
 		}
-		return (await response.json()) as T;
 	}
 
 	protected toUnixSeconds(value: string | number): number {

@@ -441,11 +441,3 @@ export type BlockData = {
 export type ApiResponse =
 	| Record<string, unknown>
 	| Array<Record<string, unknown>>;
-
-/**
- * Cache entry type
- */
-export type CacheEntry = {
-	data: unknown;
-	expiresAt: number;
-};

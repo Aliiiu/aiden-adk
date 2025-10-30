@@ -25,8 +25,8 @@ export class ProtocolService extends BaseService {
 	 */
 	async getChains(args: { order: "asc" | "desc" }): Promise<string> {
 		try {
-			const data = await this.getCachedData<ChainData[]>("chains", () =>
-				this.fetchData<ChainData[]>(`${this.BASE_URL}/v2/chains`),
+			const data = await this.fetchData<ChainData[]>(
+				`${this.BASE_URL}/v2/chains`,
 			);
 
 			const sorted = [...data].sort((a, b) => {
@@ -58,10 +58,8 @@ export class ProtocolService extends BaseService {
 		try {
 			if (args.protocol) {
 				const protocolSlug = args.protocol;
-				const data = await this.getCachedData(`protocol:${protocolSlug}`, () =>
-					this.fetchData<ProtocolData>(
-						`${this.BASE_URL}/protocol/${protocolSlug}`,
-					),
+				const data = await this.fetchData<ProtocolData>(
+					`${this.BASE_URL}/protocol/${protocolSlug}`,
 				);
 
 				const essentialData = {
@@ -86,8 +84,8 @@ export class ProtocolService extends BaseService {
 				});
 			}
 
-			const data = await this.getCachedData<ProtocolData[]>("protocols", () =>
-				this.fetchData<ProtocolData[]>(`${this.BASE_URL}/protocols`),
+			const data = await this.fetchData<ProtocolData[]>(
+				`${this.BASE_URL}/protocols`,
 			);
 
 			const sorted = [...data].sort((a, b) => {
