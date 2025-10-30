@@ -1,18 +1,18 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
-import { createChildLogger } from "../../lib/utils";
+import { createChildLogger } from "../../lib/utils/index.js";
 import {
 	needsResolution,
 	resolveChain,
 	resolveEntities,
-} from "./entity-resolver";
+} from "./entity-resolver.js";
 import {
 	chainService,
 	protocolService,
 	tokenService,
 	transactionService,
 	userService,
-} from "./services";
+} from "./services/index.js";
 
 const logger = createChildLogger("DeBank MCP Tools");
 

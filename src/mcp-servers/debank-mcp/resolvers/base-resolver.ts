@@ -1,7 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
-import { createChildLogger } from "../../../lib/utils";
-import { isNotFoundResponse } from "../utils/validators";
+import { createChildLogger } from "../../../lib/utils/index.js";
+import { isNotFoundResponse } from "../utils/validators.js";
 
 const logger = createChildLogger("DeBank Entity Resolver");
 const gemini25Flash = "gemini-2.5-flash";

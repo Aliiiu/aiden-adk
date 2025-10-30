@@ -1,16 +1,16 @@
 import { GoogleAICacheManager } from "@google/generative-ai/server";
-import { env } from "../../../env";
-import { createChildLogger } from "../../../lib/utils";
-import { bridgeIds } from "../enums/bridgeIds";
-import { chains } from "../enums/chains";
-import { protocols } from "../enums/protocols";
-import { stablecoins } from "../enums/stablecoinIds";
+import { env } from "../../../env.js";
+import { createChildLogger } from "../../../lib/utils/index.js";
+import { bridgeIds } from "../enums/bridgeIds.js";
+import { chains } from "../enums/chains.js";
+import { protocols } from "../enums/protocols.js";
+import { stablecoins } from "../enums/stablecoinIds.js";
 import {
 	bridgesInstruction,
 	chainsInstruction,
 	protocolsInstruction,
 	stablecoinsInstruction,
-} from "./instructions";
+} from "./instructions.js";
 
 const logger = createChildLogger("DefiLlama Cache Manager");
 

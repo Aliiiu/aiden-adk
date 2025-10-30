@@ -1,7 +1,7 @@
 import { GoogleAICacheManager } from "@google/generative-ai/server";
-import { createChildLogger } from "../../../lib/utils";
-import { chainIds } from "../enums/chains";
-import { chainsInstruction } from "./instructions";
+import { createChildLogger } from "../../../lib/utils/index.js";
+import { chainIds } from "../enums/chains.js";
+import { chainsInstruction } from "./instructions.js";
 
 const logger = createChildLogger("DeBank Cache Manager");
 const gemini25Flash = "gemini-2.5-flash";
