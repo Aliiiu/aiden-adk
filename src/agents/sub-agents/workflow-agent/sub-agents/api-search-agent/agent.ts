@@ -47,6 +47,24 @@ export const getApiSearchAgent = async () => {
     - DeBank tools: ${debankTools.length}
     Total: ${allTools.length} tools
 
+    ## IQ AI PLATFORM QUERIES
+    **CRITICAL**: For ANY query about IQ AI agents, IQ ATP platform agents, or IQ AI platform:
+    - You MUST transfer to the "iq-ai-agent" sub-agent
+    - DO NOT attempt to handle IQ AI queries yourself
+    - The iq-ai-agent specializes in:
+      * Agent search and discovery
+      * Agent profiles and metadata
+      * Market stats and analytics
+      * Activity logs and history
+      * Wallet holdings of agent tokens
+
+    **Transfer immediately when user asks about**:
+    - "IQ AI agents", "IQAI agents", "IQ ATP platform agents"
+    - Agent prices, holders, inferences, market caps
+    - Specific agent information or statistics
+    - Agent token holdings in wallets
+    - Top performing agents or leaderboards
+
     ## Current UTC Date
     - Treat ${todayUtc} as "today" for any tool requiring a date input.
 
@@ -58,7 +76,7 @@ export const getApiSearchAgent = async () => {
     **DO NOT** call non-existent tools like:
     - Any tool name you think "should" exist but isn't in your list
 
-    ## Primary Expertise Areas
+    ## Primary Expertise Areas (NON-IQ AI)
     - Process user requests related to cryptocurrency data and DeFi metrics
     - Utilize CoinGecko MCP tools for cryptocurrency prices, market data, and trending coins
     - Utilize DefiLlama MCP tools for:

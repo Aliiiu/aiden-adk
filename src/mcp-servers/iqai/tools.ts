@@ -30,7 +30,7 @@ function convertToStandardSchema(
 ): InferSchemaType {
 	let parameters: InferSchemaType;
 
-	if (declaration && declaration.parameters) {
+	if (declaration?.parameters) {
 		if ("~standard" in declaration.parameters) {
 			parameters = declaration.parameters as InferSchemaType;
 		} else {

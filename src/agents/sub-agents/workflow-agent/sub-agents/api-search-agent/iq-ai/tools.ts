@@ -2,6 +2,7 @@ import { createTool } from "@iqai/adk";
 import { z } from "zod";
 import { formatData } from "@/src/lib/helpers/custom-json-formatter";
 import { callIqAiApi } from "@/src/lib/helpers/make-iq-ai-request";
+import { logger } from "@/src/lib/utils";
 import {
 	agentInfoSchema,
 	agentLogsSchema,
@@ -40,7 +41,6 @@ Use this for: agent discovery dashboards, browsing interfaces, market overviews,
 			.describe("Sort order (default: desc)"),
 		category: z
 			.enum([
-				"None",
 				"OnChain",
 				"Productivity",
 				"Entertainment",
@@ -76,12 +76,23 @@ Use this for: agent discovery dashboards, browsing interfaces, market overviews,
 		page,
 		limit,
 	}): Promise<string> => {
+		logger.info("get_all_agents called with:", {
+			sort,
+			order,
+			category,
+			status,
+			chainId,
+			page,
+			limit,
+		});
 		try {
 			const response = await callIqAiApi(
 				"/api/agents",
 				{ sort, order, category, status, chainId, page, limit },
 				allAgentsSchema,
 			);
+
+			logger.info("get_all_agents response:", response.agents);
 
 			if (!response.agents || response.agents.length === 0) {
 				return "No agents found matching the specified criteria.";
@@ -521,7 +532,7 @@ Use this for: portfolio displays, wallet analysis, holdings tracking, valuation 
 			result += formatData(headers, rows);
 
 			const totalValue = response.holdings.reduce(
-				(sum: number, h: any) =>
+				(sum: number, h) =>
 					sum + parseFloat(h.tokenAmount) * h.currentPriceInUsd,
 				0,
 			);

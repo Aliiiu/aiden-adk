@@ -1,14 +1,14 @@
 import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
-import { env } from "@/src/env";
 import { openrouter } from "@/src/lib/integrations/openrouter";
-import { getIqAiToolsViaMcp } from "../tools";
+// import { getIqAiToolsViaMcp } from "../tools";
+import { iqAITools } from "./tools";
 
 export const getIQAIAgent = async () => {
-	const iqAiTools = await getIqAiToolsViaMcp();
+	// const iqAiTools = iqAITools;
 
 	return new LlmAgent({
-		name: "iq-ai-agent",
+		name: "iq_ai_agent",
 		description:
 			"An agent that provides information and insights about the IQ AI platform and its capabilities.",
 		instruction: endent`You are an IQ AI platform intelligence specialist.
@@ -47,8 +47,9 @@ export const getIQAIAgent = async () => {
       "Holdings for wallet Z" → get_holdings (address: Z)
 
       Never proceed without proper addresses. If lookup fails, tell user clearly and suggest searching with get_all_agents.`,
-		model: openrouter(env.LLM_MODEL),
+		model: openrouter("openai/gpt-4.1-mini"),
 		disallowTransferToPeers: true,
-		tools: [...iqAiTools],
+		disallowTransferToParent: false,
+		tools: [...iqAITools],
 	});
 };
