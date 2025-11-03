@@ -1,17 +1,15 @@
-import { FastMCP } from "fastmcp";
+import type { FastMCP } from "fastmcp";
 import {
-	getAllAgentsTool,
-	getTopAgentsTool,
 	getAgentInfoTool,
-	getAgentStatsTool,
 	getAgentLogsTool,
+	getAgentStatsTool,
+	getAllAgentsTool,
 	getHoldingsTool,
+	getTopAgentsTool,
 } from "../../agents/sub-agents/workflow-agent/sub-agents/api-search-agent/iq-ai/tools.js";
-
 
 type InferSchemaType = Parameters<FastMCP["addTool"]>[0]["parameters"];
 type FastMCPTool = Parameters<FastMCP["addTool"]>[0];
-
 
 interface ADKToolDeclaration {
 	parameters?: Record<string, any> | InferSchemaType;
@@ -27,7 +25,9 @@ interface ADKTool {
 /**
  * Converts ADK tool parameters to FastMCP StandardSchemaV1 format
  */
-function convertToStandardSchema(declaration?: ADKToolDeclaration | null): InferSchemaType {
+function convertToStandardSchema(
+	declaration?: ADKToolDeclaration | null,
+): InferSchemaType {
 	let parameters: InferSchemaType;
 
 	if (declaration && declaration.parameters) {
@@ -78,7 +78,8 @@ export function getIqAiTools(): FastMCPTool[] {
 				try {
 					return await tool.safeExecute(executeParams, {} as any);
 				} catch (error: any) {
-					const message = error instanceof Error ? error.message : String(error);
+					const message =
+						error instanceof Error ? error.message : String(error);
 					return `Error executing ${tool.name}: ${message}`;
 				}
 			},
