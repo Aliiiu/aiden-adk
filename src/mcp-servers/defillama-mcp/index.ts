@@ -19,18 +19,16 @@ async function main() {
 	});
 
 	// Register all tools
-	let toolCount = 0;
-	for (const tool of defillamaTools) {
-		server.addTool(tool as any);
-		toolCount++;
+	type RegisteredTool = Parameters<typeof server.addTool>[0];
+	const registeredTools = defillamaTools as ReadonlyArray<RegisteredTool>;
+	for (const tool of registeredTools) {
+		server.addTool(tool);
 	}
 
 	try {
 		await server.start({
 			transportType: "stdio",
 		});
-
-		
 	} catch (error) {
 		logger.error("Failed to start server", error as Error);
 		process.exit(1);

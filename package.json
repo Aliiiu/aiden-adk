@@ -5,24 +5,40 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "npx tsx ./src/index.ts",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"prepare": "husky"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
+		"@biomejs/biome": "2.2.6",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.5",
+		"tsx": "^4.20.6",
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
+		"@ai-sdk/google": "^2.0.23",
+		"@google/generative-ai": "^0.24.1",
 		"@iqai/adk": "^0.3.6",
 		"@openrouter/ai-sdk-provider": "^1.2.0",
 		"@types/node": "^24.6.2",
+		"ai": "^5.0.77",
+		"axios": "^1.12.2",
 		"date-fns": "^4.1.0",
+		"dedent": "^1.7.0",
 		"dotenv": "^17.2.3",
 		"endent": "^2.1.0",
 		"fastmcp": "^3.16.0",
-		"tsx": "^4.20.6",
+		"jqts": "^0.0.8",
+		"js-tiktoken": "^1.0.21",
 		"winston": "^3.18.3",
 		"zod": "^4.1.11"
+	},
+	"lint-staged": {
+		"*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+			"biome check --write --no-errors-on-unmatched"
+		]
 	}
 }

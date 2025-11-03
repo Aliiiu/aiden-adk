@@ -60,6 +60,11 @@ export const getWorkflowAgent = async () => {
     - Yield farming APY and pool data
     - Options protocol data (Lyra, Hegic, Premia, etc.)
     - Protocol-specific metrics for chains and DeFi platforms
+    - User-specific blockchain data: portfolios, balances, NFT holdings (DeBank)
+    - Token and NFT holdings across multiple chains
+    - User transaction history and authorization tracking
+    - Gas prices and transaction simulation
+    - Top holders of protocols and tokens
     - Does NOT know: conceptual explanations, news articles, or historical context
 
     ## Routing Logic
@@ -88,6 +93,12 @@ export const getWorkflowAgent = async () => {
     - Bridge data: "Bridge volume", "Cross-chain transactions"
     - Yield farming: "APY for pool", "Yield on...", "Farming rewards"
     - Chain metrics: "Ethereum TVL", "Arbitrum volume", "Polygon DeFi data"
+    - User portfolio queries: "What tokens does [address] hold?", "Show [wallet] portfolio"
+    - NFT holdings: "What NFTs does [address] own?", "Show [wallet] NFT collection"
+    - Transaction history: "Show transactions for [address]", "[wallet] transaction history"
+    - Token authorizations: "What approvals does [address] have?", "Show [wallet] authorizations"
+    - Gas prices: "Current gas price on [chain]", "Gas fees for [network]"
+    - Top holders: "Who are the top holders of [token/protocol]?"
 
     **Multiple transfers needed when:**
     - User asks for BOTH explanation AND current price (e.g., "Explain Bitcoin and what's its current price")

@@ -9,6 +9,9 @@ export const envSchema = z.object({
 	COINGECKO_PRO_API_KEY: z.string(),
 	COINGECKO_ENVIRONMENT: z.enum(["pro", "demo"]).default("demo"),
 	LLM_MODEL: z.string().default("openai/gpt-4.1-mini"),
+	IQ_GATEWAY_URL: z.string(),
+	IQ_GATEWAY_KEY: z.string(),
+	GOOGLE_GENERATIVE_AI_API_KEY: z.string(),
 });
 
 /**

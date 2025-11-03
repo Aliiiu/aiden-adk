@@ -1,17 +1,15 @@
 {
 	"compilerOptions": {
 		"target": "ES2022",
-		"module": "CommonJS",
-		"lib": [
-			"ES2022"
-		],
+		"module": "nodenext",
+		"lib": ["ES2022"],
 		"outDir": "./dist",
 		"rootDir": "./src",
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
-		"moduleResolution": "node",
+		"moduleResolution": "nodenext",
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"declaration": true,
@@ -21,20 +19,11 @@
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
 		"noFallthroughCasesInSwitch": true,
-		"types": [
-			"node"
-		],
+		"types": ["node"],
 		"paths": {
-			"@/*": [
-				"./*"
-			]
+			"@/*": ["./*"]
 		}
 	},
-	"include": [
-		"src/**/*.ts"
-	],
-	"exclude": [
-		"node_modules",
-		"dist"
-	]
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules", "dist"]
 }
