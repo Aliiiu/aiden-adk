@@ -2,7 +2,7 @@ import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
 import { openrouter } from "../../../../../lib/integrations/openrouter";
-import { getIQAIAgent } from "./iq-ai/agent";
+import { getIQAIAgent } from "./iq-ai-agent/agent";
 import {
 	getCoingeckoTools,
 	getDebankToolsViaMcp,
@@ -10,7 +10,6 @@ import {
 } from "./tools";
 
 export const getApiSearchAgent = async () => {
-	// Load all tools concurrently
 	const [coingeckoTools, defillamaTools, debankTools] = await Promise.all([
 		getCoingeckoTools(),
 		getDefillamaToolsViaMcp(),
@@ -18,8 +17,6 @@ export const getApiSearchAgent = async () => {
 	]);
 
 	const iqAiAgent = await getIQAIAgent();
-
-	// Combine all tools into a single array
 	const allTools = [...coingeckoTools, ...defillamaTools, ...debankTools];
 
 	const todayUtc = new Intl.DateTimeFormat("en-GB", {

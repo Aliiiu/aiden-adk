@@ -6,7 +6,7 @@ import {
 	getAllAgentsTool,
 	getHoldingsTool,
 	getTopAgentsTool,
-} from "../../agents/sub-agents/workflow-agent/sub-agents/api-search-agent/iq-ai/tools.js";
+} from "../../agents/sub-agents/workflow-agent/sub-agents/api-search-agent/iq-ai-agent/tools.js";
 
 type InferSchemaType = Parameters<FastMCP["addTool"]>[0]["parameters"];
 type FastMCPTool = Parameters<FastMCP["addTool"]>[0];
