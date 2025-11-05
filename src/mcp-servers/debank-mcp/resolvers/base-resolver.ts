@@ -8,12 +8,11 @@ const gemini25Flash = "gemini-2.5-flash";
 
 interface ResolverConfig<T> {
 	entityType: string;
-	cacheName: string | null;
 	entities: T[];
 	getContext: (entities: T[]) => string;
 	sanitize: (output: string) => string;
 	validate: (sanitized: string, entities: T[]) => boolean;
-	fallbackPrompt: (name: string, context: string) => string;
+	prompt: (name: string, context: string) => string;
 }
 
 export async function createResolver<T>(
@@ -21,23 +20,10 @@ export async function createResolver<T>(
 ): Promise<(name: string) => Promise<string | null>> {
 	return async (name: string) => {
 		try {
-			const result = config.cacheName
-				? await generateText({
-						model: google(gemini25Flash),
-						prompt: `User input: "${name}"\n\nYour response (chain ID only, or "__NOT_FOUND__" if no match):`,
-						providerOptions: {
-							google: {
-								cachedContent: config.cacheName,
-							},
-						},
-					})
-				: await generateText({
-						model: google(gemini25Flash),
-						prompt: config.fallbackPrompt(
-							name,
-							config.getContext(config.entities),
-						),
-					});
+			const result = await generateText({
+				model: google(gemini25Flash),
+				prompt: config.prompt(name, config.getContext(config.entities)),
+			});
 
 			const rawOutput = result.text.trim();
 

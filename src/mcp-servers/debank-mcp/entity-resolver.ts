@@ -1,6 +1,5 @@
 import endent from "endent";
 import { createChildLogger } from "../../lib/utils/index.js";
-import { cachedContentName } from "./cache/cache-manager.js";
 import { chainIds } from "./enums/chains.js";
 import { createResolver } from "./resolvers/base-resolver.js";
 import { sanitizeChainId } from "./utils/sanitizers.js";
@@ -12,14 +11,13 @@ export { needsResolution };
 
 const chainResolver = createResolver({
 	entityType: "chain",
-	cacheName: cachedContentName,
 	entities: chainIds,
 	getContext: (entities) =>
 		entities.map((chain) => `${chain.name}: ${chain.id}`).join("\n"),
 	sanitize: sanitizeChainId,
 	validate: (chainId, entities) =>
 		entities.some((chain) => chain.id === chainId),
-	fallbackPrompt: (name, context) => endent`
+	prompt: (name, context) => endent`
 		You are a blockchain chain resolver. Given a user's input for a blockchain name, find the matching DeBank chain ID.
 
 		Available chains (format: Name: id):

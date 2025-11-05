@@ -1,6 +1,5 @@
 import endent from "endent";
 import { createChildLogger } from "../../lib/utils/index.js";
-import { cacheNames } from "./cache/cache-manager.js";
 import { bridgeIds } from "./enums/bridgeIds.js";
 import { chains } from "./enums/chains.js";
 import { options } from "./enums/options.js";
@@ -20,14 +19,13 @@ export { needsResolution };
 
 const protocolResolver = createResolver({
 	entityType: "protocol slug",
-	cacheName: cacheNames.protocols,
 	entities: protocols,
 	getContext: (entities) =>
 		entities.map((p) => `${p.slug}|${p.name}|${p.symbol}`).join("\n"),
 	sanitize: sanitizeSlug,
 	validate: (slug, entities) =>
 		entities.some((p) => p.slug.toLowerCase() === slug),
-	fallbackPrompt: (name, context) => endent`
+	prompt: (name, context) => endent`
 		You are a protocol slug matcher for DefiLlama API.
 
 		AVAILABLE PROTOCOLS (format: slug|name|symbol):
@@ -53,14 +51,13 @@ const protocolResolver = createResolver({
 
 		Now find the slug for the user query above:
 	`,
-	fallbackSystem: endent`
+	system: endent`
 		You are a precise protocol matcher. Return ONLY the slug or __NOT_FOUND__. No explanations.
 	`,
 });
 
 const chainResolver = createResolver({
 	entityType: "chain name",
-	cacheName: cacheNames.chains,
 	entities: chains,
 	getContext: (entities) =>
 		entities
@@ -68,7 +65,7 @@ const chainResolver = createResolver({
 			.join("\n"),
 	sanitize: sanitizeChainName,
 	validate: (chainName, entities) => entities.some((c) => c.name === chainName),
-	fallbackPrompt: (name, context) => endent`
+	prompt: (name, context) => endent`
 		You are a blockchain name matcher for DefiLlama API.
 
 		AVAILABLE CHAINS (format: name|tokenSymbol|gecko_id):
@@ -95,20 +92,19 @@ const chainResolver = createResolver({
 
 		Now find the chain name for the user query above:
 	`,
-	fallbackSystem: endent`
+	system: endent`
 		You are a precise chain matcher. Return ONLY the exact chain name or __NOT_FOUND__. No explanations.
 	`,
 });
 
 const stablecoinResolver = createResolver({
 	entityType: "stablecoin ID",
-	cacheName: cacheNames.stablecoins,
 	entities: stablecoins,
 	getContext: (entities) =>
 		entities.map((s) => `${s.id}|${s.name}|${s.symbol}`).join("\n"),
 	sanitize: sanitizeNumericString,
 	validate: (id, entities) => entities.some((s) => s.id === id),
-	fallbackPrompt: (name, context) => endent`
+	prompt: (name, context) => endent`
 		You are a stablecoin ID matcher for DefiLlama API.
 
 		AVAILABLE STABLECOINS (format: id|name|symbol):
@@ -134,14 +130,13 @@ const stablecoinResolver = createResolver({
 
 		Now find the ID for the user query above:
 	`,
-	fallbackSystem: endent`
+	system: endent`
 		You are a precise stablecoin matcher. Return ONLY the numeric ID or __NOT_FOUND__. No explanations.
 	`,
 });
 
 const bridgeResolver = createResolver({
 	entityType: "bridge ID",
-	cacheName: cacheNames.bridges,
 	entities: bridgeIds,
 	getContext: (entities) =>
 		entities.map((b) => `${b.id}|${b.name}|${b.displayName}`).join("\n"),
@@ -150,7 +145,7 @@ const bridgeResolver = createResolver({
 		return Number(id);
 	},
 	validate: (id, entities) => entities.some((b) => b.id === id),
-	fallbackPrompt: (name, context) => endent`
+	prompt: (name, context) => endent`
 		You are a bridge ID matcher for DefiLlama API.
 
 		AVAILABLE BRIDGES (format: id|name|displayName):
@@ -174,7 +169,7 @@ const bridgeResolver = createResolver({
 
 		Now find the ID for the user query above:
 	`,
-	fallbackSystem: endent`
+	system: endent`
 		You are a precise bridge matcher. Return ONLY the numeric ID or __NOT_FOUND__. No explanations.
 	`,
 });
