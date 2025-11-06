@@ -13,7 +13,7 @@ function initializeLangfuse(): void {
 		return;
 	}
 
-	const langfuseHost = env.LANGFUSE_BASEURL || "https://cloud.langfuse.com";
+	const langfuseBaseUrl = env.LANGFUSE_BASEURL || "https://cloud.langfuse.com";
 
 	const authString = Buffer.from(
 		`${env.LANGFUSE_PUBLIC_KEY}:${env.LANGFUSE_SECRET_KEY}`,
@@ -22,7 +22,7 @@ function initializeLangfuse(): void {
 	initializeTelemetry({
 		appName: "aiden_adk",
 		appVersion: "1.0.0",
-		otlpEndpoint: `${langfuseHost}/api/public/otel/v1/traces`,
+		otlpEndpoint: `${langfuseBaseUrl}/api/public/otel/v1/traces`,
 		otlpHeaders: {
 			Authorization: `Basic ${authString}`,
 		},
