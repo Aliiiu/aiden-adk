@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { type BaseTool, McpToolset, type ToolContext } from "@iqai/adk";
+import { createCoinGeckoCodeExecutionTool } from "../../../../../lib/code-execution/index.js";
 import { createChildLogger } from "../../../../../lib/utils/logger";
 import { getDebankTools } from "../../../../../mcp-servers/debank-mcp/tools";
 import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
@@ -203,5 +204,19 @@ export const getDebankToolsViaMcp = async () => {
 		logger.warn("Failed to load DeBank tools via MCP", error as Error);
 		const tools = getDebankTools();
 		return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
+	}
+};
+
+/**
+ * Get Code Execution Tool for MCP APIs
+ */
+export const getCodeExecutionTool = async () => {
+	try {
+		const tool = await createCoinGeckoCodeExecutionTool();
+		logger.info("Loaded code execution tool");
+		return [wrapToolWithErrorHandling(tool)];
+	} catch (error) {
+		logger.warn("Failed to load code execution tool", error as Error);
+		return [];
 	}
 };
