@@ -34,6 +34,10 @@ export const getApiSearchAgent = async () => {
 
     ## Available Modules
 
+    You have access to TWO powerful modules for comprehensive crypto data:
+    - **'coingecko'** - Market data, prices, charts, NFTs, exchanges, onchain/DEX data
+    - **'debank'** - User portfolios, DeFi positions, wallet analytics, transaction history
+
     ### 'coingecko' Module - All CoinGecko Functions
     Import any of these functions from 'coingecko':
 
@@ -109,18 +113,62 @@ export const getApiSearchAgent = async () => {
     - getAddressesTokensNetworksOnchainMulti(params) — Multi-token data. Params: network, addresses
     - getAddressesNetworksSimpleOnchainTokenPrice(params) — Simple prices. Params: network, addresses, vs_currencies
 
+    ### 'debank' Module - All DeBank Functions
+    Import any of these functions from 'debank':
+
+    **Chains**
+    - getSupportedChainList() — All supported blockchain chains
+    - getChain(params) — Chain details. Params: id (e.g., 'eth', 'bsc', 'matic')
+    - getGasPrices(params) — Gas prices for chain. Params: chain_id
+
+    **Protocols**
+    - getAllProtocolsOfSupportedChains(params) — All DeFi protocols. Optional params: chain_ids (comma-separated)
+    - getProtocolInformation(params) — Protocol details. Params: id (e.g., 'uniswap', 'aave')
+    - getTopHoldersOfProtocol(params) — Protocol top holders. Params: id, start, limit
+    - getPoolInformation(params) — Pool details. Params: id (contract address), chain_id
+
+    **Tokens**
+    - getTokenInformation(params) — Token details. Params: chain_id, id (contract address)
+    - getListTokenInformation(params) — Multiple tokens. Params: chain_id, ids (comma-separated, max 100)
+    - getTopHoldersOfToken(params) — Token top holders. Params: id, chain_id, start, limit
+    - getTokenHistoryPrice(params) — Historical price. Params: id, chain_id, date_at (YYYY-MM-DD)
+
+    **Users - Balances**
+    - getUserTotalBalance(params) — Total balance across chains. Params: id (wallet address)
+    - getUserChainBalance(params) — Balance on specific chain. Params: chain_id, id
+    - getUserTokenList(params) — Tokens on chain. Params: id, chain_id, is_all
+    - getUserAllTokenList(params) — Tokens across all chains. Params: id, is_all
+
+    **Users - DeFi Positions**
+    - getUserComplexProtocolList(params) — Protocol positions on chain. Params: chain_id, id
+    - getUserAllComplexProtocolList(params) — Protocol positions across chains. Params: id, chain_ids (optional)
+
+    **Users - NFTs & History**
+    - getUserNftList(params) — NFTs on chain. Params: id, chain_id, is_all
+    - getUserHistoryList(params) — Transaction history. Params: id, chain_id, token_id, start_time, page_count (max 20)
+
+    **Transactions**
+    - preExecTransaction(params) — Simulate transaction. Params: tx (JSON string), pending_tx_list (optional)
+    - explainTransaction(params) — Decode transaction. Params: tx (JSON string)
+
     ## Current UTC Date
     - Treat ${todayUtc} as "today" for any date-related requests
 
     ## Important Patterns
 
-    1. **Slug/ID Resolution**: When user asks about a coin by name (e.g., "matic"), use search() first to get the coin ID, then use that ID in other functions.
+    1. **CoinGecko Slug Resolution**: When using coingecko module and user asks about a coin by name (e.g., "matic"), use search() first to get the coin ID, then use that ID in other functions.
 
-    2. **Local Data Processing**: Filter, sort, and transform data in TypeScript before returning. This keeps large datasets efficient.
+    2. **DeBank Auto-Resolution**: DeBank functions automatically resolve chain names (e.g., 'Ethereum' → 'eth', 'BSC' → 'bsc'). You can pass human-friendly names directly - no need to manually resolve them.
 
-    3. **Single Tool Call**: Process everything in one execution to minimize latency.
+    3. **User Wallet Analysis**: Use debank module for wallet-specific queries. For example, to analyze a user's portfolio, use getUserTotalBalance(), getUserAllTokenList(), and getUserAllComplexProtocolList().
 
-    4. **Parameter Types**: When functions accept multiple values (like ids or currencies), pass them as comma-separated strings, NOT arrays. Example: 'bitcoin,ethereum' not ['bitcoin', 'ethereum']
+    4. **Multi-Source Data**: Combine coingecko and debank data when appropriate. For example, get token prices from coingecko and user holdings from debank, then calculate total values.
+
+    5. **Local Data Processing**: Filter, sort, and transform data in TypeScript before returning. This keeps large datasets efficient.
+
+    6. **Single Tool Call**: Process everything in one execution to minimize latency.
+
+    7. **Parameter Types**: When functions accept multiple values (like ids or currencies), pass them as comma-separated strings, NOT arrays. Example: 'bitcoin,ethereum' not ['bitcoin', 'ethereum']
 
     ## Code Quality Rules
 
@@ -155,7 +203,7 @@ export const getApiSearchAgent = async () => {
 	return new LlmAgent({
 		name: "api_search_agent",
 		description:
-			"Executes TypeScript code to fetch real-time cryptocurrency data via CoinGecko API (47 tools: markets, coins, NFTs, exchanges, onchain/DEX). Uses code execution for efficient data processing and filtering.",
+			"Executes TypeScript code to fetch comprehensive cryptocurrency and DeFi data via CoinGecko (markets, prices, NFTs, exchanges, onchain/DEX) and DeBank (user portfolios, DeFi positions, wallet analytics, transaction history). Uses code execution for efficient data processing, filtering, and multi-source analysis.",
 		model: openrouter(env.LLM_MODEL),
 		tools: allTools,
 		instruction,
