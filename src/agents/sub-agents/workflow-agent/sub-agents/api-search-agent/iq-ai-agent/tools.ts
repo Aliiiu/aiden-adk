@@ -9,7 +9,7 @@ import {
 	topAgentsSchema,
 } from "@/src/lib/helpers/_schema";
 import { formatData } from "@/src/lib/helpers/custom-json-formatter";
-import { callIqAiApi } from "@/src/lib/helpers/make-iq-ai-request";
+import { callIqAiApi } from "@/src/mcp-servers/iqai/make-iq-ai-request";
 
 export const getAllAgentsTool = createTool({
 	name: "get_all_agents",
