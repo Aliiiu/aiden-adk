@@ -6,9 +6,10 @@
 	"scripts": {
 		"start": "npx tsx ./src/index.ts",
 		"test": "echo \"Error: no test specified\" && exit 1",
+		"prepare": "husky",
+		"lint": "lint-staged --allow-empty",
 		"format": "biome format . --write",
-		"lint": "biome check . --write",
-		"prepare": "husky"
+		"lint:fix": "biome check . --apply"
 	},
 	"keywords": [],
 	"author": "",
