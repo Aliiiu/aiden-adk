@@ -17,30 +17,35 @@ const chainResolver = createResolver({
 	sanitize: sanitizeChainId,
 	validate: (chainId, entities) =>
 		entities.some((chain) => chain.id === chainId),
-	prompt: (name, context) => endent`
-		You are a blockchain chain resolver. Given a user's input for a blockchain name, find the matching DeBank chain ID.
+	buildMessages: (name, context) => ({
+		system: endent`
+      You are a blockchain chain resolver for DeBank.
+      Your job is to translate user-specified chain names or nicknames into the exact chain IDs from the provided list.
+      Respond with the chain ID only (e.g., "eth"). If there is no confident match, reply with "__NOT_FOUND__".
+      Never include explanations or extra text.
 
-		Available chains (format: Name: id):
-		${context}
+      Reference chains (format: Name: id):
+      ${context}
+    `,
+		user: endent`
+      Resolve the following user request to a DeBank chain ID.
 
-		User input: "${name}"
+      User input: "${name}"
 
-		Rules:
-		1. Match the user input to the most appropriate chain from the list
-		2. Handle common variations and abbreviations (e.g., "BSC" = "BNB Chain", "Polygon" = "Polygon", "ETH" = "Ethereum")
-		3. Return ONLY the chain ID (the part after the colon), nothing else
-		4. If no match is found, return the exact token "__NOT_FOUND__"
+      Rules:
+      1. Match to the closest chain in the list and handle common aliases (e.g., "BSC" → "bsc", "Polygon" → "matic").
+      2. If multiple chains seem plausible, choose the most widely used interpretation.
+      3. If no valid chain exists, return "__NOT_FOUND__".
 
-		Examples:
-		- Input: "Ethereum" → Output: eth
-		- Input: "BSC" → Output: bsc
-		- Input: "Binance Smart Chain" → Output: bsc
-		- Input: "Polygon" → Output: matic
-		- Input: "Arbitrum" → Output: arb
-		- Input: "Made Up Chain" → Output: __NOT_FOUND__
+      Examples:
+      - "Ethereum" → eth
+      - "Binance Smart Chain" → bsc
+      - "Arbitrum" → arb
+      - "Made Up Chain" → __NOT_FOUND__
 
-		Your response (chain ID only, or "__NOT_FOUND__" if no match):
-	`,
+      Your response must be the chain ID only or "__NOT_FOUND__".
+    `,
+	}),
 });
 
 export async function resolveChain(name: string): Promise<string | null> {
