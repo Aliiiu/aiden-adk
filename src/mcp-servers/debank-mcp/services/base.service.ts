@@ -23,6 +23,7 @@ export abstract class BaseService {
 	protected aiModel?: LanguageModel;
 	protected dataFilter?: LLMDataFilter;
 	protected currentQuery?: string;
+	protected rawOutput = false;
 
 	/**
 	 * Set the AI model for data filtering
@@ -39,6 +40,14 @@ export abstract class BaseService {
 	 */
 	setQuery(query: string) {
 		this.currentQuery = query;
+	}
+
+	/**
+	 * Set whether to return raw data (true) or formatted strings (false)
+	 * Use true for code execution, false for MCP tools
+	 */
+	setRawOutput(raw: boolean) {
+		this.rawOutput = raw;
 	}
 
 	protected async fetchWithToolConfig<T>(
@@ -101,8 +110,9 @@ export abstract class BaseService {
 	}
 
 	/**
-	 * Format response for LLM consumption
-	 * Returns MCP-compliant JSON string
+	 * Format response for LLM consumption or return raw data
+	 * - If rawOutput is true: returns raw data as-is (for code execution)
+	 * - If rawOutput is false: returns MCP-compliant formatted string
 	 * Automatically filters large responses if AI model is configured
 	 * Uses currentQuery set via setQuery() for filtering context
 	 */
@@ -113,7 +123,13 @@ export abstract class BaseService {
 			currencyFields?: string[];
 			numberFields?: string[];
 		},
-	): Promise<string> {
+	): Promise<any> {
+		// Return raw data if requested (for code execution)
+		if (this.rawOutput) {
+			return data;
+		}
+
+		// Otherwise format as markdown string (for MCP tools)
 		const markdownOutput = toMarkdown(data, options);
 
 		// Check token count and filter if necessary

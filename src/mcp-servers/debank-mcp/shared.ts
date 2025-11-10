@@ -28,6 +28,7 @@ type ServiceName = keyof typeof serviceMap;
 
 /**
  * Execute a DeBank service method by name
+ * Returns raw JSON data for use in code execution
  */
 export async function executeServiceMethod(
 	serviceName: ServiceName,
@@ -55,10 +56,15 @@ export async function executeServiceMethod(
 	);
 
 	try {
+		// Enable raw output mode for code execution
+		service.setRawOutput(true);
+
 		const result = await method.call(service, params);
+
 		logger.debug(`Method ${serviceName}.${methodName} completed successfully`);
 		return result;
 	} catch (error) {
+		service.setRawOutput(false);
 		logger.error(`Method ${serviceName}.${methodName} failed:`, error);
 		throw error;
 	}
