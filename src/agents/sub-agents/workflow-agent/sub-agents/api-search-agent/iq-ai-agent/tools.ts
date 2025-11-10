@@ -10,9 +10,6 @@ import {
 } from "@/src/lib/helpers/_schema";
 import { formatData } from "@/src/lib/helpers/custom-json-formatter";
 import { callIqAiApi } from "@/src/lib/helpers/make-iq-ai-request";
-import { createChildLogger } from "@/src/lib/utils";
-
-const logger = createChildLogger("iq-ai-agent");
 
 export const getAllAgentsTool = createTool({
 	name: "get_all_agents",
@@ -38,7 +35,6 @@ export const getAllAgentsTool = createTool({
 		limit: z.number().max(100).default(50),
 	}),
 	fn: async (params): Promise<string> => {
-		logger.info("get_all_agents called with:", params);
 		try {
 			const response = await callIqAiApi(
 				"/api/agents",

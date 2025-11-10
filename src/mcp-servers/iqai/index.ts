@@ -31,7 +31,6 @@ async function main(): Promise<void> {
 			transportType: "stdio",
 		});
 
-		logger.info(`✅ IQ AI MCP Server started with ${tools.length} tools`);
 		tools.forEach((tool, idx) => {
 			logger.info(`   ${idx + 1}. ${tool.name}`);
 		});

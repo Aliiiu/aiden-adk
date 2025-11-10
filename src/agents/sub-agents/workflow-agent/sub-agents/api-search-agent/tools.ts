@@ -9,7 +9,6 @@ const logger = createChildLogger("API Search Tools");
 
 /**
  * Extract user query from ADK ToolContext
- * The userContent contains the original user message that started the invocation
  */
 function extractQueryFromContext(context?: ToolContext): string | null {
 	if (!context?.userContent?.parts) return null;
@@ -18,9 +17,7 @@ function extractQueryFromContext(context?: ToolContext): string | null {
 }
 
 /**
- * Wraps an MCP tool to inject user query for data filtering
- * This wrapper extracts the user's original query from context and passes it
- * as _userQuery parameter to MCP tools for context-aware filtering
+ * Injects user query (_userQuery) into MCP tool calls for contextual filtering
  */
 function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
@@ -29,11 +26,8 @@ function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 		args: Record<string, unknown>,
 		context: ToolContext,
 	) => {
-		// Extract user query from context
 		const query = extractQueryFromContext(context);
-		if (query) {
-			logger.info(`Extracted user query for tool ${tool.name}`);
-		}
+		if (query) logger.info(`Extracted user query for tool ${tool.name}`);
 
 		const enhancedArgs = query ? { ...args, _userQuery: query } : args;
 		return await originalRunAsync(enhancedArgs, context);
@@ -43,12 +37,11 @@ function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 }
 
 /**
- * Wraps an MCP tool to catch errors and return them as safe, structured objects.
+ * Wraps an MCP tool to catch errors safely and return structured messages.
  */
 function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
 
-	// Override runAsync to catch errors and extract MCP content
 	tool.runAsync = async (
 		args: Record<string, unknown>,
 		context: ToolContext,
@@ -72,169 +65,128 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	return tool;
 }
 
-// Singleton caches to ensure MCP tool discovery happens only once per process
-let coingeckoToolsPromise: Promise<BaseTool[]> | null = null;
-let defillamaMcpToolsPromise: Promise<BaseTool[]> | null = null;
-let iqAiToolsPromise: Promise<BaseTool[]> | null = null;
-let defillamaDirectToolsCache: BaseTool[] | null = null;
-
 /**
- * Get CoinGecko tools via MCP
+ * Load CoinGecko tools via MCP
  */
-export const getCoingeckoTools = async (
-	forceReload = false,
-): Promise<BaseTool[]> => {
-	if (!forceReload && coingeckoToolsPromise) return coingeckoToolsPromise;
+export const getCoingeckoTools = async (): Promise<BaseTool[]> => {
+	try {
+		const toolset = new McpToolset({
+			name: "Coingecko MCP",
+			description: "mcp for coingecko",
+			debug: false,
+			transport: {
+				mode: "stdio",
+				command: "npx",
+				args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
+			},
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
+		});
 
-	coingeckoToolsPromise = (async () => {
-		try {
-			const toolset = new McpToolset({
-				name: "Coingecko MCP",
-				description: "mcp for coingecko",
-				debug: false,
-				transport: {
-					mode: "stdio",
-					command: "npx",
-					args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
-				},
-				retryOptions: {
-					maxRetries: 1,
-					initialDelay: 1000,
-				},
-			});
-
-			const tools = await toolset.getTools();
-			logger.info(`Loaded ${tools.length} CoinGecko tools`);
-			return tools.map((tool) =>
-				wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
-			);
-		} catch (error) {
-			logger.warn("Failed to load CoinGecko MCP tools", error as Error);
-			return [];
-		}
-	})();
-
-	return coingeckoToolsPromise;
+		const tools = await toolset.getTools();
+		logger.info(`Loaded ${tools.length} CoinGecko tools`);
+		return tools.map((tool) =>
+			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
+		);
+	} catch (error) {
+		logger.warn("Failed to load CoinGecko MCP tools", error as Error);
+		return [];
+	}
 };
 
 /**
- * Get DefiLlama tools
- *
- * Option 1: Direct import (simpler, faster)
+ * Load DefiLlama tools (direct import)
  */
 export const getDefillamaToolsWrapped = (): BaseTool[] => {
-	if (defillamaDirectToolsCache) return defillamaDirectToolsCache;
 	const tools = getDefillamaTools();
-	defillamaDirectToolsCache = tools.map((tool: BaseTool) =>
-		wrapToolWithErrorHandling(tool),
-	);
-	return defillamaDirectToolsCache;
+	return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
 };
 
 /**
- * Option 2: Get DefiLlama tools via MCP Server
+ * Load DefiLlama tools via MCP
  */
-export const getDefillamaToolsViaMcp = async (
-	forceReload = false,
-): Promise<BaseTool[]> => {
-	if (!forceReload && defillamaMcpToolsPromise) return defillamaMcpToolsPromise;
+export const getDefillamaToolsViaMcp = async (): Promise<BaseTool[]> => {
+	try {
+		const projectRoot = process.cwd();
+		const defillamaMcpPath = path.join(
+			projectRoot,
+			"src/mcp-servers/defillama-mcp/index.ts",
+		);
 
-	defillamaMcpToolsPromise = (async () => {
-		try {
-			const projectRoot = process.cwd();
-			const defillamaMcpPath = path.join(
-				projectRoot,
-				"src/mcp-servers/defillama-mcp/index.ts",
-			);
-
-			if (!fs.existsSync(defillamaMcpPath)) {
-				throw new Error(
-					`DefiLlama MCP server not found at: ${defillamaMcpPath}`,
-				);
-			}
-
-			const toolset = new McpToolset({
-				name: "DefiLlama MCP",
-				description: "DeFi data via DefiLlama MCP server",
-				debug: false,
-				transport: {
-					mode: "stdio",
-					command: "npx",
-					args: ["tsx", defillamaMcpPath],
-				},
-				retryOptions: {
-					maxRetries: 1,
-					initialDelay: 1000,
-				},
-			});
-
-			const tools = await toolset.getTools();
-			logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
-			return tools.map((tool) =>
-				wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
-			);
-		} catch (error) {
-			logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
-			return getDefillamaToolsWrapped();
+		if (!fs.existsSync(defillamaMcpPath)) {
+			throw new Error(`DefiLlama MCP server not found at: ${defillamaMcpPath}`);
 		}
-	})();
 
-	return defillamaMcpToolsPromise;
+		const toolset = new McpToolset({
+			name: "DefiLlama MCP",
+			description: "DeFi data via DefiLlama MCP server",
+			debug: false,
+			transport: {
+				mode: "stdio",
+				command: "npx",
+				args: ["tsx", defillamaMcpPath],
+			},
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
+		});
+
+		const tools = await toolset.getTools();
+		logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
+		return tools.map((tool) =>
+			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
+		);
+	} catch (error) {
+		logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
+		return getDefillamaToolsWrapped();
+	}
 };
 
 /**
- * Get IQ AI tools via MCP Server
+ * Load IQ AI tools via MCP
  */
-export const getIqAiToolsViaMcp = async (
-	forceReload = false,
-): Promise<BaseTool[]> => {
-	if (!forceReload && iqAiToolsPromise) return iqAiToolsPromise;
+export const getIqAiToolsViaMcp = async (): Promise<BaseTool[]> => {
+	try {
+		const projectRoot = process.cwd();
+		const iqAiMcpPath = path.join(projectRoot, "src/mcp-servers/iqai/index.ts");
 
-	iqAiToolsPromise = (async () => {
-		try {
-			const projectRoot = process.cwd();
-			const iqAiMcpPath = path.join(
-				projectRoot,
-				"src/mcp-servers/iqai/index.ts",
+		if (!fs.existsSync(iqAiMcpPath)) {
+			throw new Error(
+				`IQ AI MCP server not found at: ${iqAiMcpPath}\nCurrent working directory: ${projectRoot}`,
 			);
-
-			if (!fs.existsSync(iqAiMcpPath)) {
-				throw new Error(
-					`IQ AI MCP server not found at: ${iqAiMcpPath}\nCurrent working directory: ${projectRoot}`,
-				);
-			}
-
-			const toolset = new McpToolset({
-				name: "IQ AI MCP",
-				description: "IQ AI agent data via IQ AI MCP server",
-				debug: false,
-				transport: {
-					mode: "stdio",
-					command: "npx",
-					args: ["tsx", iqAiMcpPath],
-				},
-				retryOptions: {
-					maxRetries: 1,
-					initialDelay: 1000,
-				},
-			});
-
-			const tools = await toolset.getTools();
-			logger.info(`Loaded ${tools.length} IQ AI tools via MCP`);
-			return tools.map((tool) =>
-				wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
-			);
-		} catch (error) {
-			logger.warn("Failed to load IQ AI tools via MCP", error as Error);
-			return [];
 		}
-	})();
 
-	return iqAiToolsPromise;
+		const toolset = new McpToolset({
+			name: "IQ AI MCP",
+			description: "IQ AI agent data via IQ AI MCP server",
+			debug: false,
+			transport: {
+				mode: "stdio",
+				command: "npx",
+				args: ["tsx", iqAiMcpPath],
+			},
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
+		});
+
+		const tools = await toolset.getTools();
+		logger.info(`Loaded ${tools.length} IQ AI tools via MCP`);
+		return tools.map((tool) =>
+			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
+		);
+	} catch (error) {
+		logger.warn("Failed to load IQ AI tools via MCP", error as Error);
+		return [];
+	}
 };
 
 /**
- * Get DeBank tools via MCP Server
+ * Load DeBank tools via MCP
  */
 export const getDebankToolsViaMcp = async (): Promise<BaseTool[]> => {
 	try {
