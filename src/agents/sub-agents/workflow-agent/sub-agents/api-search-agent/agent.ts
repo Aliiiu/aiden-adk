@@ -1,3 +1,4 @@
+import type { InstructionProvider } from "@iqai/adk";
 import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
 import { env } from "../../../../../env";
@@ -17,7 +18,8 @@ export const getApiSearchAgent = async () => {
 		day: "2-digit",
 	}).format(new Date());
 
-	const instruction = endent`
+	// Wrap instructions in a provider function to avoid direct prompt injection or tampering
+	const instruction: InstructionProvider = async () => endent`
     You are an API intelligence specialist for real-time cryptocurrency and DeFi data using code execution.
 
     ## Code Execution Approach
@@ -29,8 +31,22 @@ export const getApiSearchAgent = async () => {
     1. **ALWAYS call execute_typescript tool** for any data request
     2. **Generate clean TypeScript** that imports from available modules
     3. **Use a SINGLE tool call** - process all data locally in TypeScript
-    4. **MUST end with explicit return statement** - Use \`return \{\{ summary, data \}\}\`, NOT \`export default\`
+    4. **⚠️ CRITICAL: MUST end with explicit return statement** - Your code MUST include \`return { summary: '...', data: {...} }\` as the LAST LINE. Without this, execution will fail!
     5. **Return structured JSON**: summary (string) plus data (any serializable structure)
+
+    ### Code Structure Template:
+    \`\`\`typescript
+    import { functionName } from 'module';
+
+    // Your data fetching and processing logic
+    const data = await functionName(params);
+
+    // REQUIRED: Must return an object with summary and data
+    return {
+      summary: 'Brief description of the data',
+      data: processedData
+    };
+    \`\`\`
 
     ## Available Modules
 
@@ -94,14 +110,15 @@ export const getApiSearchAgent = async () => {
     - getNetworkNetworksOnchainNewPools(params) — New pools (alternate). Params: network, page
 
     **Onchain/DEX - Pools**
+    - **IMPORTANT** Use CoinGecko onchain pool endpoints only when you need DEX market metrics (trades, OHLCV, trending pools). Route wallet/protocol/pool position analysis to DeBank instead of mixing parameters.
     - getPoolsOnchainTrendingSearch() — Trending pools
     - getSearchOnchainPools(params) — Search pools. Params: query, network
     - getPoolsOnchainCategories(params) — Pools by category. Params: category, network
     - getPoolsOnchainMegafilter(params) — Advanced filtering. Params: network, dex, min_volume_usd, min_price_change_percentage_24h, sort, order
-    - getPoolsNetworksOnchainInfo(params) — Pool details. Params: network, address
-    - getPoolsNetworksOnchainTrades(params) — Pool trades. Params: network, address
-    - getTimeframePoolsNetworksOnchainOhlcv(params) — Pool OHLCV. Params: timeframe, network, address
-    - getAddressesPoolsNetworksOnchainMulti(params) — Multi-pool data. Params: network, addresses
+    - getPoolsNetworksOnchainInfo(params) — Pool details. Params: network, pool_address
+    - getPoolsNetworksOnchainTrades(params) — Pool trades. Params: network, pool_address
+    - getTimeframePoolsNetworksOnchainOhlcv(params) — Pool OHLCV. Params: timeframe, network, pool_address
+    - getAddressesPoolsNetworksOnchainMulti(params) — Multi-pool data. Params: network, addresses (comma-separated)
 
     **Onchain/DEX - Tokens**
     - getTokensNetworksOnchainInfo(params) — Token details. Params: network, token_address
@@ -181,6 +198,24 @@ export const getApiSearchAgent = async () => {
     3. **String Quotes**: Prefer single quotes for plain strings and reserve backticks for template literals that interpolate values.
 
     4. **Object Properties**: When creating result objects, include all required keys and quote any property names containing special characters.
+
+    ## ⚠️ MANDATORY RETURN STATEMENT ⚠️
+
+    **Every code execution MUST end with a return statement!**
+
+    Example of CORRECT code:
+    \`\`\`typescript
+    import { getSupportedChainList } from 'debank';
+    const chains = await getSupportedChainList();
+    return { summary: 'List of supported chains', data: chains };  // ✅ CORRECT
+    \`\`\`
+
+    Example of WRONG code (will cause "undefined" error):
+    \`\`\`typescript
+    import { getSupportedChainList } from 'debank';
+    const chains = await getSupportedChainList();
+    // ❌ WRONG - missing return statement!
+    \`\`\`
 
     ## Response Format
     Your TypeScript code should return JSON in this format:
