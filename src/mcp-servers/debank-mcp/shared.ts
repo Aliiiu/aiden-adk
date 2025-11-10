@@ -3,6 +3,7 @@
  */
 
 import { createChildLogger } from "../../lib/utils/index.js";
+import { resolveEntities } from "./entity-resolver.js";
 import {
 	chainService,
 	protocolService,
@@ -35,6 +36,8 @@ export async function executeServiceMethod(
 	methodName: string,
 	params: Record<string, any>,
 ): Promise<any> {
+	// Normalize human-readable inputs (e.g., chain names) before hitting the services
+	await resolveEntities(params);
 	const service = serviceMap[serviceName];
 
 	if (!service) {
@@ -59,13 +62,21 @@ export async function executeServiceMethod(
 		// Enable raw output mode for code execution
 		service.setRawOutput(true);
 
+		logger.debug(`Method called with ${JSON.stringify(params)}`);
 		const result = await method.call(service, params);
+
+		// Reset to formatted output mode after successful execution
+		service.setRawOutput(false);
 
 		logger.debug(`Method ${serviceName}.${methodName} completed successfully`);
 		return result;
 	} catch (error) {
+		// Reset to formatted output mode in case of error
 		service.setRawOutput(false);
 		logger.error(`Method ${serviceName}.${methodName} failed:`, error);
 		throw error;
+	} finally {
+		// Ensure rawOutput is always reset
+		service.setRawOutput(false);
 	}
 }

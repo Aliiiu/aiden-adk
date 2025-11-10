@@ -102,6 +102,9 @@ export async function executeInSandbox(
 
 		const executionTime = Date.now() - startTime;
 		logger.info(`Code execution completed in ${executionTime}ms`);
+		logger.debug(
+			`Result value: ${result === undefined ? "undefined" : "has value"}`,
+		);
 
 		// Serialize result to ensure it's cloneable and remove any non-serializable objects
 		let serializedResult: any;
