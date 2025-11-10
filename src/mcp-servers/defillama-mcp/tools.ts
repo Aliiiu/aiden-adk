@@ -823,7 +823,7 @@ export const getDefillamaTools = (): BaseTool[] => {
 				// Extract and inject user query from context.userContent into all services
 				const query = extractQueryFromContext(context);
 				logger.info(
-					`Extracted user query from context: ${query ? query.substring(0, 100) + "..." : "none"}`,
+					`Extracted user query from context: ${query ? `${query.substring(0, 100)}...` : "none"}`,
 				);
 				if (query) {
 					logger.info(
