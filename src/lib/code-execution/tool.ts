@@ -81,16 +81,21 @@ export function createCodeExecutionTool(
 }
 
 /**
- * Create a code execution tool with CoinGecko MCP access
+ * Create a unified code execution tool with access to all MCP servers
+ * (CoinGecko, DeBank, etc.)
  */
-export async function createCoinGeckoCodeExecutionTool(): Promise<BaseTool> {
+export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 	const coingeckoModule = await import(
 		"../../mcp-servers/coingecko-mcp/index.js"
+	);
+	const debankModule = await import(
+		"../../mcp-servers/debank-mcp/wrappers/index.js"
 	);
 
 	return createCodeExecutionTool({
 		availableModules: {
 			coingecko: createModule(coingeckoModule),
+			debank: createModule(debankModule),
 		},
 		timeout: 60000,
 	});

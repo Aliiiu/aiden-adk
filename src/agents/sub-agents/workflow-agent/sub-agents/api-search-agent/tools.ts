@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { type BaseTool, McpToolset, type ToolContext } from "@iqai/adk";
-import { createCoinGeckoCodeExecutionTool } from "../../../../../lib/code-execution/index.js";
+import { createMCPCodeExecutionTool } from "../../../../../lib/code-execution/index.js";
 import { createChildLogger } from "../../../../../lib/utils/logger";
 import { getDebankTools } from "../../../../../mcp-servers/debank-mcp/tools";
 import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
@@ -209,11 +209,12 @@ export const getDebankToolsViaMcp = async () => {
 
 /**
  * Get Code Execution Tool for MCP APIs
+ * Now includes both CoinGecko and DeBank modules
  */
 export const getCodeExecutionTool = async () => {
 	try {
-		const tool = await createCoinGeckoCodeExecutionTool();
-		logger.info("Loaded code execution tool");
+		const tool = await createMCPCodeExecutionTool();
+		logger.info("Loaded unified code execution tool with CoinGecko and DeBank");
 		return [wrapToolWithErrorHandling(tool)];
 	} catch (error) {
 		logger.warn("Failed to load code execution tool", error as Error);

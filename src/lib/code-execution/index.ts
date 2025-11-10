@@ -15,5 +15,5 @@ export {
 export {
 	type CodeExecutionToolConfig,
 	createCodeExecutionTool,
-	createCoinGeckoCodeExecutionTool,
+	createMCPCodeExecutionTool,
 } from "./tool.js";
