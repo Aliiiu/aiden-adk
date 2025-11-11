@@ -95,13 +95,19 @@ export class FeesService extends BaseService {
 
 			const top10 = sorted.slice(0, 10).map((protocol) => ({
 				name: protocol.name,
+				slug: protocol.slug,
+				id: protocol.id ?? protocol.defillamaId,
+				total24h: protocol.total24h,
+				total48hto24h: protocol.total48hto24h,
+				total7d: protocol.total7d,
+				total14dto7d: protocol.total14dto7d,
+				total30d: protocol.total30d,
+				total60dto30d: protocol.total60dto30d,
+				total1y: protocol.total1y,
+				totalAllTime: protocol.totalAllTime,
 				change_1d: protocol.change_1d,
 				change_7d: protocol.change_7d,
 				change_1m: protocol.change_1m,
-				dailyUserFees: protocol.dailyUserFees,
-				dailyHoldersRevenue: protocol.dailyHoldersRevenue,
-				dailySupplySideRevenue: protocol.dailySupplySideRevenue,
-				holdersRevenue30d: protocol.holdersRevenue30d,
 			}));
 
 			const title = args.chain
@@ -110,12 +116,6 @@ export class FeesService extends BaseService {
 
 			return await this.formatResponse(top10, {
 				title,
-				currencyFields: [
-					"dailyUserFees",
-					"dailyHoldersRevenue",
-					"dailySupplySideRevenue",
-					"holdersRevenue30d",
-				],
 				numberFields: ["change_1d", "change_7d", "change_1m"],
 			});
 		}
