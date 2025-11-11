@@ -12,9 +12,9 @@
  * - transactions/ - Transaction simulation and explanation
  */
 
-import jq from "jqts";
+import jq from "node-jq";
 
-// Export JQTS for parameter discovery and filtering
+// Export node-jq for parameter discovery and filtering
 export { jq };
 
 // Re-export shared utilities for advanced usage

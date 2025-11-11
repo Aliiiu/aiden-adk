@@ -1,68 +1,27 @@
 import type { LanguageModel } from "ai";
 import { generateText } from "ai";
 import endent from "endent";
-import jq from "jqts";
+import jq from "node-jq";
 import { createChildLogger } from "../../../lib/utils";
 
 const logger = createChildLogger("LLM Data Filter");
 
 /**
- * List of JQ functions NOT supported by jqts v0.0.8
- * These will cause runtime errors if used in queries
- */
-const UNSUPPORTED_JQTS_FUNCTIONS = [
-	// String case conversion
-	"ascii_downcase",
-	"ascii_upcase",
-	// String manipulation
-	"split",
-	"join",
-	"ltrimstr",
-	"rtrimstr",
-	"explode",
-	"implode",
-	"tojson",
-	"fromjson",
-	// Advanced string operations
-	"test",
-	"match",
-	"capture",
-	"scan",
-	"splits",
-	"sub",
-	"gsub",
-	// Date/time
-	"now",
-	"gmtime",
-	"mktime",
-	"strftime",
-	"strptime",
-	// Other advanced functions
-	"limit",
-	"until",
-	"recurse",
-	"walk",
-	"env",
-	"$ENV",
-];
-
-/**
- * Validates a JQ query to ensure it only uses jqts-supported functions
+ * Validates a JQ query to ensure it's syntactically valid
+ * Note: node-jq supports full jq syntax, so validation is minimal
  * @param query - The JQ query string to validate
  * @returns Validation result with error message if invalid
  */
 function validateJqQuery(query: string): { valid: boolean; error?: string } {
-	for (const func of UNSUPPORTED_JQTS_FUNCTIONS) {
-		// Check if function name appears in query (with word boundary to avoid partial matches)
-		const regex = new RegExp(`\\b${func}\\b`);
-		if (regex.test(query)) {
-			return {
-				valid: false,
-				error: `Unsupported jqts function: '${func}'. jqts is a limited JavaScript JQ port and doesn't support this function.`,
-			};
-		}
+	// Basic validation - check if query is not empty
+	if (!query || query.trim().length === 0) {
+		return {
+			valid: false,
+			error: "Query cannot be empty",
+		};
 	}
 
+	// node-jq supports full jq syntax, so no function restrictions
 	return { valid: true };
 }
 
@@ -99,31 +58,26 @@ export class LLMDataFilter {
 			## User's request:
 			${query}
 
-			## CRITICAL: jqts Function Limitations
-			**WARNING**: This system uses jqts (JavaScript JQ port), NOT full JQ. Many functions are NOT supported.
+			## JQ Query Features
+			**NOTE**: This system uses node-jq which supports full jq syntax. You have access to all standard jq functions.
 
-			**SUPPORTED Functions (you can use these):**
+			**Available Functions (non-exhaustive list):**
 			- Basic filtering: select, map, sort_by, group_by, unique, unique_by, flatten, reverse
 			- Aggregation: add, min, max, min_by, max_by, length
 			- Comparison: ==, !=, >, <, >=, <=, and, or, not
 			- Object operations: keys, has, to_entries, from_entries, with_entries
 			- Type checking: type, arrays, objects, strings, numbers, booleans, nulls
-			- Math: floor, sqrt, tonumber, tostring
-			- String checking: contains, startswith, endswith, index, indices, inside
-
-			**NOT SUPPORTED (DO NOT USE - will cause errors):**
-			- ❌ String case conversion: ascii_downcase, ascii_upcase
-			- ❌ String manipulation: split, join, ltrimstr, rtrimstr, explode, implode
-			- ❌ Regex operations: test, match, capture, scan, sub, gsub
-			- ❌ Date/time functions: now, gmtime, mktime, strftime
-			- ❌ Advanced control flow: limit, until, recurse, walk, env
+			- Math: floor, sqrt, tonumber, tostring, ceil, round
+			- String operations: contains, startswith, endswith, split, join, ltrimstr, rtrimstr, ascii_downcase, ascii_upcase
+			- Regex operations: test, match, capture, scan, sub, gsub
+			- Date/time functions: now, gmtime, mktime, strftime, strptime
+			- Advanced control flow: limit, until, recurse, walk, if-then-else
 
 			**General Filtering Principles:**
-			- Work with data as-is from the schema - avoid trying to transform or normalize strings
-			- Focus on structural filtering: selecting fields, filtering by numeric/boolean conditions
-			- Use simple string operations if needed: contains, startswith, endswith (not case conversion)
-			- When uncertain about a function, prefer simpler queries with basic select/map operations
-			- If you cannot filter precisely due to limitations, select broader data and let post-processing handle it
+			- Use the full power of jq to transform and filter data precisely
+			- Leverage string manipulation, regex, and date functions when needed
+			- Prefer efficient queries that minimize data processing
+			- Use appropriate jq idioms for common tasks
 
 			## Critical Instructions:
 			1. Analyze the schema to understand the structure of the data
@@ -183,8 +137,10 @@ export class LLMDataFilter {
 				return this.getFallbackData(parsedData);
 			}
 
-			const pattern = jq.compile(jqQuery);
-			let filteredData: JSONValue = pattern.evaluate(parsedData);
+			let filteredData = await jq.run(jqQuery, parsedData, {
+				input: "json",
+				output: "json",
+			});
 
 			if (
 				!filteredData ||
@@ -203,7 +159,7 @@ export class LLMDataFilter {
 				logger.info(
 					`JQ query returned bare primitive (${typeof filteredData}), wrapping in object`,
 				);
-				filteredData = { result: filteredData } as JSONValue;
+				filteredData = { result: filteredData };
 			}
 
 			logger.info(`Successfully filtered data`);

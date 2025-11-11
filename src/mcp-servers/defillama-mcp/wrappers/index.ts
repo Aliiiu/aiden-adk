@@ -16,9 +16,9 @@
  * - options/      - Options protocol metrics
  */
 
-import jq from "jqts";
+import jq from "node-jq";
 
-// Export JQTS for parameter discovery and filtering
+// Export node-jq for parameter discovery and filtering
 export { jq };
 
 export { bridgeIds } from "../enums/bridgeIds.js";
