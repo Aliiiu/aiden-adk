@@ -214,7 +214,7 @@ export const getDebankToolsViaMcp = async () => {
 export const getCodeExecutionTool = async () => {
 	try {
 		const tool = await createMCPCodeExecutionTool();
-		logger.info("Loaded unified code execution tool with CoinGecko and DeBank");
+		logger.info("Loaded unified code execution tool");
 		return [wrapToolWithErrorHandling(tool)];
 	} catch (error) {
 		logger.warn("Failed to load code execution tool", error as Error);
