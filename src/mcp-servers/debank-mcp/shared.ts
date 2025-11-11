@@ -3,7 +3,7 @@
  */
 
 import { createChildLogger } from "../../lib/utils/index.js";
-import { resolveEntities } from "./entity-resolver.js";
+// import { resolveEntities } from "./entity-resolver.js"; // Disabled - now handled explicitly by agent
 import {
 	chainService,
 	protocolService,
@@ -30,14 +30,18 @@ type ServiceName = keyof typeof serviceMap;
 /**
  * Execute a DeBank service method by name
  * Returns raw JSON data for use in code execution
+ *
+ * NOTE: Parameter resolution is now handled explicitly by the agent using
+ * discovery endpoints (getSupportedChainList, getAllProtocolsOfSupportedChains)
+ * and JQTS filtering. Auto-resolution has been disabled for transparency.
  */
 export async function executeServiceMethod(
 	serviceName: ServiceName,
 	methodName: string,
 	params: Record<string, any>,
 ): Promise<any> {
-	// Normalize human-readable inputs (e.g., chain names) before hitting the services
-	await resolveEntities(params);
+	// Auto-resolution disabled - agent now handles parameter discovery explicitly
+	// await resolveEntities(params);
 	const service = serviceMap[serviceName];
 
 	if (!service) {

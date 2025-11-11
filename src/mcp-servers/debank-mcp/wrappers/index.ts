@@ -12,6 +12,11 @@
  * - transactions/ - Transaction simulation and explanation
  */
 
+import jq from "jqts";
+
+// Export JQTS for parameter discovery and filtering
+export { jq };
+
 // Re-export shared utilities for advanced usage
 export { executeServiceMethod } from "../shared.js";
 // Chains
