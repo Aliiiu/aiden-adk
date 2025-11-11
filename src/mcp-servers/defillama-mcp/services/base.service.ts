@@ -21,6 +21,7 @@ export abstract class BaseService {
 	protected aiModel?: LanguageModel;
 	protected dataFilter?: LLMDataFilter;
 	protected currentQuery?: string;
+	protected rawOutput = false;
 
 	/**
 	 * Set the AI model for data filtering
@@ -37,6 +38,14 @@ export abstract class BaseService {
 	 */
 	setQuery(query: string) {
 		this.currentQuery = query;
+	}
+
+	/**
+	 * Toggle raw output mode. When true, service
+	 * methods return raw JSON instead of formatted markdown.
+	 */
+	setRawOutput(raw: boolean) {
+		this.rawOutput = raw;
 	}
 
 	protected readonly BASE_URL = "https://api.llama.fi";
@@ -111,7 +120,11 @@ export abstract class BaseService {
 			currencyFields?: string[];
 			numberFields?: string[];
 		},
-	): Promise<string> {
+	): Promise<any> {
+		if (this.rawOutput) {
+			return data;
+		}
+
 		let markdownOutput = toMarkdown(data, options);
 
 		const tokenLength = encoder.encode(markdownOutput).length;
