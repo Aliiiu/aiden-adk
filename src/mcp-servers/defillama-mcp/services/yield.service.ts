@@ -30,6 +30,7 @@ export class YieldService extends BaseService {
 			);
 
 			const last10 = data.data.slice(-10).map((item) => ({
+				poolId: args.pool,
 				timestamp: item.timestamp,
 				tvlUsd: item.tvlUsd,
 				apy: item.apy,
@@ -69,14 +70,21 @@ export class YieldService extends BaseService {
 			});
 
 			const limited = sorted.slice(0, args.limit).map((pool) => ({
-				chain: pool.chain,
-				project: pool.project,
-				tvlUsd: pool.tvlUsd,
-				apyPct1D: pool.apyPct1D,
-				apyPct7D: pool.apyPct7D,
-				apyPct30D: pool.apyPct30D,
-				apy: pool.apy,
-				predictions: pool.predictions,
+				name: pool.project ?? pool.symbol ?? null,
+				project: pool.project ?? null,
+				chain: pool.chain ?? null,
+				id: pool.pool ?? null,
+				symbol: pool.symbol ?? null,
+				tvlUsd: pool.tvlUsd ?? null,
+				tvl: pool.tvlUsd ?? null, // alias for agents expecting `tvl`
+				apyPct1D: pool.apyPct1D ?? null,
+				apy1d: pool.apyPct1D ?? null,
+				apyPct7D: pool.apyPct7D ?? null,
+				apy7d: pool.apyPct7D ?? null,
+				apyPct30D: pool.apyPct30D ?? null,
+				apy30d: pool.apyPct30D ?? null,
+				apy: pool.apy ?? null,
+				predictions: pool.predictions ?? null,
 			}));
 
 			return await this.formatResponse(limited, {

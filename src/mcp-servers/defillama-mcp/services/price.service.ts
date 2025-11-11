@@ -26,9 +26,6 @@ const logAndWrapError = (context: string, error: unknown): Error => {
  * Handles cryptocurrency token price data
  */
 export class PriceService extends BaseService {
-	/**
-	 * Get current prices for coins
-	 */
 	async getPricesCurrentCoins(args: {
 		coins: string;
 		searchWidth?: string | number;
@@ -58,9 +55,6 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get first recorded prices for coins
-	 */
 	async getPricesFirstCoins(args: { coins: string }): Promise<string> {
 		try {
 			const url = `${this.COINS_URL}/prices/first/${args.coins}`;
@@ -77,9 +71,6 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get batch historical prices
-	 */
 	async getBatchHistorical(args: {
 		coins: string;
 		searchWidth?: string | number;
@@ -108,9 +99,6 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get historical prices by contract address at specific timestamp
-	 */
 	async getHistoricalPricesByContractAddress(args: {
 		coins: string;
 		timestamp: string | number;
@@ -142,9 +130,6 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get percentage price change for coins
-	 */
 	async getPercentageCoins(args: {
 		coins: string;
 		period?: string;
@@ -178,9 +163,6 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get chart data for coins
-	 */
 	async getChartCoins(args: {
 		coins: string;
 		start?: string | number;

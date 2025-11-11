@@ -20,9 +20,6 @@ const logAndWrapError = (context: string, error: unknown): Error => {
  * Handles options protocol data
  */
 export class OptionsService extends BaseService {
-	/**
-	 * Get options protocol data
-	 */
 	async getOptionsData(args: {
 		sortCondition: string;
 		order: "asc" | "desc";
@@ -80,9 +77,6 @@ export class OptionsService extends BaseService {
 		}
 	}
 
-	/**
-	 * Process options response and format top protocols
-	 */
 	private async processOptionsResponse(
 		data: OptionsOverviewResponse,
 		args: { sortCondition: string; order: "asc" | "desc"; chain?: string },

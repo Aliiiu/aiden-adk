@@ -15,10 +15,6 @@ const logAndWrapError = (context: string, error: unknown): Error => {
 	return wrappedError;
 };
 
-/**
- * Fees & Revenue Service
- * Handles protocol fees and revenue data
- */
 export class FeesService extends BaseService {
 	async getFeesAndRevenue(args: {
 		excludeTotalDataChart?: boolean;
@@ -79,9 +75,6 @@ export class FeesService extends BaseService {
 		}
 	}
 
-	/**
-	 * Process fees response and format top protocols
-	 */
 	private async processFeesResponse(
 		data: FeesOverviewResponse,
 		args: { sortCondition: string; order: "asc" | "desc"; chain?: string },

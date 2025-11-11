@@ -25,9 +25,6 @@ const logAndWrapError = (context: string, error: unknown): Error => {
  * Handles stablecoin data and metrics
  */
 export class StablecoinService extends BaseService {
-	/**
-	 * Get stablecoin data with circulation and prices
-	 */
 	async getStableCoin(args: { includePrices?: boolean }): Promise<string> {
 		try {
 			const includePrices = args.includePrices ?? false;
@@ -59,9 +56,6 @@ export class StablecoinService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get stablecoin data by chains
-	 */
 	async getStableCoinChains(): Promise<string> {
 		try {
 			const data = await this.fetchData<StablecoinChainItem[]>(
@@ -82,9 +76,6 @@ export class StablecoinService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get historical stablecoin market cap charts
-	 */
 	async getStableCoinCharts(args: {
 		chain?: string;
 		stablecoin?: number | string;
@@ -138,9 +129,6 @@ export class StablecoinService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get historical stablecoin price data
-	 */
 	async getStableCoinPrices(): Promise<string> {
 		try {
 			const data = await this.fetchData<StablecoinPriceItem[]>(
