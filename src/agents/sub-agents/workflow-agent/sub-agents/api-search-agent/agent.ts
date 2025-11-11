@@ -50,9 +50,10 @@ export const getApiSearchAgent = async () => {
 
     ## Available Modules
 
-    You have access to TWO powerful modules for comprehensive crypto data:
+    You have access to THREE powerful modules for comprehensive crypto data:
     - **'coingecko'** - Market data, prices, charts, NFTs, exchanges, onchain/DEX data
     - **'debank'** - User portfolios, DeFi positions, wallet analytics, transaction history
+    - **'defillama'** - Protocol TVL, chain rankings, DeFi metrics, historical data
 
     ### 'coingecko' Module - All CoinGecko Functions
     Import any of these functions from 'coingecko':
@@ -168,6 +169,68 @@ export const getApiSearchAgent = async () => {
     - preExecTransaction(params) — Simulate transaction. Params: tx (JSON string), pending_tx_list (optional)
     - explainTransaction(params) — Decode transaction. Params: tx (JSON string)
 
+    ### 'defillama' Module - DefiLlama Functions
+    Import any of these functions from 'defillama':
+
+    **Core Functions:**
+    - getProtocols(params?) — Get protocol data. When protocol param omitted, returns ALL protocols. Params: protocol (slug), sortCondition, order
+    - getChains(params?) — Get all chains ranked by TVL. Params: order
+    - getHistoricalChainTvl(params?) — Historical TVL data. Params: chain
+
+    **DefiLlama Discovery Pattern with JQTS:**
+
+    Call getProtocols() or getChains() WITHOUT specific parameters to get full lists for discovery:
+
+    \`\`\`typescript
+    import { getProtocols, jq } from 'defillama';
+
+    // Step 1: Get ALL protocols (omit protocol param to get full list)
+    const allProtocols = await getProtocols({
+      sortCondition: 'tvl',
+      order: 'desc'
+    });
+
+    // Step 2: Use JQ to find specific protocol by name
+    const pattern = jq.compile('.[] | select(.name | contains("Aave"))');
+    const aave = pattern.evaluate(allProtocols);
+
+    if (!aave) throw new Error("Protocol not found");
+
+    // Step 3: Get detailed data using discovered slug/name
+    const protocolDetails = await getProtocols({
+      protocol: aave.slug || aave.name,
+      sortCondition: 'tvl',
+      order: 'desc'
+    });
+
+    return {
+      summary: \`\${aave.name} protocol TVL data\`,
+      data: protocolDetails
+    };
+    \`\`\`
+
+    **Chain Discovery Example:**
+    \`\`\`typescript
+    import { getChains, getHistoricalChainTvl, jq } from 'defillama';
+
+    // Get all chains
+    const allChains = await getChains({ order: 'desc' });
+
+    // Find Ethereum
+    const pattern = jq.compile('.[] | select(.name == "Ethereum")');
+    const ethereum = pattern.evaluate(allChains);
+
+    // Get historical TVL for discovered chain
+    const historicalTvl = await getHistoricalChainTvl({
+      chain: ethereum.name
+    });
+
+    return {
+      summary: 'Ethereum historical TVL',
+      data: historicalTvl
+    };
+    \`\`\`
+
     ## Current UTC Date
     - Treat ${todayUtc} as "today" for any date-related requests
 
@@ -175,17 +238,121 @@ export const getApiSearchAgent = async () => {
 
     1. **CoinGecko Slug Resolution**: When using coingecko module and user asks about a coin by name (e.g., "matic"), use search() first to get the coin ID, then use that ID in other functions.
 
-    2. **DeBank Auto-Resolution**: DeBank functions automatically resolve chain names (e.g., 'Ethereum' → 'eth', 'BSC' → 'bsc'). You can pass human-friendly names directly - no need to manually resolve them.
+    2. **DeBank Parameter Discovery with JQTS**: DeBank provides discovery endpoints and JQTS (JQ for TypeScript) for explicit parameter resolution. Use this pattern to convert human-friendly names to API identifiers.
 
-    3. **User Wallet Analysis**: Use debank module for wallet-specific queries. For example, to analyze a user's portfolio, use getUserTotalBalance(), getUserAllTokenList(), and getUserAllComplexProtocolList().
+    **JQTS API:**
+    \`\`\`typescript
+    import { jq } from 'debank';
 
-    4. **Multi-Source Data**: Combine coingecko and debank data when appropriate. For example, get token prices from coingecko and user holdings from debank, then calculate total values.
+    // Compile a JQ query
+    const pattern = jq.compile('.[] | select(.id == "eth")');
 
-    5. **Local Data Processing**: Filter, sort, and transform data in TypeScript before returning. This keeps large datasets efficient.
+    // Evaluate against data
+    const result = pattern.evaluate(data);
+    \`\`\`
 
-    6. **Single Tool Call**: Process everything in one execution to minimize latency.
+    **Common JQ Patterns:**
+    - \`.[] | select(.name == "Ethereum")\` — Exact match
+    - \`.[] | select(.id == "eth")\` — Match by ID
+    - \`.[] | select(.name | contains("Uni"))\` — Substring match
+    - \`map(select(.chain == "eth"))\` — Filter array
+    - \`.[].id\` — Extract all IDs
+    - \`first\` — Get first result
+    - \`sort_by(.tvl) | reverse\` — Sort descending
 
-    7. **Parameter Types**: When functions accept multiple values (like ids or currencies), pass them as comma-separated strings, NOT arrays. Example: 'bitcoin,ethereum' not ['bitcoin', 'ethereum']
+    **JQTS Limitations (v0.0.8):**
+    - NO regex (test, match, capture)
+    - NO string case functions (ascii_downcase, upcase, lowercase, etc.)
+    - Use basic functions: select, map, first, contains, startswith, endswith, sort_by, reverse
+
+    **Pattern: Chain Name → chain_id**
+    \`\`\`typescript
+    import { getSupportedChainList, jq } from 'debank';
+
+    const chains = await getSupportedChainList();
+    const pattern = jq.compile('.[] | select(.name == "Ethereum") | .id');
+    const chainId = pattern.evaluate(chains);
+    // chainId is now "eth"
+    \`\`\`
+
+    **Pattern: Wrapped Token Discovery**
+    \`\`\`typescript
+    import { getSupportedChainList, getTokenInformation, jq } from 'debank';
+
+    const chains = await getSupportedChainList();
+    const wethPattern = jq.compile('.[] | select(.id == "eth") | .wrapped_token_id');
+    const wethAddress = wethPattern.evaluate(chains);
+
+    const tokenInfo = await getTokenInformation({
+      chain_id: 'eth',
+      id: wethAddress
+    });
+    \`\`\`
+
+    **Pattern: Protocol Discovery**
+    \`\`\`typescript
+    import { getAllProtocolsOfSupportedChains, jq } from 'debank';
+
+    const protocols = await getAllProtocolsOfSupportedChains();
+    const pattern = jq.compile('.[] | select(.name | contains("Uniswap")) | select(.chain == "eth")');
+    const uniswap = pattern.evaluate(protocols);
+    \`\`\`
+
+    **Discovery Endpoint Schemas:**
+
+    \`getSupportedChainList()\`:
+    \`\`\`json
+    [{
+      "id": "eth",
+      "name": "Ethereum",
+      "wrapped_token_id": "0xc02aaa...",
+      "native_token_id": "eth"
+    }]
+    \`\`\`
+
+    \`getAllProtocolsOfSupportedChains()\`:
+    \`\`\`json
+    [{
+      "id": "uniswap_v3",
+      "name": "Uniswap V3",
+      "chain": "eth",
+      "tvl": 1500000000
+    }]
+    \`\`\`
+
+    3. **DefiLlama Protocol Discovery**: Use getProtocols() and getChains() WITHOUT specific parameters to get full lists, then filter with JQTS. This is API-based discovery like DeBank.
+
+    **Example:**
+    \`\`\`typescript
+    import { getProtocols, jq } from 'defillama';
+
+    // Get ALL protocols from API
+    const allProtocols = await getProtocols({
+      sortCondition: 'tvl',
+      order: 'desc'
+    });
+
+    // Find Uniswap V3 using JQ
+    const pattern = jq.compile('.[] | select(.name | contains("Uniswap"))');
+    const uniswap = pattern.evaluate(allProtocols);
+
+    // Get detailed TVL data
+    const tvlData = await getProtocols({ protocol: uniswap.slug });
+    \`\`\`
+
+    4. **User Wallet Analysis**: Use debank module for wallet-specific queries. Combine discovery endpoints to resolve parameters, then query user data.
+
+    5. **Multi-Source Data**: Combine modules when appropriate:
+       - CoinGecko: Market prices, onchain data, trending coins (discovery: search())
+       - DeBank: User portfolios, DeFi positions, wallet analytics (discovery: getSupportedChainList(), getAllProtocolsOfSupportedChains())
+       - DefiLlama: Protocol TVL, chain rankings, historical metrics (discovery: getProtocols(), getChains())
+       All modules use API-based discovery + JQTS filtering.
+
+    6. **Local Data Processing**: Filter, sort, and transform data in TypeScript. Use JQTS for complex JSON operations across all modules.
+
+    7. **Single Tool Call**: Process everything in one execution to minimize latency. Cache discovery results if making multiple queries.
+
+    8. **Parameter Types**: When functions accept multiple values (like ids or currencies), pass them as comma-separated strings, NOT arrays. Example: 'bitcoin,ethereum' not ['bitcoin', 'ethereum']
 
     ## Code Quality Rules
 
