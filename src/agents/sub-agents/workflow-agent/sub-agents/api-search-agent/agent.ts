@@ -170,14 +170,45 @@ export const getApiSearchAgent = async () => {
     - explainTransaction(params) — Decode transaction. Params: tx (JSON string)
 
     ### 'defillama' Module - DefiLlama Functions
-    Import any of these functions from 'defillama':
+    Import any of these functions from 'defillama'. Use the exported \`jq\` helper for discovery/filtering when needed.
 
-    **Core Functions:**
-    - getProtocols(params?) — Get protocol data. When protocol param omitted, returns ALL protocols. Params: protocol (slug), sortCondition, order
-    - getChains(params?) — Get all chains ranked by TVL. Params: order
-    - getHistoricalChainTvl(params?) — Historical TVL data. Params: chain
+    **Blockchain Utilities**
+    - getBlockChainTimestamp(params) — Block height/timestamp lookup. Params: chain, timestamp
 
-    **DefiLlama Discovery Pattern with JQTS:**
+    **Protocols & TVL**
+    - getProtocols(params) — Protocol metrics (TVL, % changes). Params: protocol, sortCondition, order
+    - getChains(params) — Chains ranked by TVL (top 20). Params: order
+    - getHistoricalChainTvl(params) — Historical TVL for a chain or all chains. Params: chain
+
+    **Fees & Revenue (use for “investor revenue/fees” questions)**
+    - getFeesAndRevenue(params) — Protocol/chain-level fees + holders revenue. Params: protocol, chain, dataType (dailyFees/dailyRevenue/dailyHoldersRevenue), sortCondition, order
+      - Prefer this function whenever comparing revenue/fees (e.g., “highest revenue last 7 days”) instead of manually sorting \`getProtocols\`.
+
+    **DEX Metrics**
+    - getDexsData(params) — DEX volumes and changes globally or per chain/protocol. Params: chain, protocol, sortCondition, order
+
+    **Options**
+    - getOptionsData(params) — Options protocol metrics (daily notional, changes). Params: chain, protocol, dataType, sortCondition, order
+
+    **Stablecoins**
+    - getStableCoin(params) — Top stablecoins by circulation (optional prices). Params: includePrices
+    - getStableCoinChains() — Latest stablecoin circulation aggregated by chain
+    - getStableCoinCharts(params) — Historical stablecoin charts. Params: chain, stablecoin ID
+    - getStableCoinPrices() — Historical stablecoin price snapshots
+
+    **Prices & Charts**
+    - getPricesCurrentCoins(params) — Current prices for comma-separated coins (supports \`searchWidth\`)
+    - getPricesFirstCoins(params) — First recorded prices
+    - getBatchHistorical(params) — Batch historical prices for many coins
+    - getHistoricalPricesByContractAddress(params) — Price at timestamp for contract addresses
+    - getPercentageCoins(params) — Percentage change over a period (supports \`lookForward\`, \`timestamp\`)
+    - getChartCoins(params) — Price chart data with start/end/span/period controls
+
+    **Yield Pools**
+    - getLatestPoolData(params) — Sorted list of pools (APY, TVL). Params: sortCondition, order, limit
+    - getHistoricalPoolData(params) — Historical APY/TVL for a single pool. Params: pool
+
+    **DefiLlama Discovery Pattern with node-jq:**
 
     Call getProtocols() or getChains() WITHOUT specific parameters to get full lists for discovery:
 
@@ -191,8 +222,11 @@ export const getApiSearchAgent = async () => {
     });
 
     // Step 2: Use JQ to find specific protocol by name
-    const pattern = jq.compile('.[] | select(.name | contains("Aave"))');
-    const aave = pattern.evaluate(allProtocols);
+    const aave = await jq.run(
+      '.[] | select(.name | contains("Aave"))',
+      allProtocols,
+      { input: 'json', output: 'json' }
+    );
 
     if (!aave) throw new Error("Protocol not found");
 
@@ -217,8 +251,11 @@ export const getApiSearchAgent = async () => {
     const allChains = await getChains({ order: 'desc' });
 
     // Find Ethereum
-    const pattern = jq.compile('.[] | select(.name == "Ethereum")');
-    const ethereum = pattern.evaluate(allChains);
+    const ethereum = await jq.run(
+      '.[] | select(.name == "Ethereum")',
+      allChains,
+      { input: 'json', output: 'json' }
+    );
 
     // Get historical TVL for discovered chain
     const historicalTvl = await getHistoricalChainTvl({
@@ -238,17 +275,18 @@ export const getApiSearchAgent = async () => {
 
     1. **CoinGecko Slug Resolution**: When using coingecko module and user asks about a coin by name (e.g., "matic"), use search() first to get the coin ID, then use that ID in other functions.
 
-    2. **DeBank Parameter Discovery with JQTS**: DeBank provides discovery endpoints and JQTS (JQ for TypeScript) for explicit parameter resolution. Use this pattern to convert human-friendly names to API identifiers.
+    2. **DeBank Parameter Discovery with node-jq**: DeBank provides discovery endpoints and node-jq (JQ for Node.js) for explicit parameter resolution. Use this pattern to convert human-friendly names to API identifiers.
 
-    **JQTS API:**
+    **node-jq API:**
     \`\`\`typescript
     import { jq } from 'debank';
 
-    // Compile a JQ query
-    const pattern = jq.compile('.[] | select(.id == "eth")');
-
-    // Evaluate against data
-    const result = pattern.evaluate(data);
+    // Run a JQ query (returns a Promise)
+    const result = await jq.run(
+      '.[] | select(.id == "eth")',
+      data,
+      { input: 'json', output: 'json' }
+    );
     \`\`\`
 
     **Common JQ Patterns:**
@@ -260,18 +298,21 @@ export const getApiSearchAgent = async () => {
     - \`first\` — Get first result
     - \`sort_by(.tvl) | reverse\` — Sort descending
 
-    **JQTS Limitations (v0.0.8):**
-    - NO regex (test, match, capture)
-    - NO string case functions (ascii_downcase, upcase, lowercase, etc.)
-    - Use basic functions: select, map, first, contains, startswith, endswith, sort_by, reverse
+    **Important Notes:**
+    - node-jq supports full jq syntax including regex, string functions, etc.
+    - All jq.run() calls are async and return Promises
+    - Use options { input: 'json', output: 'json' } for JSON data processing
 
     **Pattern: Chain Name → chain_id**
     \`\`\`typescript
     import { getSupportedChainList, jq } from 'debank';
 
     const chains = await getSupportedChainList();
-    const pattern = jq.compile('.[] | select(.name == "Ethereum") | .id');
-    const chainId = pattern.evaluate(chains);
+    const chainId = await jq.run(
+      '.[] | select(.name == "Ethereum") | .id',
+      chains,
+      { input: 'json', output: 'json' }
+    );
     // chainId is now "eth"
     \`\`\`
 
@@ -280,8 +321,11 @@ export const getApiSearchAgent = async () => {
     import { getSupportedChainList, getTokenInformation, jq } from 'debank';
 
     const chains = await getSupportedChainList();
-    const wethPattern = jq.compile('.[] | select(.id == "eth") | .wrapped_token_id');
-    const wethAddress = wethPattern.evaluate(chains);
+    const wethAddress = await jq.run(
+      '.[] | select(.id == "eth") | .wrapped_token_id',
+      chains,
+      { input: 'json', output: 'json' }
+    );
 
     const tokenInfo = await getTokenInformation({
       chain_id: 'eth',
@@ -294,8 +338,11 @@ export const getApiSearchAgent = async () => {
     import { getAllProtocolsOfSupportedChains, jq } from 'debank';
 
     const protocols = await getAllProtocolsOfSupportedChains();
-    const pattern = jq.compile('.[] | select(.name | contains("Uniswap")) | select(.chain == "eth")');
-    const uniswap = pattern.evaluate(protocols);
+    const uniswap = await jq.run(
+      '.[] | select(.name | contains("Uniswap")) | select(.chain == "eth")',
+      protocols,
+      { input: 'json', output: 'json' }
+    );
     \`\`\`
 
     **Discovery Endpoint Schemas:**
@@ -320,7 +367,7 @@ export const getApiSearchAgent = async () => {
     }]
     \`\`\`
 
-    3. **DefiLlama Protocol Discovery**: Use getProtocols() and getChains() WITHOUT specific parameters to get full lists, then filter with JQTS. This is API-based discovery like DeBank.
+    3. **DefiLlama Protocol Discovery**: Use getProtocols() and getChains() WITHOUT specific parameters to get full lists, then filter with node-jq. This is API-based discovery like DeBank.
 
     **Example:**
     \`\`\`typescript
@@ -333,8 +380,11 @@ export const getApiSearchAgent = async () => {
     });
 
     // Find Uniswap V3 using JQ
-    const pattern = jq.compile('.[] | select(.name | contains("Uniswap"))');
-    const uniswap = pattern.evaluate(allProtocols);
+    const uniswap = await jq.run(
+      '.[] | select(.name | contains("Uniswap"))',
+      allProtocols,
+      { input: 'json', output: 'json' }
+    );
 
     // Get detailed TVL data
     const tvlData = await getProtocols({ protocol: uniswap.slug });
@@ -346,9 +396,9 @@ export const getApiSearchAgent = async () => {
        - CoinGecko: Market prices, onchain data, trending coins (discovery: search())
        - DeBank: User portfolios, DeFi positions, wallet analytics (discovery: getSupportedChainList(), getAllProtocolsOfSupportedChains())
        - DefiLlama: Protocol TVL, chain rankings, historical metrics (discovery: getProtocols(), getChains())
-       All modules use API-based discovery + JQTS filtering.
+       All modules use API-based discovery + node-jq filtering.
 
-    6. **Local Data Processing**: Filter, sort, and transform data in TypeScript. Use JQTS for complex JSON operations across all modules.
+    6. **Local Data Processing**: Filter, sort, and transform data in TypeScript. Use node-jq for complex JSON operations across all modules.
 
     7. **Single Tool Call**: Process everything in one execution to minimize latency. Cache discovery results if making multiple queries.
 
