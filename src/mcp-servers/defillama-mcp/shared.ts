@@ -35,7 +35,7 @@ type ServiceName = keyof typeof serviceMap;
 
 /**
  * Execute a DefiLlama service method by name
- * Returns raw JSON data for use in code execution
+ * Returns raw JSON data for use in sandbox code execution
  *
  * NOTE: Parameter resolution is now handled explicitly by the agent using
  * discovery endpoints (getProtocols, getChains) and JQTS filtering.
@@ -63,26 +63,21 @@ export async function executeServiceMethod(
 		);
 	}
 
+	service.setRawOutputMode(true);
+
 	logger.debug(
 		`Executing ${serviceName}.${methodName}`,
 		JSON.stringify(params),
 	);
 
 	try {
-		service.setRawOutput(true);
-
 		logger.debug(`Method called with ${JSON.stringify(params)}`);
 		const result = await method.call(service, params);
-
-		service.setRawOutput(false);
 
 		logger.debug(`Method ${serviceName}.${methodName} completed successfully`);
 		return result;
 	} catch (error) {
-		service.setRawOutput(false);
 		logger.error(`Method ${serviceName}.${methodName} failed:`, error);
 		throw error;
-	} finally {
-		service.setRawOutput(false);
 	}
 }

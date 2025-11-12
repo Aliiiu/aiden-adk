@@ -17,11 +17,17 @@ const encoder = new Tiktoken(cl100k_base);
  * Base Service for DefiLlama API
  * Provides common caching and data fetching functionality
  */
+export type FormatOptions = {
+	title?: string;
+	currencyFields?: string[];
+	numberFields?: string[];
+};
+
 export abstract class BaseService {
 	protected aiModel?: LanguageModel;
 	protected dataFilter?: LLMDataFilter;
 	protected currentQuery?: string;
-	protected rawOutput = false;
+	private rawOutputMode = false;
 
 	/**
 	 * Set the AI model for data filtering
@@ -41,11 +47,19 @@ export abstract class BaseService {
 	}
 
 	/**
-	 * Toggle raw output mode. When true, service
-	 * methods return raw JSON instead of formatted markdown.
+	 * Enable or disable raw output mode
+	 * When enabled, service methods return raw JSON data instead of formatted strings
+	 * This is used for sandbox code execution
 	 */
-	setRawOutput(raw: boolean) {
-		this.rawOutput = raw;
+	setRawOutputMode(enabled: boolean) {
+		this.rawOutputMode = enabled;
+	}
+
+	/**
+	 * Check if raw output mode is enabled
+	 */
+	protected get isRawOutputMode(): boolean {
+		return this.rawOutputMode;
 	}
 
 	protected readonly BASE_URL = "https://api.llama.fi";
@@ -108,24 +122,22 @@ export abstract class BaseService {
 	}
 
 	/**
-	 * Format response for LLM consumption
-	 * Returns MCP-compliant response with content array
+	 * Format response for LLM consumption or return raw data
+	 * - If rawOutputMode is enabled: always returns raw data (for sandbox execution)
+	 * - Otherwise: returns MCP-compliant formatted string
 	 * Automatically filters large responses if AI model is configured
 	 * Uses currentQuery set via setQuery() for filtering context
 	 */
 	protected async formatResponse(
 		data: unknown,
-		options?: {
-			title?: string;
-			currencyFields?: string[];
-			numberFields?: string[];
-		},
-	): Promise<any> {
-		if (this.rawOutput) {
+		options?: FormatOptions,
+	): Promise<unknown> {
+		// If service is in raw output mode (sandbox execution), always return raw data
+		if (this.rawOutputMode) {
 			return data;
 		}
 
-		let markdownOutput = toMarkdown(data, options);
+		let markdownOutput = toMarkdown(data, options ?? {});
 
 		const tokenLength = encoder.encode(markdownOutput).length;
 		logger.info(`Response token length: ${tokenLength}`);
@@ -148,11 +160,7 @@ export abstract class BaseService {
 					jsonData,
 					this.currentQuery,
 				);
-				markdownOutput = toMarkdown(JSON.parse(filteredJson), {
-					title: options?.title,
-					currencyFields: options?.currencyFields,
-					numberFields: options?.numberFields,
-				});
+				markdownOutput = toMarkdown(JSON.parse(filteredJson), options ?? {});
 
 				const tokenLength = encoder.encode(markdownOutput).length;
 				logger.info(`New Response token length: ${tokenLength}`);

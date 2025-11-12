@@ -15,15 +15,20 @@ import { LLMDataFilter } from "../utils/data-filter";
 
 const logger = createChildLogger("DeBank Base Service");
 
-// Initialize tiktoken encoder for token counting
 const encoder = new Tiktoken(cl100k_base);
+
+export type FormatOptions = {
+	title?: string;
+	currencyFields?: string[];
+	numberFields?: string[];
+};
 
 export abstract class BaseService {
 	protected baseUrl = config.baseUrl;
 	protected aiModel?: LanguageModel;
 	protected dataFilter?: LLMDataFilter;
 	protected currentQuery?: string;
-	protected rawOutput = false;
+	private rawOutputMode = false;
 
 	/**
 	 * Set the AI model for data filtering
@@ -43,11 +48,19 @@ export abstract class BaseService {
 	}
 
 	/**
-	 * Set whether to return raw data (true) or formatted strings (false)
-	 * Use true for code execution, false for MCP tools
+	 * Enable or disable raw output mode
+	 * When enabled, service methods return raw JSON data instead of formatted strings
+	 * This is used for sandbox code execution
 	 */
-	setRawOutput(raw: boolean) {
-		this.rawOutput = raw;
+	setRawOutputMode(enabled: boolean) {
+		this.rawOutputMode = enabled;
+	}
+
+	/**
+	 * Check if raw output mode is enabled
+	 */
+	protected get isRawOutputMode(): boolean {
+		return this.rawOutputMode;
 	}
 
 	protected async fetchWithToolConfig<T>(
@@ -111,28 +124,21 @@ export abstract class BaseService {
 
 	/**
 	 * Format response for LLM consumption or return raw data
-	 * - If rawOutput is true: returns raw data as-is (for code execution)
-	 * - If rawOutput is false: returns MCP-compliant formatted string
+	 * - If rawOutputMode is enabled: always returns raw data (for sandbox execution)
+	 * - Otherwise: returns MCP-compliant formatted string
 	 * Automatically filters large responses if AI model is configured
 	 * Uses currentQuery set via setQuery() for filtering context
 	 */
-	protected async formatResponse(
+	async formatResponse(
 		data: unknown,
-		options?: {
-			title?: string;
-			currencyFields?: string[];
-			numberFields?: string[];
-		},
-	): Promise<any> {
-		// Return raw data if requested (for code execution)
-		if (this.rawOutput) {
+		options?: FormatOptions,
+	): Promise<unknown> {
+		if (this.rawOutputMode) {
 			return data;
 		}
 
-		// Otherwise format as markdown string (for MCP tools)
-		const markdownOutput = toMarkdown(data, options);
+		const markdownOutput = toMarkdown(data, options ?? {});
 
-		// Check token count and filter if necessary
 		const tokenLength = encoder.encode(markdownOutput).length;
 
 		logger.info(`Response token length: ${tokenLength}`);
@@ -146,7 +152,6 @@ export abstract class BaseService {
 			this.currentQuery
 		) {
 			try {
-				// Convert data to JSON string for filtering
 				const jsonData = JSON.stringify(data);
 				const filteredJson = await this.dataFilter.filter(
 					jsonData,
@@ -156,15 +161,9 @@ export abstract class BaseService {
 				logger.info("Successfully filtered response data");
 				logger.info(`New token length: ${encoder.encode(filteredJson).length}`);
 
-				// Format the filtered data
-				return toMarkdown(JSON.parse(filteredJson), {
-					title: options?.title,
-					currencyFields: options?.currencyFields,
-					numberFields: options?.numberFields,
-				});
+				return toMarkdown(JSON.parse(filteredJson), options ?? {});
 			} catch (error) {
 				console.error("Error filtering response:", error);
-				// Return original if filtering fails
 				return markdownOutput;
 			}
 		}
