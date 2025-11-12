@@ -46,7 +46,6 @@ export async function executeInSandbox(
 			};
 		}
 
-		// Check TypeScript syntax before transpilation (syntax only, not types)
 		const syntaxCheck = checkTypeScriptSyntax(config.code);
 		if (!syntaxCheck.valid) {
 			logger.error("TypeScript syntax errors detected:", syntaxCheck.errors);
@@ -57,7 +56,6 @@ export async function executeInSandbox(
 			};
 		}
 
-		// Transpile TypeScript to JavaScript
 		logger.info("Transpiling TypeScript code...");
 		const jsCode = ts.transpile(config.code, {
 			target: ts.ScriptTarget.ES2020,
@@ -70,7 +68,6 @@ export async function executeInSandbox(
 
 		// Create sandbox environment
 		const sandbox: any = {
-			// Provide module and exports for CommonJS
 			module: { exports: {} },
 			exports: {},
 			require: (modulePath: string) => {
@@ -206,10 +203,160 @@ function checkTypeScriptSyntax(code: string): {
 }
 
 /**
- * Validate code for dangerous patterns before execution
+ * Validate code for dangerous patterns before execution using AST analysis
  */
 function validateCode(code: string): { valid: boolean; reason?: string } {
-	// List of forbidden patterns for security
+	try {
+		// Parse code into AST for structural analysis
+		const sourceFile = ts.createSourceFile(
+			"sandbox.ts",
+			code,
+			ts.ScriptTarget.ES2020,
+			true,
+		);
+
+		// Forbidden identifiers that indicate dangerous operations
+		const forbiddenGlobals = new Set([
+			"eval",
+			"Function",
+			"__dirname",
+			"__filename",
+		]);
+
+		// Forbidden module imports
+		const forbiddenModules = new Set([
+			"fs",
+			"fs/promises",
+			"child_process",
+			"net",
+			"http",
+			"https",
+			"os",
+			"cluster",
+			"dgram",
+			"dns",
+			"tls",
+			"crypto",
+			"worker_threads",
+			"vm",
+			"vm2",
+		]);
+
+		// Forbidden property accesses on process object
+		const forbiddenProcessAccess = new Set(["exit", "env", "kill", "abort"]);
+
+		const violations: string[] = [];
+
+		function visit(node: ts.Node) {
+			if (ts.isCallExpression(node)) {
+				const callExpr = node as ts.CallExpression;
+				if (
+					ts.isIdentifier(callExpr.expression) &&
+					callExpr.expression.text === "eval"
+				) {
+					violations.push("eval() function is not allowed");
+				}
+			}
+
+			// Check for Function constructor: new Function() or Function()
+			if (ts.isNewExpression(node) || ts.isCallExpression(node)) {
+				const expr = node as ts.NewExpression | ts.CallExpression;
+				if (
+					ts.isIdentifier(expr.expression) &&
+					expr.expression.text === "Function"
+				) {
+					violations.push("Function constructor is not allowed");
+				}
+			}
+
+			// Check for forbidden global identifiers
+			if (ts.isIdentifier(node)) {
+				if (forbiddenGlobals.has(node.text)) {
+					violations.push(`Use of '${node.text}' is not allowed`);
+				}
+			}
+
+			// Check for process.* access
+			if (ts.isPropertyAccessExpression(node)) {
+				const propAccess = node as ts.PropertyAccessExpression;
+				if (
+					ts.isIdentifier(propAccess.expression) &&
+					propAccess.expression.text === "process"
+				) {
+					const propertyName = propAccess.name.text;
+					if (forbiddenProcessAccess.has(propertyName)) {
+						violations.push(`process.${propertyName} is not allowed`);
+					}
+				}
+			}
+
+			// Check for require() calls with forbidden modules
+			if (ts.isCallExpression(node)) {
+				const callExpr = node as ts.CallExpression;
+				if (
+					ts.isIdentifier(callExpr.expression) &&
+					callExpr.expression.text === "require"
+				) {
+					if (callExpr.arguments.length > 0) {
+						const arg = callExpr.arguments[0];
+						if (ts.isStringLiteral(arg)) {
+							const moduleName = arg.text;
+							if (forbiddenModules.has(moduleName)) {
+								violations.push(
+									`Import of '${moduleName}' module is not allowed`,
+								);
+							}
+						}
+					}
+				}
+			}
+
+			// Check for import declarations
+			if (ts.isImportDeclaration(node)) {
+				const importDecl = node as ts.ImportDeclaration;
+				if (ts.isStringLiteral(importDecl.moduleSpecifier)) {
+					const moduleName = importDecl.moduleSpecifier.text;
+					if (forbiddenModules.has(moduleName)) {
+						violations.push(`Import of '${moduleName}' module is not allowed`);
+					}
+				}
+			}
+
+			// Check for dynamic import() expressions
+			if (ts.isCallExpression(node)) {
+				const callExpr = node as ts.CallExpression;
+				if (callExpr.expression.kind === ts.SyntaxKind.ImportKeyword) {
+					violations.push("Dynamic import() is not allowed");
+				}
+			}
+
+			ts.forEachChild(node, visit);
+		}
+
+		visit(sourceFile);
+
+		if (violations.length > 0) {
+			return {
+				valid: false,
+				reason: violations.join("; "),
+			};
+		}
+
+		return { valid: true };
+	} catch (error) {
+		logger.error("AST-based validation failed:", error);
+		// Fallback to basic validation if AST parsing fails
+		return fallbackStringValidation(code);
+	}
+}
+
+/**
+ * Fallback string-based validation if AST parsing fails
+ */
+function fallbackStringValidation(code: string): {
+	valid: boolean;
+	reason?: string;
+} {
 	const forbiddenPatterns = [
 		{ pattern: "eval(", reason: "eval() is not allowed" },
 		{ pattern: "Function(", reason: "Function constructor is not allowed" },
@@ -236,7 +383,6 @@ function validateCode(code: string): { valid: boolean; reason?: string } {
 		}
 	}
 
-	// Check for suspicious imports
 	const importRegex = /(?:import|require)\s*\(?['"]([^'"]+)['"]\)?/g;
 	const imports = [...code.matchAll(importRegex)].map((match) => match[1]);
 

@@ -8,20 +8,16 @@ const logger = createChildLogger("LLM Data Filter");
 
 /**
  * Validates a JQ query to ensure it's syntactically valid
- * Note: node-jq supports full jq syntax, so validation is minimal
  * @param query - The JQ query string to validate
  * @returns Validation result with error message if invalid
  */
 function validateJqQuery(query: string): { valid: boolean; error?: string } {
-	// Basic validation - check if query is not empty
 	if (!query || query.trim().length === 0) {
 		return {
 			valid: false,
 			error: "Query cannot be empty",
 		};
 	}
-
-	// node-jq supports full jq syntax, so no function restrictions
 	return { valid: true };
 }
 
@@ -128,7 +124,6 @@ export class LLMDataFilter {
 			const jqQuery = result.text.trim();
 			logger.info(`Generated JQ query: ${jqQuery}`);
 
-			// Validate query before compilation
 			const validation = validateJqQuery(jqQuery);
 			if (!validation.valid) {
 				logger.warn(`Invalid JQ query detected: ${validation.error}`);
@@ -186,7 +181,6 @@ export class LLMDataFilter {
 			const summary: Record<string, unknown> = {};
 			for (const [key, value] of Object.entries(parsedData)) {
 				if (Array.isArray(value)) {
-					// Include first 5 items of arrays
 					summary[key] = value.slice(0, 5);
 				} else if (typeof value === "object" && value !== null) {
 					// For nested objects, just include keys
