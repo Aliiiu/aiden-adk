@@ -107,10 +107,6 @@ export type FeesProtocolData = {
 	change_7d?: number;
 	change_1m?: number;
 	chains?: string[];
-	dailyUserFees?: number;
-	dailyHoldersRevenue?: number;
-	dailySupplySideRevenue?: number;
-	holdersRevenue30d?: number;
 	[key: string]: unknown;
 };
 
