@@ -59,154 +59,154 @@ export const getApiSearchAgent = async () => {
     Import any of these functions from 'coingecko':
 
     **Search & Discovery**
-    - search(params) — Search coins. Params: query
-    - getTrendingSearch() — Trending coins in last 24h
-    - getCoinsList(params) — All supported coins. Optional params: include_platform
+    - search({ query: string }) — Search coins by name/ticker.
+    - getTrendingSearch() — Trending coins in last 24h.
+    - getCoinsList({ include_platform?: boolean }) — All supported coins (optionally include platform data).
 
     **Market Data**
-    - getCoinsMarkets(params) — Market data. Params: vs_currency, order, per_page, category, price_change_percentage
-    - getTopGainersLosers() — Top price movers
-    - getGlobal() — Global market statistics
+    - getCoinsMarkets({ vs_currency: string, order?: string, per_page?: number, category?: string, price_change_percentage?: string }) — Price, market cap, and % change snapshots.
+    - getTopGainersLosers() — Largest 24h movers.
+    - getGlobal() — Global market statistics.
 
     **Coin Details**
-    - getCoinDetails(params) — Full coin data by ID. Params: id
-    - getCoinsHistory(params) — Historical snapshot. Params: id, date (dd-mm-yyyy)
-    - getSimpleTokenPrice(params) — Token price by contract. Params: id, contract_addresses, vs_currencies
+    - getCoinDetails({ id: string }) — Full metadata for a coin by ID.
+    - getCoinsHistory({ id: string, date: string }) — Historical snapshot on dd-mm-yyyy.
+    - getSimpleTokenPrice({ id: string, contract_addresses: string, vs_currencies: string }) — Token price by contract.
 
     **Price & Contracts**
-    - getCoinsContract(params) — Coin by contract address. Params: id, contract_address
-    - getSimplePrice(params) — Simple price for multiple coins. Params: ids (string, comma-separated like 'bitcoin,ethereum'), vs_currencies (string, comma-separated like 'usd,eur'), include_24hr_change (boolean), include_market_cap (boolean)
-    - getSimpleSupportedVsCurrencies() — Supported currencies
+    - getCoinsContract({ id: string, contract_address: string }) — Lookup a contract address on a chain.
+    - getSimplePrice({ ids: string, vs_currencies: string, include_24hr_change?: boolean, include_market_cap?: boolean }) — Quick price quote for comma-separated IDs.
+    - getSimpleSupportedVsCurrencies() — List of supported vs currencies.
 
     **Charts & History**
-    - getRangeCoinsMarketChart(params) — Historical market data. Params: id, vs_currency, from (UNIX), to (UNIX)
-    - getRangeCoinsOhlc(params) — OHLC candlestick. Params: id, vs_currency, from, to
-    - getRangeContractCoinsMarketChart(params) — Contract historical. Params: id, contract_address, vs_currency, from, to
+    - getRangeCoinsMarketChart({ id: string, vs_currency: string, from: number, to: number }) — Historical prices/market cap/volume (UNIX seconds).
+    - getRangeCoinsOhlc({ id: string, vs_currency: string, from: number, to: number }) — OHLC candles.
+    - getRangeContractCoinsMarketChart({ id: string, contract_address: string, vs_currency: string, from: number, to: number }) — Contract-specific history.
 
     **NFTs**
-    - getNftsById(params) — NFT collection. Params: id
-    - getNftsList(params) — All NFT collections. Params: order, per_page
-    - getNftsMarkets(params) — NFT markets. Params: asset_platform_id, order, per_page
-    - getNftsMarketChart(params) — NFT historical. Params: id, days
+    - getNftsById({ id: string }) — NFT collection profile.
+    - getNftsList({ order?: string, per_page?: number }) — All NFT collections.
+    - getNftsMarkets({ asset_platform_id: string, order?: string, per_page?: number }) — NFT marketplace stats.
+    - getNftsMarketChart({ id: string, days: number | string }) — NFT floor price history.
 
     **Exchanges**
-    - getExchangesById(params) — Exchange details. Params: id
-    - getExchangesList(params) — All exchanges. Params: per_page, page
-    - getExchangesListDetailed(params) — Detailed exchanges. Params: per_page
-    - getExchangesTickers(params) — Trading pairs. Params: id, coin_ids, page
-    - getRangeExchangesVolumeChart(params) — Volume history. Params: id, from, to
+    - getExchangesById({ id: string }) — Exchange details.
+    - getExchangesList({ per_page?: number, page?: number }) — Exchange directory.
+    - getExchangesListDetailed({ per_page?: number }) — Detailed exchange list.
+    - getExchangesTickers({ id: string, coin_ids?: string, page?: number }) — Trading pairs for an exchange.
+    - getRangeExchangesVolumeChart({ id: string, from: number, to: number }) — Historical exchange volume.
 
     **Categories & Utilities**
-    - getCoinCategories() — All categories
-    - getCoinsCategories(params) — Categories with market data. Params: order
-    - getAssetPlatforms(params) — Blockchain platforms. Params: filter
-    - getNewCoinsList() — Recently listed coins
-    - searchDocs(params) — Search CoinGecko docs. Params: query
+    - getCoinCategories() — All market categories.
+    - getCoinsCategories({ order?: string }) — Categories with market data.
+    - getAssetPlatforms({ filter?: string }) — Blockchain platforms.
+    - getNewCoinsList() — Recently listed assets.
+    - searchDocs({ query: string }) — Search CoinGecko docs.
 
     **Onchain/DEX - Networks**
-    - getOnchainNetworks() — All onchain networks
-    - getOnchainCategories() — Onchain pool categories
-    - getNetworksOnchainDexes(params) — DEXes on network. Params: network
-    - getNetworksOnchainNewPools(params) — New pools. Params: network, page
-    - getNetworkNetworksOnchainNewPools(params) — New pools (alternate). Params: network, page
+    - getOnchainNetworks() — All onchain-supported networks.
+    - getOnchainCategories() — Available onchain pool categories.
+    - getNetworksOnchainDexes({ network: string }) — DEXes on a network.
+    - getNetworksOnchainNewPools({ network: string, page?: number }) — Recently listed pools.
+    - getNetworkNetworksOnchainNewPools({ network: string, page?: number }) — Alternate new-pool endpoint.
 
     **Onchain/DEX - Pools**
-    - **IMPORTANT** Use CoinGecko onchain pool endpoints only when you need DEX market metrics (trades, OHLCV, trending pools). Route wallet/protocol/pool position analysis to DeBank instead of mixing parameters.
-    - getPoolsOnchainTrendingSearch() — Trending pools
-    - getSearchOnchainPools(params) — Search pools. Params: query, network
-    - getPoolsOnchainCategories(params) — Pools by category. Params: category, network
-    - getPoolsOnchainMegafilter(params) — Advanced filtering. Params: network, dex, min_volume_usd, min_price_change_percentage_24h, sort, order
-    - getPoolsNetworksOnchainInfo(params) — Pool details. Params: network, pool_address
-    - getPoolsNetworksOnchainTrades(params) — Pool trades. Params: network, pool_address
-    - getTimeframePoolsNetworksOnchainOhlcv(params) — Pool OHLCV. Params: timeframe, network, pool_address
-    - getAddressesPoolsNetworksOnchainMulti(params) — Multi-pool data. Params: network, addresses (comma-separated)
+    - **IMPORTANT** Use CoinGecko onchain pool endpoints only for DEX market metrics (trades, OHLCV, trending pools). Route wallet/protocol/pool position analysis to DeBank instead.
+    - getPoolsOnchainTrendingSearch() — Trending pools.
+    - getSearchOnchainPools({ query: string, network: string }) — Search pools on a network.
+    - getPoolsOnchainCategories({ category: string, network: string }) — Pools within a category.
+    - getPoolsOnchainMegafilter({ network: string, dex?: string, min_volume_usd?: number, min_price_change_percentage_24h?: number, sort?: string, order?: string }) — Advanced multi-filter query.
+    - getPoolsNetworksOnchainInfo({ network: string, pool_address: string }) — Pool metadata.
+    - getPoolsNetworksOnchainTrades({ network: string, pool_address: string }) — Recent trades.
+    - getTimeframePoolsNetworksOnchainOhlcv({ timeframe: string, network: string, pool_address: string }) — OHLCV data.
+    - getAddressesPoolsNetworksOnchainMulti({ network: string, addresses: string }) — Batch pool lookup (comma-separated addresses).
 
     **Onchain/DEX - Tokens**
-    - getTokensNetworksOnchainInfo(params) — Token details. Params: network, token_address
-    - getTokensNetworksOnchainPools(params) — Token pools. Params: network, token_address
-    - getTokensNetworksOnchainTrades(params) — Token trades. Params: network, token_address
-    - getTokensNetworksOnchainTopHolders(params) — Top holders. Params: network, token_address
-    - getTokensNetworksOnchainHoldersChart(params) — Holders chart. Params: network, token_address
-    - getTimeframeTokensNetworksOnchainOhlcv(params) — Token OHLCV. Params: timeframe, network, token_address
-    - getAddressesTokensNetworksOnchainMulti(params) — Multi-token data. Params: network, addresses
-    - getAddressesNetworksSimpleOnchainTokenPrice(params) — Simple prices. Params: network, addresses, vs_currencies
+    - getTokensNetworksOnchainInfo({ network: string, token_address: string }) — Token metadata.
+    - getTokensNetworksOnchainPools({ network: string, token_address: string }) — Pools containing the token.
+    - getTokensNetworksOnchainTrades({ network: string, token_address: string }) — Token trade feed.
+    - getTokensNetworksOnchainTopHolders({ network: string, token_address: string }) — Largest holders.
+    - getTokensNetworksOnchainHoldersChart({ network: string, token_address: string }) — Holder distribution over time.
+    - getTimeframeTokensNetworksOnchainOhlcv({ timeframe: string, network: string, token_address: string }) — Token OHLCV.
+    - getAddressesTokensNetworksOnchainMulti({ network: string, addresses: string }) — Batch token lookup.
+    - getAddressesNetworksSimpleOnchainTokenPrice({ network: string, addresses: string, vs_currencies: string }) — Simple token prices.
 
     ### 'debank' Module - All DeBank Functions
     Import any of these functions from 'debank':
 
     **Chains**
-    - getSupportedChainList() — All supported blockchain chains
-    - getChain(params) — Chain details. Params: id (e.g., 'eth', 'bsc', 'matic')
-    - getGasPrices(params) — Gas prices for chain. Params: chain_id
+    - getSupportedChainList() — All supported chains.
+    - getChain({ id: string }) — Chain metadata (e.g., 'eth', 'bsc').
+    - getGasPrices({ chain_id: string }) — Current gas prices.
 
     **Protocols**
-    - getAllProtocolsOfSupportedChains(params) — All DeFi protocols. Optional params: chain_ids (comma-separated)
-    - getProtocolInformation(params) — Protocol details. Params: id (e.g., 'uniswap', 'aave')
-    - getTopHoldersOfProtocol(params) — Protocol top holders. Params: id, start, limit
-    - getPoolInformation(params) — Pool details. Params: id (contract address), chain_id
+    - getAllProtocolsOfSupportedChains({ chain_ids?: string }) — Protocol catalog (optionally filter by comma-separated chain IDs).
+    - getProtocolInformation({ id: string }) — Detailed protocol info.
+    - getTopHoldersOfProtocol({ id: string, start?: number, limit?: number }) — Protocol-top holder snapshot.
+    - getPoolInformation({ id: string, chain_id: string }) — Pool contract details.
 
     **Tokens**
-    - getTokenInformation(params) — Token details. Params: chain_id, id (contract address)
-    - getListTokenInformation(params) — Multiple tokens. Params: chain_id, ids (comma-separated, max 100)
-    - getTopHoldersOfToken(params) — Token top holders. Params: id, chain_id, start, limit
-    - getTokenHistoryPrice(params) — Historical price. Params: id, chain_id, date_at (YYYY-MM-DD)
+    - getTokenInformation({ chain_id: string, id: string }) — Token metadata by chain + address.
+    - getListTokenInformation({ chain_id: string, ids: string }) — Batch token lookup (comma-separated, max 100).
+    - getTopHoldersOfToken({ id: string, chain_id: string, start?: number, limit?: number }) — Largest token holders.
+    - getTokenHistoryPrice({ id: string, chain_id: string, date_at: string }) — Historical token price (YYYY-MM-DD).
 
     **Users - Balances**
-    - getUserTotalBalance(params) — Total balance across chains. Params: id (wallet address)
-    - getUserChainBalance(params) — Balance on specific chain. Params: chain_id, id
-    - getUserTokenList(params) — Tokens on chain. Params: id, chain_id, is_all
-    - getUserAllTokenList(params) — Tokens across all chains. Params: id, is_all
+    - getUserTotalBalance({ id: string }) — Wallet net worth.
+    - getUserChainBalance({ chain_id: string, id: string }) — Balance for one chain.
+    - getUserTokenList({ id: string, chain_id: string, is_all?: boolean }) — Token holdings per chain.
+    - getUserAllTokenList({ id: string, is_all?: boolean }) — Tokens across all chains.
 
     **Users - DeFi Positions**
-    - getUserComplexProtocolList(params) — Protocol positions on chain. Params: chain_id, id
-    - getUserAllComplexProtocolList(params) — Protocol positions across chains. Params: id, chain_ids (optional)
+    - getUserComplexProtocolList({ chain_id: string, id: string }) — DeFi positions on a chain.
+    - getUserAllComplexProtocolList({ id: string, chain_ids?: string }) — Cross-chain DeFi positions.
 
     **Users - NFTs & History**
-    - getUserNftList(params) — NFTs on chain. Params: id, chain_id, is_all
-    - getUserHistoryList(params) — Transaction history. Params: id, chain_id, token_id, start_time, page_count (max 20)
+    - getUserNftList({ id: string, chain_id: string, is_all?: boolean }) — NFTs held on a chain.
+    - getUserHistoryList({ id: string, chain_id: string, token_id?: string, start_time?: number, page_count?: number }) — Transaction history (page_count ≤ 20).
 
     **Transactions**
-    - preExecTransaction(params) — Simulate transaction. Params: tx (JSON string), pending_tx_list (optional)
-    - explainTransaction(params) — Decode transaction. Params: tx (JSON string)
+    - preExecTransaction({ tx: string, pending_tx_list?: string }) — Simulate unsigned transaction JSON.
+    - explainTransaction({ tx: string }) — Decode transaction JSON.
 
     ### 'defillama' Module - DefiLlama Functions
     Import any of these functions from 'defillama'. Use the exported \`jq\` helper for discovery/filtering when needed.
 
     **Blockchain Utilities**
-    - getBlockChainTimestamp(params) — Block height/timestamp lookup. Params: chain, timestamp
+    - getBlockChainTimestamp({ chain: string, timestamp: number | string }) — Resolve block height/timestamp pairs.
 
     **Protocols & TVL**
-    - getProtocols(params) — Protocol metrics (TVL, % changes). Params: protocol, sortCondition, order
-    - getChains(params) — Chains ranked by TVL (top 20). Params: order
-    - getHistoricalChainTvl(params) — Historical TVL for a chain or all chains. Params: chain
+    - getProtocols({ protocol?: string, sortCondition: 'tvl' | 'change_1h' | 'change_1d' | 'change_7d', order: 'asc' | 'desc' }) — Protocol TVL metrics.
+    - getChains({ order?: 'asc' | 'desc' }) — Chains ranked by TVL (top 20).
+    - getHistoricalChainTvl({ chain?: string }) — Historical TVL for a chain or aggregate.
 
     **Fees & Revenue (use for “investor revenue/fees” questions)**
-    - getFeesAndRevenue(params) — Protocol/chain-level fees + holders revenue. Params: protocol, chain, dataType (dailyFees/dailyRevenue/dailyHoldersRevenue), sortCondition, order
+    - getFeesAndRevenue({ protocol?: string, chain?: string, dataType?: 'dailyFees' | 'dailyRevenue' | 'dailyHoldersRevenue', sortCondition?: string, order?: 'asc' | 'desc', excludeTotalDataChart?: boolean, excludeTotalDataChartBreakdown?: boolean }) — Returns top protocols/chains with aggregate totals (\`total24h\`, \`total7d\`, \`total30d\`, \`total1y\`, \`totalAllTime\`, plus change deltas). \`dataType\` only controls which metric DefiLlama uses internally when computing those totals; the API payload never includes per-entry fields named \`dailyFees\`, \`dailyRevenue\`, or \`dailyHoldersRevenue\`.
       - Prefer this function whenever comparing revenue/fees (e.g., “highest revenue last 7 days”) instead of manually sorting \`getProtocols\`.
 
     **DEX Metrics**
-    - getDexsData(params) — DEX volumes and changes globally or per chain/protocol. Params: chain, protocol, sortCondition, order
+    - getDexsData({ chain?: string, protocol?: string, sortCondition?: string, order?: 'asc' | 'desc' }) — DEX volume + change metrics globally or per chain.
 
     **Options**
-    - getOptionsData(params) — Options protocol metrics (daily notional, changes). Params: chain, protocol, dataType, sortCondition, order
+    - getOptionsData({ chain?: string, protocol?: string, dataType?: string, sortCondition?: string, order?: 'asc' | 'desc' }) — Options protocol metrics.
 
     **Stablecoins**
-    - getStableCoin(params) — Top stablecoins by circulation (optional prices). Params: includePrices
-    - getStableCoinChains() — Latest stablecoin circulation aggregated by chain
-    - getStableCoinCharts(params) — Historical stablecoin charts. Params: chain, stablecoin ID
-    - getStableCoinPrices() — Historical stablecoin price snapshots
+    - getStableCoin({ includePrices?: boolean }) — Stablecoin overview (optionally include latest prices).
+    - getStableCoinChains() — Stablecoin circulation aggregated by chain.
+    - getStableCoinCharts({ chain?: string, stablecoin: string }) — Historical stablecoin charting.
+    - getStableCoinPrices() — Stablecoin price snapshots.
 
     **Prices & Charts**
-    - getPricesCurrentCoins(params) — Current prices for comma-separated coins (supports \`searchWidth\`)
-    - getPricesFirstCoins(params) — First recorded prices
-    - getBatchHistorical(params) — Batch historical prices for many coins
-    - getHistoricalPricesByContractAddress(params) — Price at timestamp for contract addresses
-    - getPercentageCoins(params) — Percentage change over a period (supports \`lookForward\`, \`timestamp\`)
-    - getChartCoins(params) — Price chart data with start/end/span/period controls
+    - getPricesCurrentCoins({ coins: string, searchWidth?: string | number }) — Current prices for comma-separated tokens (optionally widen match).
+    - getPricesFirstCoins({ coins: string }) — First recorded price entries.
+    - getBatchHistorical({ coins: string, searchWidth?: string | number }) — Batch historical prices for many tokens (pass comma-separated identifiers).
+    - getHistoricalPricesByContractAddress({ coins: string, timestamp: string | number, searchWidth?: string | number }) — Historical prices for {chain}:{contract} identifiers at a given timestamp.
+    - getPercentageCoins({ coins: string, period?: string, lookForward?: boolean, timestamp?: string | number }) — Percentage change metrics for multiple tokens.
+    - getChartCoins({ coins: string, start?: string | number, end?: string | number, span?: number, period?: string, searchWidth?: string | number }) — Price chart data with full window controls.
 
     **Yield Pools**
-    - getLatestPoolData(params) — Sorted list of pools (APY, TVL). Params: sortCondition, order, limit
-    - getHistoricalPoolData(params) — Historical APY/TVL for a single pool. Params: pool
+    - getLatestPoolData({ sortCondition?: string, order?: 'asc' | 'desc', limit?: number }) — Sorted list of pools (APY, TVL).
+    - getHistoricalPoolData({ pool: string }) — Historical APY/TVL for a single pool.
 
     **DefiLlama Discovery Pattern with node-jq:**
 
