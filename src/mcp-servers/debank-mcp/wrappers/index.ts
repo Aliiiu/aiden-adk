@@ -12,10 +12,10 @@
  * - transactions/ - Transaction simulation and explanation
  */
 
-import jq from "node-jq";
+import jsonata from "jsonata";
 
-// Export node-jq for parameter discovery and filtering
-export { jq };
+// Export jsonata for parameter discovery and filtering
+export { jsonata };
 
 // Re-export shared utilities for advanced usage
 export { executeServiceMethod } from "../shared.js";

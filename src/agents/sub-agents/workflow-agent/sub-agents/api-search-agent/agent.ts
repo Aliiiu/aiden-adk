@@ -170,7 +170,7 @@ export const getApiSearchAgent = async () => {
     - explainTransaction({ tx: string }) — Decode transaction JSON.
 
     ### 'defillama' Module - DefiLlama Functions
-    Import any of these functions from 'defillama'. Use the exported \`jq\` helper for discovery/filtering when needed.
+    Import any of these functions from 'defillama'. Use the exported \`jsonata\` helper for discovery/filtering when needed.
 
     **Blockchain Utilities**
     - getBlockChainTimestamp({ chain: string, timestamp: number | string }) — Resolve block height/timestamp pairs.
@@ -208,12 +208,12 @@ export const getApiSearchAgent = async () => {
     - getLatestPoolData({ sortCondition?: string, order?: 'asc' | 'desc', limit?: number }) — Sorted list of pools (APY, TVL).
     - getHistoricalPoolData({ pool: string }) — Historical APY/TVL for a single pool.
 
-    **DefiLlama Discovery Pattern with node-jq:**
+    **DefiLlama Discovery Pattern with JSONata:**
 
     Call getProtocols() or getChains() WITHOUT specific parameters to get full lists for discovery:
 
     \`\`\`typescript
-    import { getProtocols, jq } from 'defillama';
+    import { getProtocols, jsonata } from 'defillama';
 
     // Step 1: Get ALL protocols (omit protocol param to get full list)
     const allProtocols = await getProtocols({
@@ -221,12 +221,9 @@ export const getApiSearchAgent = async () => {
       order: 'desc'
     });
 
-    // Step 2: Use JQ to find specific protocol by name
-    const aave = await jq.run(
-      '.[] | select(.name | contains("Aave"))',
-      allProtocols,
-      { input: 'json', output: 'json' }
-    );
+    // Step 2: Use JSONata to find specific protocol by name
+    const expression = jsonata('$[name ~> /Aave/i]');
+    const aave = await expression.evaluate(allProtocols);
 
     if (!aave) throw new Error("Protocol not found");
 
@@ -245,17 +242,14 @@ export const getApiSearchAgent = async () => {
 
     **Chain Discovery Example:**
     \`\`\`typescript
-    import { getChains, getHistoricalChainTvl, jq } from 'defillama';
+    import { getChains, getHistoricalChainTvl, jsonata } from 'defillama';
 
     // Get all chains
     const allChains = await getChains({ order: 'desc' });
 
     // Find Ethereum
-    const ethereum = await jq.run(
-      '.[] | select(.name == "Ethereum")',
-      allChains,
-      { input: 'json', output: 'json' }
-    );
+    const expression = jsonata('$[name="Ethereum"]');
+    const ethereum = await expression.evaluate(allChains);
 
     // Get historical TVL for discovered chain
     const historicalTvl = await getHistoricalChainTvl({
@@ -275,57 +269,50 @@ export const getApiSearchAgent = async () => {
 
     1. **CoinGecko Slug Resolution**: When using coingecko module and user asks about a coin by name (e.g., "matic"), use search() first to get the coin ID, then use that ID in other functions.
 
-    2. **DeBank Parameter Discovery with node-jq**: DeBank provides discovery endpoints and node-jq (JQ for Node.js) for explicit parameter resolution. Use this pattern to convert human-friendly names to API identifiers.
+    2. **DeBank Parameter Discovery with JSONata**: DeBank provides discovery endpoints and JSONata for explicit parameter resolution. Use this pattern to convert human-friendly names to API identifiers.
 
-    **node-jq API:**
+    **JSONata API:**
     \`\`\`typescript
-    import { jq } from 'debank';
+    import { jsonata } from 'debank';
 
-    // Run a JQ query (returns a Promise)
-    const result = await jq.run(
-      '.[] | select(.id == "eth")',
-      data,
-      { input: 'json', output: 'json' }
-    );
+    // Create a JSONata expression
+    const expression = jsonata('$[id="eth"]');
+
+    // Evaluate against data (returns a Promise)
+    const result = await expression.evaluate(data);
     \`\`\`
 
-    **Common JQ Patterns:**
-    - \`.[] | select(.name == "Ethereum")\` — Exact match
-    - \`.[] | select(.id == "eth")\` — Match by ID
-    - \`.[] | select(.name | contains("Uni"))\` — Substring match
-    - \`map(select(.chain == "eth"))\` — Filter array
-    - \`.[].id\` — Extract all IDs
-    - \`first\` — Get first result
-    - \`sort_by(.tvl) | reverse\` — Sort descending
+    **Common JSONata Patterns:**
+    - \`$[name="Ethereum"]\` — Exact match
+    - \`$[id="eth"]\` — Match by ID
+    - \`$[name ~> /Uni/i]\` — Substring match (case-insensitive regex)
+    - \`$[chain="eth"]\` — Filter array
+    - \`$.id\` — Extract all IDs
+    - \`$[0]\` — Get first result
+    - \`$^(>tvl)\` — Sort descending by tvl
 
     **Important Notes:**
-    - node-jq supports full jq syntax including regex, string functions, etc.
-    - All jq.run() calls are async and return Promises
-    - Use options { input: 'json', output: 'json' } for JSON data processing
+    - JSONata is a pure JavaScript implementation, no system dependencies required
+    - All expression.evaluate() calls are async and return Promises
+    - Use jsonata(queryString) to create expressions, then call .evaluate(data) on them
 
     **Pattern: Chain Name → chain_id**
     \`\`\`typescript
-    import { getSupportedChainList, jq } from 'debank';
+    import { getSupportedChainList, jsonata } from 'debank';
 
     const chains = await getSupportedChainList();
-    const chainId = await jq.run(
-      '.[] | select(.name == "Ethereum") | .id',
-      chains,
-      { input: 'json', output: 'json' }
-    );
+    const expression = jsonata('$[name="Ethereum"].id');
+    const chainId = await expression.evaluate(chains);
     // chainId is now "eth"
     \`\`\`
 
     **Pattern: Wrapped Token Discovery**
     \`\`\`typescript
-    import { getSupportedChainList, getTokenInformation, jq } from 'debank';
+    import { getSupportedChainList, getTokenInformation, jsonata } from 'debank';
 
     const chains = await getSupportedChainList();
-    const wethAddress = await jq.run(
-      '.[] | select(.id == "eth") | .wrapped_token_id',
-      chains,
-      { input: 'json', output: 'json' }
-    );
+    const expression = jsonata('$[id="eth"].wrapped_token_id');
+    const wethAddress = await expression.evaluate(chains);
 
     const tokenInfo = await getTokenInformation({
       chain_id: 'eth',
@@ -335,14 +322,11 @@ export const getApiSearchAgent = async () => {
 
     **Pattern: Protocol Discovery**
     \`\`\`typescript
-    import { getAllProtocolsOfSupportedChains, jq } from 'debank';
+    import { getAllProtocolsOfSupportedChains, jsonata } from 'debank';
 
     const protocols = await getAllProtocolsOfSupportedChains();
-    const uniswap = await jq.run(
-      '.[] | select(.name | contains("Uniswap")) | select(.chain == "eth")',
-      protocols,
-      { input: 'json', output: 'json' }
-    );
+    const expression = jsonata('$[name ~> /Uniswap/i and chain="eth"]');
+    const uniswap = await expression.evaluate(protocols);
     \`\`\`
 
     **Discovery Endpoint Schemas:**
@@ -367,11 +351,11 @@ export const getApiSearchAgent = async () => {
     }]
     \`\`\`
 
-    3. **DefiLlama Protocol Discovery**: Use getProtocols() and getChains() WITHOUT specific parameters to get full lists, then filter with node-jq. This is API-based discovery like DeBank.
+    3. **DefiLlama Protocol Discovery**: Use getProtocols() and getChains() WITHOUT specific parameters to get full lists, then filter with JSONata. This is API-based discovery like DeBank.
 
     **Example:**
     \`\`\`typescript
-    import { getProtocols, jq } from 'defillama';
+    import { getProtocols, jsonata } from 'defillama';
 
     // Get ALL protocols from API
     const allProtocols = await getProtocols({
@@ -379,12 +363,9 @@ export const getApiSearchAgent = async () => {
       order: 'desc'
     });
 
-    // Find Uniswap V3 using JQ
-    const uniswap = await jq.run(
-      '.[] | select(.name | contains("Uniswap"))',
-      allProtocols,
-      { input: 'json', output: 'json' }
-    );
+    // Find Uniswap V3 using JSONata
+    const expression = jsonata('$[name ~> /Uniswap/i]');
+    const uniswap = await expression.evaluate(allProtocols);
 
     // Get detailed TVL data
     const tvlData = await getProtocols({ protocol: uniswap.slug });
@@ -396,9 +377,9 @@ export const getApiSearchAgent = async () => {
        - CoinGecko: Market prices, onchain data, trending coins (discovery: search())
        - DeBank: User portfolios, DeFi positions, wallet analytics (discovery: getSupportedChainList(), getAllProtocolsOfSupportedChains())
        - DefiLlama: Protocol TVL, chain rankings, historical metrics (discovery: getProtocols(), getChains())
-       All modules use API-based discovery + node-jq filtering.
+       All modules use API-based discovery + JSONata filtering.
 
-    6. **Local Data Processing**: Filter, sort, and transform data in TypeScript. Use node-jq for complex JSON operations across all modules.
+    6. **Local Data Processing**: Filter, sort, and transform data in TypeScript. Use JSONata for complex JSON operations across all modules.
 
     7. **Single Tool Call**: Process everything in one execution to minimize latency. Cache discovery results if making multiple queries.
 

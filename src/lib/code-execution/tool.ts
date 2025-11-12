@@ -35,7 +35,14 @@ export function createCodeExecutionTool(
 			- Promise.all for parallel execution
 			- Math operations and data transformations
 			- Console logging (output included in results)
+			- JSONata for querying and transforming JSON data (import { jsonata } from 'debank' or 'defillama')
 			- Timeout: ${config.timeout || 30000}ms
+
+			JSONata usage example:
+			import { jsonata } from 'debank';
+			const data = await getSomeData();
+			const expression = jsonata('$sum(items.price)');
+			const result = await expression.evaluate(data);
 
 			The code must return a value at the end. Use import statements to access modules.
 		`,

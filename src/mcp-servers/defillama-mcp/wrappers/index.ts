@@ -16,10 +16,10 @@
  * - options/      - Options protocol metrics
  */
 
-import jq from "node-jq";
+import jsonata from "jsonata";
 
-// Export node-jq for parameter discovery and filtering
-export { jq };
+// Export jsonata for parameter discovery and filtering
+export { jsonata };
 
 export { bridgeIds } from "../enums/bridgeIds.js";
 export { chains } from "../enums/chains.js";
