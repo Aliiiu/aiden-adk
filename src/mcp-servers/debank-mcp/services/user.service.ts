@@ -31,7 +31,7 @@ const logAndWrapError = (context: string, error: unknown): Error => {
 };
 
 export class UserService extends BaseService {
-	async getUserUsedChainList(args: { id: string }): Promise<string> {
+	async getUserUsedChainList(args: { id: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<{ chain_id: string }[]>(
 				`${this.baseUrl}/user/used_chain_list?id=${args.id}`,
@@ -50,7 +50,7 @@ export class UserService extends BaseService {
 	async getUserChainBalance(args: {
 		id: string;
 		chain_id: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<UserChainBalance>(
 				`${this.baseUrl}/user/chain_balance?id=${args.id}&chain_id=${args.chain_id}`,
@@ -70,7 +70,7 @@ export class UserService extends BaseService {
 	async getUserProtocol(args: {
 		id: string;
 		protocol_id: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<UserProtocolPosition>(
 				`${this.baseUrl}/user/protocol?id=${args.id}&protocol_id=${args.protocol_id}`,
@@ -90,7 +90,7 @@ export class UserService extends BaseService {
 	async getUserComplexProtocolList(args: {
 		id: string;
 		chain_id: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<UserProtocolPosition[]>(
 				`${this.baseUrl}/user/complex_protocol_list?id=${args.id}&chain_id=${args.chain_id}`,
@@ -110,7 +110,7 @@ export class UserService extends BaseService {
 	async getUserAllComplexProtocolList(args: {
 		id: string;
 		chain_ids?: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const url = args.chain_ids
 				? `${this.baseUrl}/user/all_complex_protocol_list?id=${args.id}&chain_ids=${args.chain_ids}`
@@ -132,7 +132,7 @@ export class UserService extends BaseService {
 	async getUserAllSimpleProtocolList(args: {
 		id: string;
 		chain_ids?: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const url = args.chain_ids
 				? `${this.baseUrl}/user/all_simple_protocol_list?id=${args.id}&chain_ids=${args.chain_ids}`
@@ -155,7 +155,7 @@ export class UserService extends BaseService {
 		id: string;
 		chain_id: string;
 		token_id: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<UserTokenBalance>(
 				`${this.baseUrl}/user/token?id=${args.id}&chain_id=${args.chain_id}&token_id=${args.token_id}`,
@@ -178,7 +178,7 @@ export class UserService extends BaseService {
 		chain_id: string;
 		is_all?: boolean;
 		has_balance?: boolean;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -211,7 +211,7 @@ export class UserService extends BaseService {
 		id: string;
 		is_all?: boolean;
 		has_balance?: boolean;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -243,7 +243,7 @@ export class UserService extends BaseService {
 		id: string;
 		chain_id: string;
 		is_all?: boolean;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -272,7 +272,7 @@ export class UserService extends BaseService {
 		id: string;
 		is_all?: boolean;
 		chain_ids?: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -303,7 +303,7 @@ export class UserService extends BaseService {
 		start_time?: number;
 		end_time?: number;
 		page_count?: number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -338,7 +338,7 @@ export class UserService extends BaseService {
 		start_time?: number;
 		end_time?: number;
 		page_count?: number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -367,7 +367,7 @@ export class UserService extends BaseService {
 		}
 	}
 
-	async getUserTokenAuthorizedList(args: { id: string }): Promise<string> {
+	async getUserTokenAuthorizedList(args: { id: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<TokenAuthorization[]>(
 				`${this.baseUrl}/user/token_authorized_list?id=${args.id}`,
@@ -383,7 +383,7 @@ export class UserService extends BaseService {
 		}
 	}
 
-	async getUserNftAuthorizedList(args: { id: string }): Promise<string> {
+	async getUserNftAuthorizedList(args: { id: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<NFTAuthorization[]>(
 				`${this.baseUrl}/user/nft_authorized_list?id=${args.id}`,
@@ -399,7 +399,7 @@ export class UserService extends BaseService {
 		}
 	}
 
-	async getUserTotalBalance(args: { id: string }): Promise<string> {
+	async getUserTotalBalance(args: { id: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<UserTotalBalance>(
 				`${this.baseUrl}/user/total_balance?id=${args.id}`,
@@ -419,7 +419,7 @@ export class UserService extends BaseService {
 	async getUserChainNetCurve(args: {
 		id: string;
 		chain_id: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<NetCurvePoint[]>(
 				`${this.baseUrl}/user/chain_net_curve?id=${args.id}&chain_id=${args.chain_id}`,
@@ -439,7 +439,7 @@ export class UserService extends BaseService {
 	async getUserTotalNetCurve(args: {
 		id: string;
 		chain_ids?: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const url = args.chain_ids
 				? `${this.baseUrl}/user/total_net_curve?id=${args.id}&chain_ids=${args.chain_ids}`

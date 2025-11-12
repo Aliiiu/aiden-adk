@@ -24,7 +24,7 @@ export class FeesService extends BaseService {
 		protocol?: string;
 		sortCondition: string;
 		order: "asc" | "desc";
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const excludeTotalDataChart =
 				args.excludeTotalDataChart !== undefined
@@ -48,12 +48,6 @@ export class FeesService extends BaseService {
 
 				return await this.formatResponse(data, {
 					title: `Fees & Revenue: ${args.protocol}`,
-					currencyFields: [
-						"dailyUserFees",
-						"dailyHoldersRevenue",
-						"dailySupplySideRevenue",
-						"holdersRevenue30d",
-					],
 					numberFields: ["change_1d", "change_7d", "change_1m"],
 				});
 			}
@@ -78,7 +72,7 @@ export class FeesService extends BaseService {
 	private async processFeesResponse(
 		data: FeesOverviewResponse,
 		args: { sortCondition: string; order: "asc" | "desc"; chain?: string },
-	): Promise<string> {
+	): Promise<unknown> {
 		if (data.protocols) {
 			const sorted = data.protocols.sort((a, b) => {
 				const aVal = (a[args.sortCondition as keyof typeof a] as number) || 0;

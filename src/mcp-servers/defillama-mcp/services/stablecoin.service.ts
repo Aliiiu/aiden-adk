@@ -25,7 +25,7 @@ const logAndWrapError = (context: string, error: unknown): Error => {
  * Handles stablecoin data and metrics
  */
 export class StablecoinService extends BaseService {
-	async getStableCoin(args: { includePrices?: boolean }): Promise<string> {
+	async getStableCoin(args: { includePrices?: boolean }): Promise<unknown> {
 		try {
 			const includePrices = args.includePrices ?? false;
 			const data = await this.fetchData<StablecoinsResponse>(
@@ -56,7 +56,7 @@ export class StablecoinService extends BaseService {
 		}
 	}
 
-	async getStableCoinChains(): Promise<string> {
+	async getStableCoinChains(): Promise<unknown> {
 		try {
 			const data = await this.fetchData<StablecoinChainItem[]>(
 				`${this.STABLECOINS_URL}/stablecoinchains`,
@@ -79,7 +79,7 @@ export class StablecoinService extends BaseService {
 	async getStableCoinCharts(args: {
 		chain?: string;
 		stablecoin?: number | string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			let url: string;
 			const params = new URLSearchParams();
@@ -129,7 +129,7 @@ export class StablecoinService extends BaseService {
 		}
 	}
 
-	async getStableCoinPrices(): Promise<string> {
+	async getStableCoinPrices(): Promise<unknown> {
 		try {
 			const data = await this.fetchData<StablecoinPriceItem[]>(
 				`${this.STABLECOINS_URL}/stablecoinprices`,

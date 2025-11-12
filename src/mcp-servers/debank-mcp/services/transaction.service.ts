@@ -25,7 +25,7 @@ export class TransactionService extends BaseService {
 	async preExecTransaction(args: {
 		tx: string;
 		pending_tx_list?: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			let txPayload: unknown;
 			try {
@@ -72,7 +72,7 @@ export class TransactionService extends BaseService {
 		}
 	}
 
-	async explainTransaction(args: { tx: string }): Promise<string> {
+	async explainTransaction(args: { tx: string }): Promise<unknown> {
 		try {
 			let txPayload: unknown;
 			try {

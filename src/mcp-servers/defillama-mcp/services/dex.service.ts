@@ -27,7 +27,7 @@ export class DexService extends BaseService {
 		protocol?: string;
 		sortCondition?: string;
 		order?: "asc" | "desc";
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const excludeTotalDataChart =
 				args.excludeTotalDataChart !== undefined

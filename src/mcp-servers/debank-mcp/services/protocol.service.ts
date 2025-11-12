@@ -17,7 +17,7 @@ const logAndWrapError = (context: string, error: unknown): Error => {
 };
 
 export class ProtocolService extends BaseService {
-	async getProtocolInformation(args: { id: string }): Promise<string> {
+	async getProtocolInformation(args: { id: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<ProtocolInfo>(
 				`${this.baseUrl}/protocol?id=${args.id}`,
@@ -33,7 +33,7 @@ export class ProtocolService extends BaseService {
 
 	async getAllProtocolsOfSupportedChains(args: {
 		chain_ids?: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const url = args.chain_ids
 				? `${this.baseUrl}/protocol/all_list?chain_ids=${args.chain_ids}`
@@ -61,7 +61,7 @@ export class ProtocolService extends BaseService {
 		id: string;
 		start?: number;
 		limit?: number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -87,7 +87,7 @@ export class ProtocolService extends BaseService {
 	async getPoolInformation(args: {
 		id: string;
 		chain_id: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<PoolInfo>(
 				`${this.baseUrl}/pool?id=${args.id}&chain_id=${args.chain_id}`,

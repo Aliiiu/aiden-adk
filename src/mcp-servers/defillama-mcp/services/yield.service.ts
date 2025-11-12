@@ -23,7 +23,7 @@ export class YieldService extends BaseService {
 	/**
 	 * Get historical pool data
 	 */
-	async getHistoricalPoolData(args: { pool: string }): Promise<string> {
+	async getHistoricalPoolData(args: { pool: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchData<HistoricalPoolResponse>(
 				`${this.YIELDS_URL}/chart/${args.pool}`,
@@ -57,7 +57,7 @@ export class YieldService extends BaseService {
 		sortCondition: string;
 		order: string;
 		limit: number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchData<PoolsResponse>(
 				`${this.YIELDS_URL}/pools`,

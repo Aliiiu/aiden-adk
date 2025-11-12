@@ -23,7 +23,7 @@ export class ProtocolService extends BaseService {
 	/**
 	 * Get chains ranked by TVL
 	 */
-	async getChains(args: { order: "asc" | "desc" }): Promise<string> {
+	async getChains(args: { order: "asc" | "desc" }): Promise<unknown> {
 		try {
 			const data = await this.fetchData<ChainData[]>(
 				`${this.BASE_URL}/v2/chains`,
@@ -54,7 +54,7 @@ export class ProtocolService extends BaseService {
 		protocol?: string;
 		sortCondition: "change_1h" | "change_1d" | "change_7d" | "tvl";
 		order: "asc" | "desc";
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			if (args.protocol) {
 				const protocolSlug = args.protocol;
@@ -122,7 +122,7 @@ export class ProtocolService extends BaseService {
 	/**
 	 * Get historical chain TVL data
 	 */
-	async getHistoricalChainTvl(args: { chain?: string }): Promise<string> {
+	async getHistoricalChainTvl(args: { chain?: string }): Promise<unknown> {
 		try {
 			const url = args.chain
 				? `${this.BASE_URL}/v2/historicalChainTvl/${args.chain}`

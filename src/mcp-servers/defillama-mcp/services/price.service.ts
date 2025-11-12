@@ -29,7 +29,7 @@ export class PriceService extends BaseService {
 	async getPricesCurrentCoins(args: {
 		coins: string;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const coinsSegment = encodeURIComponent(args.coins);
 			const params = new URLSearchParams();
@@ -55,7 +55,7 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	async getPricesFirstCoins(args: { coins: string }): Promise<string> {
+	async getPricesFirstCoins(args: { coins: string }): Promise<unknown> {
 		try {
 			const url = `${this.COINS_URL}/prices/first/${args.coins}`;
 			const data = await this.fetchData<FirstPricesResponse>(url);
@@ -74,7 +74,7 @@ export class PriceService extends BaseService {
 	async getBatchHistorical(args: {
 		coins: string;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				coins: args.coins,
@@ -103,7 +103,7 @@ export class PriceService extends BaseService {
 		coins: string;
 		timestamp: string | number;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const unixTime = this.toUnixSeconds(args.timestamp);
 			const coinsSegment = encodeURIComponent(args.coins);
@@ -135,7 +135,7 @@ export class PriceService extends BaseService {
 		period?: string;
 		lookForward?: boolean;
 		timestamp?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const coinsSegment = encodeURIComponent(args.coins);
 			const params = new URLSearchParams();
@@ -170,7 +170,7 @@ export class PriceService extends BaseService {
 		span?: number;
 		period?: string;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			let url = `${this.COINS_URL}/chart/${args.coins}`;
 			const params = new URLSearchParams();
