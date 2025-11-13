@@ -2,7 +2,64 @@
  * Get exchange tickers (trading pairs) by exchange ID
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetExchangesTickersInputSchema = z.object({
+	id: z.string().describe("Exchange ID (e.g., 'binance')"),
+	coin_ids: z
+		.string()
+		.optional()
+		.describe("Comma-separated list of coin IDs to filter"),
+	include_exchange_logo: z
+		.boolean()
+		.optional()
+		.describe("Include exchange logo in response"),
+	page: z.number().int().positive().optional().describe("Page number"),
+	depth: z.boolean().optional().describe("Include order book depth data"),
+	order: z.string().optional().describe("Sort order"),
+});
+
+const ExchangeTickerSchema = z
+	.object({
+		base: z.string(),
+		target: z.string(),
+		market: z
+			.object({
+				name: z.string(),
+				identifier: z.string().optional(),
+				has_trading_incentive: z.boolean().optional(),
+			})
+			.loose(),
+		last: z.number().nullable().optional(),
+		volume: z.number().nullable().optional(),
+		converted_last: z.record(z.string(), z.number()).optional(),
+		converted_volume: z.record(z.string(), z.number()).optional(),
+		trust_score: z.string().nullable().optional(),
+		bid_ask_spread_percentage: z.number().nullable().optional(),
+		timestamp: z.string().nullable().optional(),
+		last_traded_at: z.string().nullable().optional(),
+		last_fetch_at: z.string().nullable().optional(),
+		is_anomaly: z.boolean().nullable().optional(),
+		is_stale: z.boolean().nullable().optional(),
+		trade_url: z.string().nullable().optional(),
+		token_info_url: z.string().nullable().optional(),
+		coin_id: z.string().nullable().optional(),
+		target_coin_id: z.string().nullable().optional(),
+	})
+	.loose();
+
+export const GetExchangesTickersResponseSchema = z.object({
+	name: z.string(),
+	tickers: z.array(ExchangeTickerSchema),
+});
+
+export type GetExchangesTickersInput = z.infer<
+	typeof GetExchangesTickersInputSchema
+>;
+export type GetExchangesTickersResponse = z.infer<
+	typeof GetExchangesTickersResponseSchema
+>;
 
 /**
  * Get exchange tickers (trading pairs) by exchange ID
@@ -25,13 +82,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getExchangesTickers(params: {
-	id: string;
-	coin_ids?: string;
-	include_exchange_logo?: boolean;
-	page?: number;
-	depth?: boolean;
-	order?: string;
-}): Promise<any> {
-	return executeTool("get_exchanges_tickers", params);
+export async function getExchangesTickers(
+	params: GetExchangesTickersInput,
+): Promise<GetExchangesTickersResponse> {
+	return executeTool(
+		"get_exchanges_tickers",
+		params,
+	) as Promise<GetExchangesTickersResponse>;
 }

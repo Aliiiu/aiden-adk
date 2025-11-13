@@ -2,7 +2,30 @@
  * Get exchange volume chart data within a time range
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetRangeExchangesVolumeChartInputSchema = z.object({
+	id: z.string().describe("Exchange ID"),
+	from: z.number().describe("Start timestamp (seconds)"),
+	to: z.number().describe("End timestamp (seconds)"),
+});
+
+export const GetRangeExchangesVolumeChartResponseSchema = z
+	.array(
+		z.tuple([
+			z.number().describe("Unix timestamp (ms)"),
+			z.number().describe("Volume in BTC"),
+		]),
+	)
+	.describe("Historical exchange volume datapoints");
+
+export type GetRangeExchangesVolumeChartInput = z.infer<
+	typeof GetRangeExchangesVolumeChartInputSchema
+>;
+export type GetRangeExchangesVolumeChartResponse = z.infer<
+	typeof GetRangeExchangesVolumeChartResponseSchema
+>;
 
 /**
  * Get historical volume chart data for an exchange
@@ -22,10 +45,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getRangeExchangesVolumeChart(params: {
-	id: string;
-	from: number;
-	to: number;
-}): Promise<any> {
-	return executeTool("get_range_exchanges_volume_chart", params);
+export async function getRangeExchangesVolumeChart(
+	params: GetRangeExchangesVolumeChartInput,
+): Promise<GetRangeExchangesVolumeChartResponse> {
+	return executeTool(
+		"get_range_exchanges_volume_chart",
+		params,
+	) as Promise<GetRangeExchangesVolumeChartResponse>;
 }
