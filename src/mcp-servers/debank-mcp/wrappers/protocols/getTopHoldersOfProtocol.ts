@@ -27,7 +27,7 @@ const ProtocolHolderSchema = z
 		address: z.string().describe("Holder wallet address"),
 		value: z.number().describe("USD value held in the protocol"),
 	})
-	.passthrough();
+	.loose();
 
 export const GetTopHoldersOfProtocolResponseSchema = z
 	.array(ProtocolHolderSchema)

@@ -26,7 +26,7 @@ const TokenTransferSchema = z
 		amount: z.number(),
 		price: z.number(),
 	})
-	.passthrough();
+	.loose();
 
 const NFTTransferSchema = z
 	.object({
@@ -36,7 +36,7 @@ const NFTTransferSchema = z
 		chain: z.string(),
 		name: z.string(),
 	})
-	.passthrough();
+	.loose();
 
 export const PreExecTransactionResponseSchema = z.object({
 	balance_change: z.object({

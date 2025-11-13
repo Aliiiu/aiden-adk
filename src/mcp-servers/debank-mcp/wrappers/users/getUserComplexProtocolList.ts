@@ -19,7 +19,7 @@ const PositionTokenSchema = z
 		amount: z.number(),
 		price: z.number(),
 	})
-	.passthrough();
+	.loose();
 
 const PortfolioStatsSchema = z.object({
 	asset_usd_value: z.number(),
