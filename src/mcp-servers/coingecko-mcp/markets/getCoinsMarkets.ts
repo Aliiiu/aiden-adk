@@ -2,7 +2,99 @@
  * Get cryptocurrency market data for all coins
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetCoinsMarketsInputSchema = z.object({
+	vs_currency: z
+		.string()
+		.default("usd")
+		.describe("Target currency (e.g., 'usd')"),
+	order: z
+		.string()
+		.optional()
+		.describe(
+			"Sorting order (market_cap_desc, volume_desc, id_asc, id_desc, etc.)",
+		),
+	per_page: z
+		.number()
+		.int()
+		.positive()
+		.max(250)
+		.optional()
+		.describe("Results per page (1-250, default 100)"),
+	page: z
+		.number()
+		.int()
+		.positive()
+		.optional()
+		.describe("Page number (default 1)"),
+	sparkline: z.boolean().optional().describe("Include 7-day sparkline data"),
+	price_change_percentage: z
+		.string()
+		.optional()
+		.describe("Comma-separated price change periods (1h,24h,7d, etc.)"),
+	locale: z.string().optional().describe("Language locale code"),
+	precision: z
+		.union([z.number(), z.string()])
+		.optional()
+		.describe("Decimal precision for currency values"),
+	category: z
+		.string()
+		.optional()
+		.describe("Restrict results to a specific category"),
+});
+
+const RoiSchema = z
+	.object({
+		times: z.number(),
+		currency: z.string(),
+		percentage: z.number(),
+	})
+	.partial();
+
+const SparklineSchema = z.object({
+	price: z.array(z.number()),
+});
+
+const CoinMarketEntrySchema = z
+	.object({
+		id: z.string(),
+		symbol: z.string(),
+		name: z.string(),
+		image: z.string().url(),
+		current_price: z.number().nullable(),
+		market_cap: z.number().nullable(),
+		market_cap_rank: z.number().nullable(),
+		fully_diluted_valuation: z.number().nullable().optional(),
+		total_volume: z.number().nullable(),
+		high_24h: z.number().nullable().optional(),
+		low_24h: z.number().nullable().optional(),
+		price_change_24h: z.number().nullable().optional(),
+		price_change_percentage_24h: z.number().nullable().optional(),
+		market_cap_change_24h: z.number().nullable().optional(),
+		market_cap_change_percentage_24h: z.number().nullable().optional(),
+		circulating_supply: z.number().nullable().optional(),
+		total_supply: z.number().nullable().optional(),
+		max_supply: z.number().nullable().optional(),
+		ath: z.number().nullable().optional(),
+		ath_change_percentage: z.number().nullable().optional(),
+		ath_date: z.string().nullable().optional(),
+		atl: z.number().nullable().optional(),
+		atl_change_percentage: z.number().nullable().optional(),
+		atl_date: z.string().nullable().optional(),
+		roi: RoiSchema.nullable().optional(),
+		last_updated: z.string().optional(),
+		sparkline_in_7d: SparklineSchema.optional(),
+	})
+	.loose();
+
+export const GetCoinsMarketsResponseSchema = z.array(CoinMarketEntrySchema);
+
+export type GetCoinsMarketsInput = z.infer<typeof GetCoinsMarketsInputSchema>;
+export type GetCoinsMarketsResponse = z.infer<
+	typeof GetCoinsMarketsResponseSchema
+>;
 
 /**
  * Get cryptocurrency market data for all coins
@@ -28,15 +120,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getCoinsMarkets(params: {
-	vs_currency?: string;
-	order?: string;
-	per_page?: number;
-	page?: number;
-	sparkline?: boolean;
-	price_change_percentage?: string;
-	locale?: string;
-	precision?: number | string;
-}): Promise<any> {
-	return executeTool("get_coins_markets", params);
+export async function getCoinsMarkets(
+	params: GetCoinsMarketsInput,
+): Promise<GetCoinsMarketsResponse> {
+	return executeTool(
+		"get_coins_markets",
+		params,
+	) as Promise<GetCoinsMarketsResponse>;
 }
