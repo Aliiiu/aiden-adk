@@ -2,7 +2,53 @@
  * Get simple token price by contract address
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetSimpleTokenPriceInputSchema = z.object({
+	id: z.string().describe("Asset platform ID (e.g., 'ethereum')"),
+	contract_addresses: z
+		.string()
+		.describe("Comma-separated contract addresses to quote"),
+	vs_currencies: z
+		.string()
+		.optional()
+		.describe("Comma-separated target currencies (default 'usd')"),
+	include_market_cap: z
+		.union([z.boolean(), z.string()])
+		.optional()
+		.describe("Include market cap metrics"),
+	include_24hr_vol: z
+		.union([z.boolean(), z.string()])
+		.optional()
+		.describe("Include 24h volume metrics"),
+	include_24hr_change: z
+		.union([z.boolean(), z.string()])
+		.optional()
+		.describe("Include 24h percentage change"),
+	include_last_updated_at: z
+		.union([z.boolean(), z.string()])
+		.optional()
+		.describe("Include last updated timestamp"),
+});
+
+const TokenPriceEntrySchema = z
+	.object({
+		last_updated_at: z.number().optional(),
+	})
+	.catchall(z.number());
+
+export const GetSimpleTokenPriceResponseSchema = z.record(
+	z.string(),
+	TokenPriceEntrySchema,
+);
+
+export type GetSimpleTokenPriceInput = z.infer<
+	typeof GetSimpleTokenPriceInputSchema
+>;
+export type GetSimpleTokenPriceResponse = z.infer<
+	typeof GetSimpleTokenPriceResponseSchema
+>;
 
 /**
  * Get simple token price by contract address
@@ -27,14 +73,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getSimpleTokenPrice(params: {
-	id: string;
-	contract_addresses: string;
-	vs_currencies?: string;
-	include_market_cap?: boolean | string;
-	include_24hr_vol?: boolean | string;
-	include_24hr_change?: boolean | string;
-	include_last_updated_at?: boolean | string;
-}): Promise<any> {
-	return executeTool("get_id_simple_token_price", params);
+export async function getSimpleTokenPrice(
+	params: GetSimpleTokenPriceInput,
+): Promise<GetSimpleTokenPriceResponse> {
+	return executeTool(
+		"get_id_simple_token_price",
+		params,
+	) as Promise<GetSimpleTokenPriceResponse>;
 }
