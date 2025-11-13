@@ -2,35 +2,91 @@
  * Get user's transaction history on a chain
  */
 
+import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
+
+export const GetUserHistoryListInputSchema = z.object({
+	id: z.string().describe("User wallet address"),
+	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
+	token_id: z.string().optional().describe("Optional token filter"),
+	start_time: z
+		.number()
+		.int()
+		.optional()
+		.describe("Unix timestamp for the start of the range"),
+	end_time: z
+		.number()
+		.int()
+		.optional()
+		.describe("Unix timestamp for the end of the range"),
+	page_count: z
+		.number()
+		.int()
+		.positive()
+		.max(20)
+		.optional()
+		.describe("Maximum number of entries to fetch (max 20)"),
+});
+
+const HistoryTokenSchema = z
+	.object({
+		id: z.string(),
+		chain: z.string(),
+		name: z.string(),
+		symbol: z.string(),
+		amount: z.number(),
+		price: z.number(),
+	})
+	.loose();
+
+const HistoryEntrySchema = z.object({
+	id: z.string(),
+	chain: z.string(),
+	name: z.string(),
+	project_id: z.string(),
+	time_at: z.number(),
+	tx: z.object({
+		name: z.string(),
+		status: z.number(),
+		eth_gas_fee: z.number(),
+		usd_gas_fee: z.number(),
+		value: z.number(),
+		from_addr: z.string(),
+		to_addr: z.string(),
+	}),
+	sends: z.array(HistoryTokenSchema),
+	receives: z.array(HistoryTokenSchema),
+});
+
+export const GetUserHistoryListResponseSchema = z
+	.array(HistoryEntrySchema)
+	.describe("Historical transactions on the requested chain");
+
+export type GetUserHistoryListInput = z.infer<
+	typeof GetUserHistoryListInputSchema
+>;
+export type GetUserHistoryListResponse = z.infer<
+	typeof GetUserHistoryListResponseSchema
+>;
 
 /**
  * Fetch a user's transaction history on a specified chain
  *
- * @param params.id - User's wallet address
- * @param params.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param params.token_id - Optional token filter
- * @param params.start_time - Optional timestamp filter
- * @param params.page_count - Optional max entries (max: 20)
+ * @param input.id - User's wallet address
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
+ * @param input.token_id - Optional token filter
+ * @param input.start_time - Optional timestamp filter
+ * @param input.end_time - Optional end timestamp filter
+ * @param input.page_count - Optional max entries (max: 20)
  *
  * @returns Array of transaction history
- *
- * @example
- * ```typescript
- * const history = await getUserHistoryList({
- *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
- *   chain_id: 'eth',
- *   page_count: 10
- * });
- * console.log(history);
- * ```
  */
-export async function getUserHistoryList(params: {
-	id: string;
-	chain_id: string;
-	token_id?: string;
-	start_time?: number;
-	page_count?: number;
-}): Promise<any> {
-	return executeServiceMethod("user", "getUserHistoryList", params);
+export async function getUserHistoryList(
+	input: GetUserHistoryListInput,
+): Promise<GetUserHistoryListResponse> {
+	return executeServiceMethod(
+		"user",
+		"getUserHistoryList",
+		input,
+	) as Promise<GetUserHistoryListResponse>;
 }
