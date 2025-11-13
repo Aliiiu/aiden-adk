@@ -2,7 +2,65 @@
  * Get OHLCV data for an onchain token
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetTimeframeTokensNetworksOnchainOhlcvInputSchema = z.object({
+	network: z.string().describe("Network identifier"),
+	token_address: z.string().describe("Token contract address"),
+	timeframe: z.string().describe("Timeframe granularity"),
+	aggregate: z.string().describe("Aggregation interval"),
+	before_timestamp: z
+		.number()
+		.optional()
+		.describe("Return data before this timestamp"),
+	limit: z
+		.number()
+		.int()
+		.positive()
+		.optional()
+		.describe("Number of datapoints (default 100, max 1000)"),
+	currency: z.string().optional().describe("Quote currency (default 'usd')"),
+});
+
+const OhlcvPointSchema = z.array(z.number());
+
+export const GetTimeframeTokensNetworksOnchainOhlcvResponseSchema = z.object({
+	data: z.object({
+		id: z.string(),
+		type: z.string(),
+		attributes: z.object({
+			ohlcv_list: z.array(OhlcvPointSchema),
+		}),
+	}),
+	meta: z
+		.object({
+			base: z
+				.object({
+					address: z.string(),
+					coingecko_coin_id: z.string().nullable().optional(),
+					name: z.string().nullable().optional(),
+					symbol: z.string().nullable().optional(),
+				})
+				.optional(),
+			quote: z
+				.object({
+					address: z.string(),
+					coingecko_coin_id: z.string().nullable().optional(),
+					name: z.string().nullable().optional(),
+					symbol: z.string().nullable().optional(),
+				})
+				.optional(),
+		})
+		.optional(),
+});
+
+export type GetTimeframeTokensNetworksOnchainOhlcvInput = z.infer<
+	typeof GetTimeframeTokensNetworksOnchainOhlcvInputSchema
+>;
+export type GetTimeframeTokensNetworksOnchainOhlcvResponse = z.infer<
+	typeof GetTimeframeTokensNetworksOnchainOhlcvResponseSchema
+>;
 
 /**
  * Get OHLCV (Open, High, Low, Close, Volume) data for a token
@@ -28,14 +86,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getTimeframeTokensNetworksOnchainOhlcv(params: {
-	network: string;
-	token_address: string;
-	timeframe: string;
-	aggregate: string;
-	before_timestamp?: number;
-	limit?: number;
-	currency?: string;
-}): Promise<any> {
-	return executeTool("get_timeframe_tokens_networks_onchain_ohlcv", params);
+export async function getTimeframeTokensNetworksOnchainOhlcv(
+	params: GetTimeframeTokensNetworksOnchainOhlcvInput,
+): Promise<GetTimeframeTokensNetworksOnchainOhlcvResponse> {
+	return executeTool(
+		"get_timeframe_tokens_networks_onchain_ohlcv",
+		params,
+	) as Promise<GetTimeframeTokensNetworksOnchainOhlcvResponse>;
 }

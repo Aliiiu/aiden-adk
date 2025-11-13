@@ -2,7 +2,67 @@
  * Get OHLCV data for an onchain pool
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetTimeframePoolsNetworksOnchainOhlcvInputSchema = z.object({
+	network: z.string().describe("Network identifier"),
+	pool_address: z.string().describe("Pool contract address"),
+	timeframe: z.string().describe("Timeframe granularity (day/hour/minute)"),
+	aggregate: z.string().describe("Aggregation period (e.g., '1', '5')"),
+	before_timestamp: z
+		.number()
+		.optional()
+		.describe("Return data before this timestamp"),
+	limit: z
+		.number()
+		.int()
+		.positive()
+		.optional()
+		.describe("Max number of points (default 100, max 1000)"),
+	currency: z.string().optional().describe("Quote currency (default 'usd')"),
+});
+
+const OhlcvPointSchema = z
+	.array(z.number())
+	.describe("Tuple [timestamp, open, high, low, close, volume]");
+
+export const GetTimeframePoolsNetworksOnchainOhlcvResponseSchema = z.object({
+	data: z.object({
+		id: z.string(),
+		type: z.string(),
+		attributes: z.object({
+			ohlcv_list: z.array(OhlcvPointSchema),
+		}),
+	}),
+	meta: z
+		.object({
+			base: z
+				.object({
+					address: z.string(),
+					coingecko_coin_id: z.string().nullable().optional(),
+					name: z.string().nullable().optional(),
+					symbol: z.string().nullable().optional(),
+				})
+				.optional(),
+			quote: z
+				.object({
+					address: z.string(),
+					coingecko_coin_id: z.string().nullable().optional(),
+					name: z.string().nullable().optional(),
+					symbol: z.string().nullable().optional(),
+				})
+				.optional(),
+		})
+		.optional(),
+});
+
+export type GetTimeframePoolsNetworksOnchainOhlcvInput = z.infer<
+	typeof GetTimeframePoolsNetworksOnchainOhlcvInputSchema
+>;
+export type GetTimeframePoolsNetworksOnchainOhlcvResponse = z.infer<
+	typeof GetTimeframePoolsNetworksOnchainOhlcvResponseSchema
+>;
 
 /**
  * Get OHLCV (Open, High, Low, Close, Volume) data for a pool
@@ -28,14 +88,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getTimeframePoolsNetworksOnchainOhlcv(params: {
-	network: string;
-	pool_address: string;
-	timeframe: string;
-	aggregate: string;
-	before_timestamp?: number;
-	limit?: number;
-	currency?: string;
-}): Promise<any> {
-	return executeTool("get_timeframe_pools_networks_onchain_ohlcv", params);
+export async function getTimeframePoolsNetworksOnchainOhlcv(
+	params: GetTimeframePoolsNetworksOnchainOhlcvInput,
+): Promise<GetTimeframePoolsNetworksOnchainOhlcvResponse> {
+	return executeTool(
+		"get_timeframe_pools_networks_onchain_ohlcv",
+		params,
+	) as Promise<GetTimeframePoolsNetworksOnchainOhlcvResponse>;
 }
