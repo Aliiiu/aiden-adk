@@ -2,12 +2,33 @@
  * Get current gas prices for a chain
  */
 
+import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
+
+export const GetGasPricesInputSchema = z.object({
+	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
+});
+
+const GasMarketTierSchema = z.object({
+	price: z.number().describe("Gas price in Gwei"),
+	estimated_seconds: z
+		.number()
+		.describe("Estimated confirmation time in seconds"),
+});
+
+export const GetGasPricesResponseSchema = z.object({
+	slow: GasMarketTierSchema.describe("Slow transaction speed"),
+	normal: GasMarketTierSchema.describe("Normal transaction speed"),
+	fast: GasMarketTierSchema.describe("Fast transaction speed"),
+});
+
+export type GetGasPricesInput = z.infer<typeof GetGasPricesInputSchema>;
+export type GetGasPricesResponse = z.infer<typeof GetGasPricesResponseSchema>;
 
 /**
  * Fetch current gas prices for different transaction speed levels
  *
- * @param params.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
  *
  * @returns Gas prices for slow, normal, and fast speeds
  *
@@ -17,6 +38,12 @@ import { executeServiceMethod } from "../../shared.js";
  * console.log(gasPrices);
  * ```
  */
-export async function getGasPrices(params: { chain_id: string }): Promise<any> {
-	return executeServiceMethod("chain", "getGasPrices", params);
+export async function getGasPrices(
+	input: GetGasPricesInput,
+): Promise<GetGasPricesResponse> {
+	return executeServiceMethod(
+		"chain",
+		"getGasPrices",
+		input,
+	) as Promise<GetGasPricesResponse>;
 }
