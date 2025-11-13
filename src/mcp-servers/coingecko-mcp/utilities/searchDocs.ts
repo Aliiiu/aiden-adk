@@ -2,7 +2,29 @@
  * Search CoinGecko API documentation
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const SearchDocsInputSchema = z.object({
+	query: z.string().describe("Search query string"),
+});
+
+const DocHitSchema = z
+	.object({
+		title: z.string().nullable().optional(),
+		url: z.string().nullable().optional(),
+		description: z.string().nullable().optional(),
+	})
+	.loose();
+
+export const SearchDocsResponseSchema = z.object({
+	hits: z.array(DocHitSchema),
+	totalHits: z.number().optional(),
+	page: z.number().optional(),
+});
+
+export type SearchDocsInput = z.infer<typeof SearchDocsInputSchema>;
+export type SearchDocsResponse = z.infer<typeof SearchDocsResponseSchema>;
 
 /**
  * Search CoinGecko API documentation
@@ -18,6 +40,8 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function searchDocs(params: { query: string }): Promise<any> {
-	return executeTool("search_docs", params);
+export async function searchDocs(
+	params: SearchDocsInput,
+): Promise<SearchDocsResponse> {
+	return executeTool("search_docs", params) as Promise<SearchDocsResponse>;
 }
