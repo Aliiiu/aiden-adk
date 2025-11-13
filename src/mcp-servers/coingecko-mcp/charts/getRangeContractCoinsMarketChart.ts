@@ -2,7 +2,38 @@
  * Get historical market data for a token by contract address
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetRangeContractCoinsMarketChartInputSchema = z.object({
+	id: z.string().describe("Asset platform ID (e.g., 'ethereum')"),
+	contract_address: z.string().describe("Token contract address"),
+	vs_currency: z.string().describe("Target currency (e.g., 'usd')"),
+	from: z.number().describe("Start timestamp in seconds"),
+	to: z.number().describe("End timestamp in seconds"),
+	precision: z
+		.union([z.number(), z.string()])
+		.optional()
+		.describe("Optional decimal precision"),
+});
+
+const ValuePointSchema = z.tuple([
+	z.number().describe("Unix timestamp in milliseconds"),
+	z.number().describe("Value at timestamp"),
+]);
+
+export const GetRangeContractCoinsMarketChartResponseSchema = z.object({
+	prices: z.array(ValuePointSchema),
+	market_caps: z.array(ValuePointSchema),
+	total_volumes: z.array(ValuePointSchema),
+});
+
+export type GetRangeContractCoinsMarketChartInput = z.infer<
+	typeof GetRangeContractCoinsMarketChartInputSchema
+>;
+export type GetRangeContractCoinsMarketChartResponse = z.infer<
+	typeof GetRangeContractCoinsMarketChartResponseSchema
+>;
 
 /**
  * Get historical market data for a token by contract address
@@ -27,13 +58,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getRangeContractCoinsMarketChart(params: {
-	id: string;
-	contract_address: string;
-	vs_currency: string;
-	from: number;
-	to: number;
-	precision?: number | string;
-}): Promise<any> {
-	return executeTool("get_range_contract_coins_market_chart", params);
+export async function getRangeContractCoinsMarketChart(
+	params: GetRangeContractCoinsMarketChartInput,
+): Promise<GetRangeContractCoinsMarketChartResponse> {
+	return executeTool(
+		"get_range_contract_coins_market_chart",
+		params,
+	) as Promise<GetRangeContractCoinsMarketChartResponse>;
 }

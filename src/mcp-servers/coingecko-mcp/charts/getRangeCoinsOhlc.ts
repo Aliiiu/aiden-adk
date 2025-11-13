@@ -2,7 +2,38 @@
  * Get OHLC (candlestick) data for a coin within a date range
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetRangeCoinsOhlcInputSchema = z.object({
+	id: z.string().describe("Coin identifier (e.g., 'bitcoin')"),
+	vs_currency: z.string().describe("Target currency (e.g., 'usd')"),
+	from: z.number().describe("Start timestamp in seconds"),
+	to: z.number().describe("End timestamp in seconds"),
+	precision: z
+		.union([z.number(), z.string()])
+		.optional()
+		.describe("Optional decimal precision"),
+});
+
+export const GetRangeCoinsOhlcResponseSchema = z
+	.array(
+		z.tuple([
+			z.number().describe("Unix timestamp in milliseconds"),
+			z.number().describe("Open price"),
+			z.number().describe("High price"),
+			z.number().describe("Low price"),
+			z.number().describe("Close price"),
+		]),
+	)
+	.describe("OHLC data points");
+
+export type GetRangeCoinsOhlcInput = z.infer<
+	typeof GetRangeCoinsOhlcInputSchema
+>;
+export type GetRangeCoinsOhlcResponse = z.infer<
+	typeof GetRangeCoinsOhlcResponseSchema
+>;
 
 /**
  * Get OHLC (candlestick) data for a coin within a date range
@@ -25,12 +56,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getRangeCoinsOhlc(params: {
-	id: string;
-	vs_currency: string;
-	from: number;
-	to: number;
-	precision?: number | string;
-}): Promise<any> {
-	return executeTool("get_range_coins_ohlc", params);
+export async function getRangeCoinsOhlc(
+	params: GetRangeCoinsOhlcInput,
+): Promise<GetRangeCoinsOhlcResponse> {
+	return executeTool(
+		"get_range_coins_ohlc",
+		params,
+	) as Promise<GetRangeCoinsOhlcResponse>;
 }
