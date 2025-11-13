@@ -2,13 +2,50 @@
  * Get detailed information about a token
  */
 
+import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
+
+export const GetTokenInformationInputSchema = z.object({
+	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
+	id: z.string().describe("Token contract address or native token identifier"),
+});
+
+const TokenInformationSchema = z.object({
+	id: z.string().describe("Token identifier"),
+	chain: z.string().describe("Chain ID"),
+	name: z.string().describe("Token name"),
+	symbol: z.string().describe("Token symbol"),
+	display_symbol: z
+		.string()
+		.nullable()
+		.optional()
+		.describe("Display-friendly symbol"),
+	optimized_symbol: z.string().optional().describe("Optimized symbol for UI"),
+	decimals: z.number().describe("Token decimals"),
+	logo_url: z.string().url().describe("Token logo URL"),
+	protocol_id: z.string().describe("Owning protocol identifier"),
+	price: z.number().describe("Current USD price"),
+	is_verified: z.boolean().describe("Whether token is verified by DeBank"),
+	is_core: z.boolean().describe("Whether token is considered core"),
+	is_wallet: z.boolean().describe("Whether token is supported in wallets"),
+	time_at: z.number().describe("Unix timestamp when token was first tracked"),
+	amount: z.number().describe("Token amount if returned with balances"),
+});
+
+export const GetTokenInformationResponseSchema = TokenInformationSchema;
+
+export type GetTokenInformationInput = z.infer<
+	typeof GetTokenInformationInputSchema
+>;
+export type GetTokenInformationResponse = z.infer<
+	typeof GetTokenInformationResponseSchema
+>;
 
 /**
  * Fetch comprehensive details about a specific token
  *
- * @param params.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param params.id - Token contract address or native token ID
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
+ * @param input.id - Token contract address or native token ID
  *
  * @returns Token details including price, symbol, decimals, logo
  *
@@ -21,9 +58,12 @@ import { executeServiceMethod } from "../../shared.js";
  * console.log(token);
  * ```
  */
-export async function getTokenInformation(params: {
-	chain_id: string;
-	id: string;
-}): Promise<any> {
-	return executeServiceMethod("token", "getTokenInformation", params);
+export async function getTokenInformation(
+	input: GetTokenInformationInput,
+): Promise<GetTokenInformationResponse> {
+	return executeServiceMethod(
+		"token",
+		"getTokenInformation",
+		input,
+	) as Promise<GetTokenInformationResponse>;
 }

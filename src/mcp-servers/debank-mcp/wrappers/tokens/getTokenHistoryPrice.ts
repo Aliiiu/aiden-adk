@@ -2,14 +2,35 @@
  * Get historical price of a token
  */
 
+import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
+
+export const GetTokenHistoryPriceInputSchema = z.object({
+	id: z.string().describe("Token contract address or native token ID"),
+	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
+	date_at: z.string().describe("Date in YYYY-MM-DD format"),
+});
+
+export const GetTokenHistoryPriceResponseSchema = z.object({
+	id: z.string().describe("Token identifier"),
+	chain: z.string().describe("Chain ID"),
+	price: z.number().describe("Historical price in USD"),
+	date: z.string().describe("Date corresponding to the price"),
+});
+
+export type GetTokenHistoryPriceInput = z.infer<
+	typeof GetTokenHistoryPriceInputSchema
+>;
+export type GetTokenHistoryPriceResponse = z.infer<
+	typeof GetTokenHistoryPriceResponseSchema
+>;
 
 /**
  * Retrieve the historical price of a token for a given date
  *
- * @param params.id - Token contract address or native token ID
- * @param params.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param params.date_at - Date in format YYYY-MM-DD (e.g., '2023-05-18')
+ * @param input.id - Token contract address or native token ID
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
+ * @param input.date_at - Date in format YYYY-MM-DD (e.g., '2023-05-18')
  *
  * @returns Historical price data for the specified date
  *
@@ -23,10 +44,12 @@ import { executeServiceMethod } from "../../shared.js";
  * console.log(price);
  * ```
  */
-export async function getTokenHistoryPrice(params: {
-	id: string;
-	chain_id: string;
-	date_at: string;
-}): Promise<any> {
-	return executeServiceMethod("token", "getTokenHistoryPrice", params);
+export async function getTokenHistoryPrice(
+	input: GetTokenHistoryPriceInput,
+): Promise<GetTokenHistoryPriceResponse> {
+	return executeServiceMethod(
+		"token",
+		"getTokenHistoryPrice",
+		input,
+	) as Promise<GetTokenHistoryPriceResponse>;
 }
