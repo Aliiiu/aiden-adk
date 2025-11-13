@@ -2,7 +2,74 @@
  * Get coin data by contract address
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetCoinsContractInputSchema = z.object({
+	id: z.string().describe("Asset platform ID (e.g., 'ethereum')"),
+	contract_address: z.string().describe("Token contract address"),
+	localization: z
+		.boolean()
+		.optional()
+		.describe("Include localized text (default true)"),
+	tickers: z
+		.boolean()
+		.optional()
+		.describe("Include exchange tickers (default true)"),
+	market_data: z
+		.boolean()
+		.optional()
+		.describe("Include market data (default true)"),
+	community_data: z
+		.boolean()
+		.optional()
+		.describe("Include community stats (default true)"),
+	developer_data: z
+		.boolean()
+		.optional()
+		.describe("Include developer stats (default true)"),
+	sparkline: z
+		.boolean()
+		.optional()
+		.describe("Include sparkline (default false)"),
+});
+
+const ContractImageSchema = z
+	.object({
+		thumb: z.string().optional(),
+		small: z.string().optional(),
+		large: z.string().optional(),
+	})
+	.partial();
+
+const ContractMarketDataSchema = z
+	.object({
+		current_price: z.record(z.string(), z.number()).optional(),
+		market_cap: z.record(z.string(), z.number()).optional(),
+		total_volume: z.record(z.string(), z.number()).optional(),
+	})
+	.loose();
+
+export const GetCoinsContractResponseSchema = z
+	.object({
+		id: z.string(),
+		symbol: z.string(),
+		name: z.string(),
+		asset_platform_id: z.string().nullable().optional(),
+		contract_address: z.string().optional(),
+		description: z.record(z.string(), z.string()).optional(),
+		market_data: ContractMarketDataSchema.optional(),
+		image: ContractImageSchema.optional(),
+		community_data: z.record(z.string(), z.unknown()).optional(),
+		developer_data: z.record(z.string(), z.unknown()).optional(),
+		localization: z.record(z.string(), z.string()).optional(),
+	})
+	.loose();
+
+export type GetCoinsContractInput = z.infer<typeof GetCoinsContractInputSchema>;
+export type GetCoinsContractResponse = z.infer<
+	typeof GetCoinsContractResponseSchema
+>;
 
 /**
  * Get coin data by contract address
@@ -26,15 +93,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getCoinsContract(params: {
-	id: string;
-	contract_address: string;
-	localization?: boolean;
-	tickers?: boolean;
-	market_data?: boolean;
-	community_data?: boolean;
-	developer_data?: boolean;
-	sparkline?: boolean;
-}): Promise<any> {
-	return executeTool("get_coins_contract", params);
+export async function getCoinsContract(
+	params: GetCoinsContractInput,
+): Promise<GetCoinsContractResponse> {
+	return executeTool(
+		"get_coins_contract",
+		params,
+	) as Promise<GetCoinsContractResponse>;
 }
