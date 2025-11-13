@@ -2,7 +2,86 @@
  * Get onchain pools with advanced filtering
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetPoolsOnchainMegafilterInputSchema = z
+	.object({
+		network: z.string().optional().describe("Network identifier"),
+		dex: z.string().optional().describe("DEX identifier"),
+		min_volume_usd: z.number().optional().describe("Minimum 24h volume in USD"),
+		max_volume_usd: z.number().optional().describe("Maximum 24h volume in USD"),
+		min_price_change_percentage_24h: z
+			.number()
+			.optional()
+			.describe("Minimum 24h price change percentage"),
+		max_price_change_percentage_24h: z
+			.number()
+			.optional()
+			.describe("Maximum 24h price change percentage"),
+		sort: z.string().optional().describe("Sort field"),
+		order: z.enum(["asc", "desc"]).optional().describe("Sort order"),
+		page: z.number().int().positive().optional().describe("Page number"),
+	})
+	.optional();
+
+const RelationshipRefSchema = z.object({
+	data: z
+		.object({
+			id: z.string(),
+			type: z.string(),
+		})
+		.nullable()
+		.optional(),
+});
+
+const MegaFilterPoolAttributesSchema = z
+	.object({
+		name: z.string(),
+		address: z.string(),
+		base_token_price_usd: z.string().nullable().optional(),
+		quote_token_price_usd: z.string().nullable().optional(),
+		reserve_in_usd: z.string().nullable().optional(),
+		h24_volume_usd: z.string().nullable().optional(),
+		fdv_usd: z.string().nullable().optional(),
+	})
+	.loose();
+
+const MegaFilterPoolSchema = z.object({
+	id: z.string(),
+	type: z.string(),
+	attributes: MegaFilterPoolAttributesSchema,
+	relationships: z
+		.object({
+			base_token: RelationshipRefSchema.optional(),
+			quote_token: RelationshipRefSchema.optional(),
+			dex: RelationshipRefSchema.optional(),
+			network: RelationshipRefSchema.optional(),
+		})
+		.partial()
+		.optional(),
+});
+
+export const GetPoolsOnchainMegafilterResponseSchema = z.object({
+	data: z.array(MegaFilterPoolSchema),
+	included: z
+		.array(
+			z.object({
+				id: z.string(),
+				type: z.string(),
+				attributes: z.record(z.string(), z.unknown()).optional(),
+			}),
+		)
+		.optional(),
+	meta: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type GetPoolsOnchainMegafilterInput = z.infer<
+	typeof GetPoolsOnchainMegafilterInputSchema
+>;
+export type GetPoolsOnchainMegafilterResponse = z.infer<
+	typeof GetPoolsOnchainMegafilterResponseSchema
+>;
 
 /**
  * Get onchain pools with mega filter (advanced search)
@@ -29,16 +108,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getPoolsOnchainMegafilter(params: {
-	network?: string;
-	dex?: string;
-	min_volume_usd?: number;
-	max_volume_usd?: number;
-	min_price_change_percentage_24h?: number;
-	max_price_change_percentage_24h?: number;
-	sort?: string;
-	order?: string;
-	page?: number;
-}): Promise<any> {
-	return executeTool("get_pools_onchain_megafilter", params);
+export async function getPoolsOnchainMegafilter(
+	params?: GetPoolsOnchainMegafilterInput,
+): Promise<GetPoolsOnchainMegafilterResponse> {
+	return executeTool(
+		"get_pools_onchain_megafilter",
+		params ?? {},
+	) as Promise<GetPoolsOnchainMegafilterResponse>;
 }

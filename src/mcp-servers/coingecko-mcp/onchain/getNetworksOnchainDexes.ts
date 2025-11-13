@@ -2,7 +2,31 @@
  * Get list of DEXes on a specific network
  */
 
+import { z } from "zod";
 import { executeTool } from "../shared.js";
+
+export const GetNetworksOnchainDexesInputSchema = z.object({
+	network: z.string().describe("Network identifier (e.g., 'eth')"),
+});
+
+const DexEntrySchema = z.object({
+	id: z.string(),
+	type: z.string(),
+	attributes: z.object({
+		name: z.string(),
+	}),
+});
+
+export const GetNetworksOnchainDexesResponseSchema = z.object({
+	data: z.array(DexEntrySchema),
+});
+
+export type GetNetworksOnchainDexesInput = z.infer<
+	typeof GetNetworksOnchainDexesInputSchema
+>;
+export type GetNetworksOnchainDexesResponse = z.infer<
+	typeof GetNetworksOnchainDexesResponseSchema
+>;
 
 /**
  * Get list of DEXes on a specific blockchain network
@@ -18,8 +42,11 @@ import { executeTool } from "../shared.js";
  * });
  * ```
  */
-export async function getNetworksOnchainDexes(params: {
-	network: string;
-}): Promise<any> {
-	return executeTool("get_networks_onchain_dexes", params);
+export async function getNetworksOnchainDexes(
+	params: GetNetworksOnchainDexesInput,
+): Promise<GetNetworksOnchainDexesResponse> {
+	return executeTool(
+		"get_networks_onchain_dexes",
+		params,
+	) as Promise<GetNetworksOnchainDexesResponse>;
 }
