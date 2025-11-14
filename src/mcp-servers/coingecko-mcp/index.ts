@@ -18,7 +18,6 @@
 
 // Categories
 export { getCoinCategories } from "./categories/getCoinCategories.js";
-export { getCoinsCategories } from "./categories/getCoinsCategories.js";
 // Charts/OHLC
 export { getRangeCoinsMarketChart } from "./charts/getRangeCoinsMarketChart.js";
 export { getRangeCoinsOhlc } from "./charts/getRangeCoinsOhlc.js";
@@ -112,10 +111,6 @@ export default {
 	// Categories
 	getCoinCategories: async () =>
 		(await import("./categories/getCoinCategories.js")).getCoinCategories(),
-	getCoinsCategories: async (params?: any) =>
-		(await import("./categories/getCoinsCategories.js")).getCoinsCategories(
-			params,
-		),
 
 	// Utilities
 	getAssetPlatforms: async (params?: any) =>
