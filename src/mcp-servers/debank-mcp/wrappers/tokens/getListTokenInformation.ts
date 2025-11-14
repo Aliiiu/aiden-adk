@@ -5,12 +5,14 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetListTokenInformationInputSchema = z.object({
-	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
-	ids: z
-		.string()
-		.describe("Comma-separated list of token contract addresses (max 100)"),
-});
+export const GetListTokenInformationInputSchema = z
+	.object({
+		chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
+		ids: z
+			.string()
+			.describe("Comma-separated list of token contract addresses (max 100)"),
+	})
+	.strict();
 
 const TokenSummarySchema = z.object({
 	id: z.string().describe("Token identifier"),

@@ -5,9 +5,11 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetGasPricesInputSchema = z.object({
-	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
-});
+export const GetGasPricesInputSchema = z
+	.object({
+		chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
+	})
+	.strict();
 
 const GasMarketTierSchema = z.object({
 	price: z.number().describe("Gas price in Gwei"),

@@ -5,10 +5,12 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetPoolInformationInputSchema = z.object({
-	id: z.string().describe("Pool identifier/contract address"),
-	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
-});
+export const GetPoolInformationInputSchema = z
+	.object({
+		id: z.string().describe("Pool identifier/contract address"),
+		chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),
+	})
+	.strict();
 
 const PoolInformationSchema = z
 	.object({

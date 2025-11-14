@@ -5,9 +5,11 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetProtocolInformationInputSchema = z.object({
-	id: z.string().describe("Protocol identifier (e.g., 'uniswap')"),
-});
+export const GetProtocolInformationInputSchema = z
+	.object({
+		id: z.string().describe("Protocol identifier (e.g., 'uniswap')"),
+	})
+	.strict();
 
 const ProtocolInformationSchema = z.object({
 	id: z.string().describe("Protocol identifier"),

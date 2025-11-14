@@ -8,9 +8,11 @@ import { executeServiceMethod } from "../../shared.js";
 /**
  * Input schema for getting chain information
  */
-export const GetChainInputSchema = z.object({
-	id: z.string().describe("Chain identifier (e.g., 'eth', 'bsc', 'polygon')"),
-});
+export const GetChainInputSchema = z
+	.object({
+		id: z.string().describe("Chain identifier (e.g., 'eth', 'bsc', 'polygon')"),
+	})
+	.strict();
 
 /**
  * Response schema for chain information

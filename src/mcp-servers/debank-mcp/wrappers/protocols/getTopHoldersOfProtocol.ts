@@ -5,22 +5,24 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetTopHoldersOfProtocolInputSchema = z.object({
-	id: z.string().describe("Protocol ID (e.g., 'uniswap')"),
-	start: z
-		.number()
-		.int()
-		.nonnegative()
-		.optional()
-		.describe("Pagination offset (default: 0, max: 1000)"),
-	limit: z
-		.number()
-		.int()
-		.positive()
-		.max(100)
-		.optional()
-		.describe("Max number of holders to fetch (default/max: 100)"),
-});
+export const GetTopHoldersOfProtocolInputSchema = z
+	.object({
+		id: z.string().describe("Protocol ID (e.g., 'uniswap')"),
+		start: z
+			.number()
+			.int()
+			.nonnegative()
+			.optional()
+			.describe("Pagination offset (default: 0, max: 1000)"),
+		limit: z
+			.number()
+			.int()
+			.positive()
+			.max(100)
+			.optional()
+			.describe("Max number of holders to fetch (default/max: 100)"),
+	})
+	.strict();
 
 const ProtocolHolderSchema = z
 	.object({

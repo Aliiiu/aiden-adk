@@ -14,6 +14,7 @@ export const GetAllProtocolsOfSupportedChainsInputSchema = z
 				"Optional comma-separated list of chain IDs (e.g., 'eth,bsc,polygon')",
 			),
 	})
+	.strict()
 	.optional();
 
 const ProtocolSummarySchema = z.object({
