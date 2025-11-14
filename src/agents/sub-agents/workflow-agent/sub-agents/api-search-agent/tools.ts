@@ -1,12 +1,39 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { type BaseTool, McpToolset, type ToolContext } from "@iqai/adk";
+import {
+	type BaseTool,
+	createTool,
+	McpToolset,
+	type ToolContext,
+} from "@iqai/adk";
+import dedent from "dedent";
+import type lunr from "lunr";
+import { z } from "zod";
 import { createMCPCodeExecutionTool } from "../../../../../lib/code-execution/index.js";
+import {
+	buildFunctionIndex,
+	type FunctionMetadata,
+	searchFunctions,
+} from "../../../../../lib/function-index/index.js";
 import { createChildLogger } from "../../../../../lib/utils/logger";
 import { getDebankTools } from "../../../../../mcp-servers/debank-mcp/tools";
 import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
 
 const logger = createChildLogger("API Search Tools");
+
+// Singleton: Build index only once
+let functionIndex: lunr.Index | null = null;
+let functionDocuments: Map<string, FunctionMetadata> | null = null;
+
+function getFunctionIndex() {
+	if (!functionIndex || !functionDocuments) {
+		logger.info("Building function search index (first time only)...");
+		const { index, documents } = buildFunctionIndex();
+		functionIndex = index;
+		functionDocuments = documents;
+	}
+	return { index: functionIndex, documents: functionDocuments };
+}
 
 /**
  * Extract user query from ADK ToolContext
@@ -205,6 +232,93 @@ export const getDebankToolsViaMcp = async () => {
 		const tools = getDebankTools();
 		return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
 	}
+};
+
+/**
+ * Create a tool discovery helper using Lunr.js search index
+ * Allows agents to search for functions by keywords without exhaustive listings
+ */
+export const getDiscoverToolsTool = () => {
+	const tool = createTool({
+		name: "discover_tools",
+		description:
+			"Search for available API functions by keywords. Returns exact function names with descriptions, parameters, and usage examples. Use this to find the right function before calling it.",
+		schema: z.object({
+			query: z
+				.string()
+				.describe(
+					"Search query (e.g., 'protocol tvl', 'wallet balance', 'price chart'). Use keywords to find functions.",
+				),
+			module: z
+				.enum(["coingecko", "debank", "defillama"])
+				.optional()
+				.describe("Filter results to a specific module (optional)"),
+			limit: z
+				.number()
+				.optional()
+				.default(10)
+				.describe("Maximum number of results to return (default: 10)"),
+		}),
+		fn: async ({ query, module, limit = 10 }) => {
+			try {
+				const { index, documents } = getFunctionIndex();
+
+				// Build search query with optional module filter
+				let searchQuery = query;
+				if (module) {
+					searchQuery = `${query} +module:${module}`;
+				}
+
+				// Search the index
+				const results = searchFunctions(index, documents, searchQuery, limit);
+
+				if (results.length === 0) {
+					return {
+						summary: `No functions found matching "${query}"`,
+						suggestion: dedent`
+							Try broader search terms like:
+							- "price" for price-related functions
+							- "protocol" for protocol/TVL data
+							- "wallet" or "user" for wallet/balance functions
+							- "pool" or "dex" for DEX/liquidity data
+						`,
+						availableModules: ["coingecko", "debank", "defillama"],
+					};
+				}
+
+				// Format results for the agent
+				const functionList = results.map((func) => ({
+					name: func.name,
+					module: func.module,
+					category: func.category,
+					description: func.description,
+					parameters: func.parameters,
+					importExample: `import { ${func.name} } from '${func.module}';`,
+					usageExample: `const data = await ${func.name}({ /* params */ });`,
+				}));
+
+				return {
+					summary: `Found ${results.length} function(s) matching "${query}"`,
+					functions: functionList,
+					nextSteps: dedent`
+						To use any of these functions:
+						1. Import it: import { functionName } from 'moduleName';
+						2. Call it with appropriate parameters
+						3. Always return { summary: string, data: any } from execute_typescript
+					`,
+				};
+			} catch (error) {
+				logger.error("Discovery tool error:", error as Error);
+				return {
+					error: "Discovery failed",
+					message: "Unable to search function index at this time",
+					details: error instanceof Error ? error.message : String(error),
+				};
+			}
+		},
+	});
+
+	return wrapToolWithErrorHandling(tool);
 };
 
 /**
