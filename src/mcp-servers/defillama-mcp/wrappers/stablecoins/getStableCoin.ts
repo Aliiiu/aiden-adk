@@ -8,6 +8,7 @@ export const GetStableCoinInputSchema = z
 			.optional()
 			.describe("Include latest prices for each stablecoin"),
 	})
+	.strict()
 	.optional();
 
 const StablecoinCirculatingSchema = z.object({

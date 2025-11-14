@@ -29,6 +29,7 @@ export const GetFeesAndRevenueInputSchema = z
 			.optional()
 			.describe("Sort order for the selected metric"),
 	})
+	.strict()
 	.optional();
 
 const FeesProtocolMetricsSchema = z.object({
@@ -80,7 +81,15 @@ export type GetFeesAndRevenueResponse = z.infer<
 >;
 
 /**
- * Get fees and revenue metrics for protocols or chains
+ * Get fees and revenue metrics for protocols or chains.
+ *
+ * IMPORTANT RESPONSE NOTES:
+ * - The numeric fields are named generically (`total24h`, `total7d`, `total30d`, etc.).
+ * - Their meaning depends on the `dataType` argument:
+ *   - `dailyFees`  → values represent fees
+ *   - `dailyRevenue` → values represent revenue
+ *   - `dailyHoldersRevenue` → values represent holders’ revenue
+ * - There are no fields such as `totalRevenue` or `totalFees`; consumers must read the totals above.
  */
 export async function getFeesAndRevenue(
 	input?: GetFeesAndRevenueInput,

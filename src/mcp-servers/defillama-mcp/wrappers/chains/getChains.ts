@@ -8,6 +8,7 @@ export const GetChainsInputSchema = z
 			.optional()
 			.describe("Sort chains by TVL in ascending or descending order"),
 	})
+	.strict()
 	.optional();
 
 const ChainTvlSchema = z.object({

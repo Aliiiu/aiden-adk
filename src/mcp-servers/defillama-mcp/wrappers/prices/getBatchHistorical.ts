@@ -1,15 +1,19 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetBatchHistoricalInputSchema = z.object({
-	coins: z
-		.string()
-		.describe("Comma-separated list of coin identifiers to fetch history for"),
-	searchWidth: z
-		.union([z.string(), z.number()])
-		.optional()
-		.describe("Search window width to find historical points"),
-});
+export const GetBatchHistoricalInputSchema = z
+	.object({
+		coins: z
+			.string()
+			.describe(
+				"Comma-separated list of coin identifiers to fetch history for",
+			),
+		searchWidth: z
+			.union([z.string(), z.number()])
+			.optional()
+			.describe("Search window width to find historical points"),
+	})
+	.strict();
 
 const HistoricalPricePointSchema = z.object({
 	timestamp: z.number().describe("Unix timestamp for the price point"),

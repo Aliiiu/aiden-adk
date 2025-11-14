@@ -29,6 +29,7 @@ export const GetOptionsDataInputSchema = z
 			.optional()
 			.describe("Exclude per-chain chart breakdown data"),
 	})
+	.strict()
 	.optional();
 
 const OptionsProtocolSchema = z.object({

@@ -15,6 +15,7 @@ export const GetLatestPoolDataInputSchema = z
 			.optional()
 			.describe("Number of pools to return (default 10)"),
 	})
+	.strict()
 	.optional();
 
 const YieldPoolSchema = z.object({

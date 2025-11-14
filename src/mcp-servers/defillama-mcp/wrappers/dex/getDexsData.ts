@@ -25,6 +25,7 @@ export const GetDexsDataInputSchema = z
 			.optional()
 			.describe("Sort order for protocol ranking"),
 	})
+	.strict()
 	.optional();
 
 const DexProtocolMetricsSchema = z.object({

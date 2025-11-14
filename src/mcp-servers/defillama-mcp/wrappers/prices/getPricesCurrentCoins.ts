@@ -1,17 +1,19 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetPricesCurrentCoinsInputSchema = z.object({
-	coins: z
-		.string()
-		.describe(
-			"Comma-separated list of coin identifiers (e.g., 'ethereum:0x...,bitcoin')",
-		),
-	searchWidth: z
-		.union([z.string(), z.number()])
-		.optional()
-		.describe("Search window width to find nearby price points"),
-});
+export const GetPricesCurrentCoinsInputSchema = z
+	.object({
+		coins: z
+			.string()
+			.describe(
+				"Comma-separated list of coin identifiers (e.g., 'ethereum:0x...,bitcoin')",
+			),
+		searchWidth: z
+			.union([z.string(), z.number()])
+			.optional()
+			.describe("Search window width to find nearby price points"),
+	})
+	.strict();
 
 const CurrentCoinPriceSchema = z.object({
 	decimals: z.number().describe("Token decimals"),

@@ -5,6 +5,7 @@ export const GetHistoricalChainTvlInputSchema = z
 	.object({
 		chain: z.string().optional().describe("Optional chain identifier"),
 	})
+	.strict()
 	.optional();
 
 const HistoricalTvlPointSchema = z.object({

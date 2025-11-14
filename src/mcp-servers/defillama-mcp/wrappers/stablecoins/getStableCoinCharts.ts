@@ -9,6 +9,7 @@ export const GetStableCoinChartsInputSchema = z
 			.optional()
 			.describe("Stablecoin identifier"),
 	})
+	.strict()
 	.optional();
 
 const StablecoinChartPointSchema = z.object({

@@ -1,13 +1,15 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetPricesFirstCoinsInputSchema = z.object({
-	coins: z
-		.string()
-		.describe(
-			"Comma-separated list of coin identifiers (e.g., 'ethereum:0x...,bitcoin')",
-		),
-});
+export const GetPricesFirstCoinsInputSchema = z
+	.object({
+		coins: z
+			.string()
+			.describe(
+				"Comma-separated list of coin identifiers (e.g., 'ethereum:0x...,bitcoin')",
+			),
+	})
+	.strict();
 
 const FirstCoinPriceSchema = z.object({
 	price: z.number().describe("First recorded price in USD"),

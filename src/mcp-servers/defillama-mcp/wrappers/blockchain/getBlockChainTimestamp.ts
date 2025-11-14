@@ -1,12 +1,16 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetBlockChainTimestampInputSchema = z.object({
-	chain: z.string().describe("Chain identifier (e.g., 'ethereum', 'polygon')"),
-	timestamp: z
-		.union([z.string(), z.number()])
-		.describe("Timestamp in seconds, milliseconds, or ISO format"),
-});
+export const GetBlockChainTimestampInputSchema = z
+	.object({
+		chain: z
+			.string()
+			.describe("Chain identifier (e.g., 'ethereum', 'polygon')"),
+		timestamp: z
+			.union([z.string(), z.number()])
+			.describe("Timestamp in seconds, milliseconds, or ISO format"),
+	})
+	.strict();
 
 const BlockDataSchema = z
 	.object({

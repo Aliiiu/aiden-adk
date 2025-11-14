@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetHistoricalPoolDataInputSchema = z.object({
-	pool: z.string().describe("Pool identifier from DefiLlama yields API"),
-});
+export const GetHistoricalPoolDataInputSchema = z
+	.object({
+		pool: z.string().describe("Pool identifier from DefiLlama yields API"),
+	})
+	.strict();
 
 const HistoricalPoolPointSchema = z.object({
 	poolId: z.string().describe("Pool identifier"),

@@ -1,20 +1,25 @@
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-export const GetProtocolsInputSchema = z.object({
-	protocol: z
-		.string()
-		.optional()
-		.describe("Optional protocol slug to fetch detailed data"),
-	sortCondition: z
-		.enum(["change_1h", "change_1d", "change_7d", "tvl"])
-		.optional()
-		.describe("Metric for ranking protocols"),
-	order: z
-		.enum(["asc", "desc"])
-		.optional()
-		.describe("Sort order for selected metric"),
-});
+export const GetProtocolsInputSchema = z
+	.object({
+		protocol: z
+			.string()
+			.optional()
+			.describe("Optional protocol slug to fetch detailed data"),
+		sortCondition: z
+			.enum(["change_1h", "change_1d", "change_7d", "tvl"])
+			.optional()
+			.describe("Metric for ranking protocols"),
+		order: z
+			.enum(["asc", "desc"])
+			.optional()
+			.describe("Sort order for selected metric"),
+	})
+	.strict()
+	.describe(
+		"Accepts only the documented fields. Passing unknown fields (e.g., 'search') will throw a validation error.",
+	);
 
 const ProtocolDetailSchema = z.object({
 	id: z.string().describe("Protocol identifier"),
@@ -52,6 +57,10 @@ export type GetProtocolsResponse = z.infer<typeof GetProtocolsResponseSchema>;
 
 /**
  * Get protocol data - specific protocol or top protocols ranked by TVL or change
+ *
+ * NOTE: Only the documented parameters are supported. Do not pass ad-hoc fields
+ * like `search`—use the `protocol` argument (optionally resolved via discovery)
+ * or filter the returned array in your code.
  */
 export async function getProtocols(
 	input: GetProtocolsInput,
