@@ -26,6 +26,7 @@ export type ProtocolData = {
 	id: string;
 	name: string;
 	symbol: string;
+	slug: string; // Canonical protocol identifier for API queries (required)
 	category: string;
 	chains: string[];
 	tvl: number;
