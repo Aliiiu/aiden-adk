@@ -1,5 +1,8 @@
 /**
- * Search for coins, exchanges, and NFTs
+ * Search the CoinGecko catalog for coins, exchanges, categories, and NFT collections.
+ *
+ * Use this to discover canonical coin IDs before price/market calls, or to find
+ * exchanges and NFT collections matching a keyword.
  */
 
 import { z } from "zod";

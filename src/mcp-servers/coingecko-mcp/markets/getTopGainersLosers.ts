@@ -1,5 +1,7 @@
 /**
- * Get top gainers and losers by price change percentage
+ * Get today's top gainers and losers ranked by price change percentage on a vs_currency.
+ *
+ * Useful for daily market movers dashboards. Defaults to USD if no currency is provided.
  */
 
 import { z } from "zod";

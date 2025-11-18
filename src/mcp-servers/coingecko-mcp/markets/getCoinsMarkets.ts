@@ -1,5 +1,9 @@
 /**
- * Get cryptocurrency market data for all coins
+ * Get current market data (price, volume, market cap, sparkline) for one or more coins.
+ *
+ * Ideal for real-time price lookups, portfolio summaries, and comparing multiple assets.
+ * For contract-specific tokens on a chain, prefer `getSimpleTokenPrice` or onchain price
+ * endpoints. Discover coin IDs first via `getCoinsList` or `search`.
  */
 
 import { z } from "zod";

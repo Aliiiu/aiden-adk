@@ -1,5 +1,7 @@
 /**
- * Get trending search coins in the last 24 hours
+ * Get CoinGecko's trending search coins and NFT collections over the last 24 hours.
+ *
+ * Use this to surface currently popular assets based on user search activity.
  */
 
 import { z } from "zod";
