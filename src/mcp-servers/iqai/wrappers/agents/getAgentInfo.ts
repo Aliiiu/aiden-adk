@@ -26,7 +26,7 @@ const agentInfoSchema = z
 		knowledge: z.union([z.string(), z.array(z.string())]).optional(),
 		model: z.any().optional(),
 		category: z.string().optional(),
-		currentPriceInIq: z.number().optional(),
+		currentPriceInIq: z.string().optional(), // API returns string
 		inferenceCount: z.number().optional(),
 		holdersCount: z.number().optional(),
 		isVerified: z.boolean().optional(),
