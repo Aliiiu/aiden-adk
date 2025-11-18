@@ -1,5 +1,8 @@
 /**
- * Get current price of tokens (ids, contract addresses) for multiple currencies
+ * Get current price for one or more coins by ID in multiple fiat/crypto currencies.
+ *
+ * Lightweight price lookup without full market payloads. Use when you only need prices.
+ * Discover coin IDs via `search` or `getCoinsList`.
  */
 
 import { z } from "zod";

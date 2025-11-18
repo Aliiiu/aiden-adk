@@ -1,5 +1,8 @@
 /**
- * Get coin data by contract address
+ * Get coin data by contract address on a specific platform (chain).
+ *
+ * Use this to resolve token details via contract address. Requires platform `id`
+ * (e.g., 'ethereum') and `contract_address`.
  */
 
 import { z } from "zod";
