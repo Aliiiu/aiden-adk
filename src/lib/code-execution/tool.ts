@@ -38,37 +38,53 @@ export function createCodeExecutionTool(
 			- JSONata for querying and transforming JSON data (import { jsonata } from 'debank' or 'defillama')
 			- Timeout: ${config.timeout || 30000}ms
 
-			JSONata usage examples:
-			import { jsonata } from 'debank';
-			const data = await getSomeData();
+			⚠️ ALL imports must be STATIC at the top of the file!
+			✅ CORRECT:
+			import { getCoinCategories, getCoinsHistory } from 'coingecko';
+			import { jsonata } from 'debank';  // or 'defillama'
 
-			// Regex matching - use ~> operator (NOT =~ or ~)
+			❌ WRONG: const { getCoinsHistory } = await import('coingecko');  // Dynamic import FORBIDDEN!
+			❌ WRONG: import { jsonata } from 'coingecko';  // coingecko doesn't export jsonata!
+
+			⚠️ CRITICAL: ALWAYS inspect data structure BEFORE filtering!
+			const data = await getSomeData();
+			console.log('Fields:', Object.keys(data[0]));
+			console.log('Sample:', JSON.stringify(data[0], null, 2));
+			NEVER assume field names - use actual fields from log
+
+			Regex matching - use ~> operator (NOT =~ or ~)
 			const expr = jsonata('$[name ~> /bitcoin/i]');  // Case-insensitive
 			const result = await expr.evaluate(data);
 
-			// Array operations
+			For CoinGecko data (no jsonata), use native JS with safety checks:
+			MUST check Array.isArray() AND use optional chaining (?.)
+			(Array.isArray(coingeckoData)) {
+				const item = coingeckoData.find(x => x?.id?.toLowerCase().includes('meme'));
+			}
+
+			Array operations
 			const sum = await jsonata('$sum(items.price)').evaluate(data);
 			const first = await jsonata('$[0]').evaluate(data);
 
-			// Sorting with null handling (CRITICAL - filter nulls first!)
-			// WRONG: jsonata('$sort($, function($v) { -$v.change_7d })')  // Fails with negation
-			// CORRECT: Filter nulls first, sort ascending
+			Sorting with null handling (CRITICAL - filter nulls first!)
+			WRONG: jsonata('$sort($, function($v) { -$v.change_7d })')  // Fails with negation
+			CORRECT: Filter nulls first, sort ascending
 			const sorted = await jsonata('$sort($[change_7d != null], function($v) { $v.change_7d })').evaluate(data);
-			// For descending order, use $reverse()
+			For descending order, use $reverse()
 			const sortedDesc = await jsonata('$reverse($sort($[tvl != null], function($v) { $v.tvl }))').evaluate(data);
 
-			// Get top N items (NO [0..9] syntax!)
+			Get top N items (NO [0..9] syntax!)
 			const top10 = (sortedDesc || []).slice(0, 10);
 
-			// Object construction (NEVER use with $map!)
-			// WRONG: jsonata('$map($, function($v) { {name: $v.name} })')  // Always fails!
-			// CORRECT: Just filter arrays
+			Object construction (NEVER use with $map!)
+			WRONG: jsonata('$map($, function($v) { {name: $v.name} })')  // Always fails!
+			CORRECT: Just filter arrays
 			const filtered = await jsonata('$[tvl > 1000000]').evaluate(data);  // Returns full objects
 
-			// Handle undefined JSONata results (when filters match nothing)
+			Handle undefined JSONata results (when filters match nothing)
 			const result = await jsonata('$[price > 100]').evaluate(data);
-			// WRONG: result.map(...)  // Crashes if undefined!
-			// CORRECT: const safeResult = result || [];
+			WRONG: result.map(...)  // Crashes if undefined!
+			CORRECT: const safeResult = result || [];
 
 			IMPORTANT: The code must return { summary: string, data: any } at the end.
 			Use import statements to access modules.
