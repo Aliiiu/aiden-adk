@@ -39,15 +39,18 @@ export type GetRangeCoinsMarketChartResponse = z.infer<
 >;
 
 /**
- * Get historical market data for a coin within a date range
+ * Get historical market data (prices, market cap, volume) for a coin within a time range.
  *
- * @param params.id - Coin ID
- * @param params.vs_currency - Target currency (e.g., 'usd')
- * @param params.from - From timestamp (UNIX)
- * @param params.to - To timestamp (UNIX)
+ * Use this for date range queries: "last N days", "from date X to date Y", "between dates".
+ * Returns time-series data suitable for trend analysis, averaging, and charting.
+ *
+ * @param params.id - Coin ID (e.g., 'bitcoin', 'ethereum')
+ * @param params.vs_currency - Target currency (e.g., 'usd', 'eur')
+ * @param params.from - Start timestamp in Unix seconds
+ * @param params.to - End timestamp in Unix seconds
  * @param params.precision - Decimal precision (default: 2)
  *
- * @returns Historical price, market cap, and volume data
+ * @returns Time-series arrays: prices [[timestamp_ms, price], ...], market_caps, total_volumes
  *
  * @example
  * ```typescript

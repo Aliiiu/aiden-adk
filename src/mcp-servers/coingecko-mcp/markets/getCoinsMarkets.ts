@@ -8,6 +8,7 @@ import { executeTool } from "../shared.js";
 export const GetCoinsMarketsInputSchema = z.object({
 	vs_currency: z
 		.string()
+		.optional()
 		.default("usd")
 		.describe("Target currency (e.g., 'usd')"),
 	order: z
@@ -123,8 +124,9 @@ export type GetCoinsMarketsResponse = z.infer<
 export async function getCoinsMarkets(
 	params: GetCoinsMarketsInput,
 ): Promise<GetCoinsMarketsResponse> {
+	const parsedParams = GetCoinsMarketsInputSchema.parse(params);
 	return executeTool(
 		"get_coins_markets",
-		params,
+		parsedParams,
 	) as Promise<GetCoinsMarketsResponse>;
 }
