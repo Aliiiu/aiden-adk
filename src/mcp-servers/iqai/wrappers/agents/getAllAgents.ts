@@ -63,7 +63,8 @@ const allAgentsSchema = z
 export type GetAllAgentsResponse = z.infer<typeof allAgentsSchema>;
 
 /**
- * Get a paginated, sortable, and filterable list of all IQ AI agents with metadata and contract details.
+ * Get a paginated, sortable, and filterable list of all IQ AI agents with full metadata and contract details.
+ * Use this first to discover agents before calling other functions.
  */
 export async function getAllAgents(
 	params: GetAllAgentsInput = {},
