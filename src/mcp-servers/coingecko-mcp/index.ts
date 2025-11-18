@@ -16,6 +16,29 @@
  * - onchain/    - Onchain/DEX data, pools, tokens
  */
 
+import type { GetRangeCoinsMarketChartInput } from "./charts/getRangeCoinsMarketChart.js";
+import type { GetRangeCoinsOhlcInput } from "./charts/getRangeCoinsOhlc.js";
+import type { GetRangeContractCoinsMarketChartInput } from "./charts/getRangeContractCoinsMarketChart.js";
+import type { GetCoinDetailsInput } from "./coins/getCoinDetails.js";
+import type { GetCoinsHistoryInput } from "./coins/getCoinsHistory.js";
+import type { GetSimpleTokenPriceInput } from "./coins/getSimpleTokenPrice.js";
+import type { GetCoinsContractInput } from "./contracts/getCoinsContract.js";
+import type { GetSimplePriceInput } from "./contracts/getSimplePrice.js";
+import type { GetExchangesByIdInput } from "./exchanges/getExchangesById.js";
+import type { GetExchangesListInput } from "./exchanges/getExchangesList.js";
+import type { GetExchangesTickersInput } from "./exchanges/getExchangesTickers.js";
+import type { GetRangeExchangesVolumeChartInput } from "./exchanges/getRangeExchangesVolumeChart.js";
+import type { GetCoinsListInput } from "./markets/getCoinsList.js";
+import type { GetCoinsMarketsInput } from "./markets/getCoinsMarkets.js";
+import type { GetTopGainersLosersInput } from "./markets/getTopGainersLosers.js";
+import type { SearchInput } from "./markets/search.js";
+import type { GetNftsByIdInput } from "./nfts/getNftsById.js";
+import type { GetNftsListInput } from "./nfts/getNftsList.js";
+import type { GetNftsMarketChartInput } from "./nfts/getNftsMarketChart.js";
+import type { GetNftsMarketsInput } from "./nfts/getNftsMarkets.js";
+import type { GetAssetPlatformsInput } from "./utilities/getAssetPlatforms.js";
+import type { GetUtilitiesExchangesListInput } from "./utilities/getExchangesList.js";
+
 // Categories
 export { getCoinCategories } from "./categories/getCoinCategories.js";
 // Charts/OHLC
@@ -84,26 +107,26 @@ export { searchDocs } from "./utilities/searchDocs.js";
 // Default export with all functions grouped
 export default {
 	// Markets
-	getCoinsMarkets: async (params: any) =>
+	getCoinsMarkets: async (params: GetCoinsMarketsInput) =>
 		(await import("./markets/getCoinsMarkets.js")).getCoinsMarkets(params),
-	getTopGainersLosers: async (params?: any) =>
+	getTopGainersLosers: async (params: GetTopGainersLosersInput) =>
 		(await import("./markets/getTopGainersLosers.js")).getTopGainersLosers(
 			params,
 		),
 	getTrendingSearch: async () =>
 		(await import("./markets/getTrendingSearch.js")).getTrendingSearch(),
-	search: async (params: any) =>
+	search: async (params: SearchInput) =>
 		(await import("./markets/search.js")).search(params),
 	getGlobal: async () => (await import("./markets/getGlobal.js")).getGlobal(),
-	getCoinsList: async (params?: any) =>
+	getCoinsList: async (params?: GetCoinsListInput) =>
 		(await import("./markets/getCoinsList.js")).getCoinsList(params),
 
 	// Coins
-	getCoinDetails: async (params: any) =>
+	getCoinDetails: async (params: GetCoinDetailsInput) =>
 		(await import("./coins/getCoinDetails.js")).getCoinDetails(params),
-	getCoinsHistory: async (params: any) =>
+	getCoinsHistory: async (params: GetCoinsHistoryInput) =>
 		(await import("./coins/getCoinsHistory.js")).getCoinsHistory(params),
-	getSimpleTokenPrice: async (params: any) =>
+	getSimpleTokenPrice: async (params: GetSimpleTokenPriceInput) =>
 		(await import("./coins/getSimpleTokenPrice.js")).getSimpleTokenPrice(
 			params,
 		),
@@ -113,19 +136,19 @@ export default {
 		(await import("./categories/getCoinCategories.js")).getCoinCategories(),
 
 	// Utilities
-	getAssetPlatforms: async (params?: any) =>
+	getAssetPlatforms: async (params?: GetAssetPlatformsInput) =>
 		(await import("./utilities/getAssetPlatforms.js")).getAssetPlatforms(
 			params,
 		),
-	getExchangesList: async (params?: any) =>
+	getExchangesList: async (params?: GetUtilitiesExchangesListInput) =>
 		(await import("./utilities/getExchangesList.js")).getExchangesList(params),
 	getNewCoinsList: async () =>
 		(await import("./utilities/getNewCoinsList.js")).getNewCoinsList(),
 
 	// Contracts/Tokens
-	getCoinsContract: async (params: any) =>
+	getCoinsContract: async (params: GetCoinsContractInput) =>
 		(await import("./contracts/getCoinsContract.js")).getCoinsContract(params),
-	getSimplePrice: async (params: any) =>
+	getSimplePrice: async (params: GetSimplePriceInput) =>
 		(await import("./contracts/getSimplePrice.js")).getSimplePrice(params),
 	getSimpleSupportedVsCurrencies: async () =>
 		(
@@ -133,37 +156,41 @@ export default {
 		).getSimpleSupportedVsCurrencies(),
 
 	// Charts/OHLC
-	getRangeCoinsMarketChart: async (params: any) =>
+	getRangeCoinsMarketChart: async (params: GetRangeCoinsMarketChartInput) =>
 		(
 			await import("./charts/getRangeCoinsMarketChart.js")
 		).getRangeCoinsMarketChart(params),
-	getRangeCoinsOhlc: async (params: any) =>
+	getRangeCoinsOhlc: async (params: GetRangeCoinsOhlcInput) =>
 		(await import("./charts/getRangeCoinsOhlc.js")).getRangeCoinsOhlc(params),
-	getRangeContractCoinsMarketChart: async (params: any) =>
+	getRangeContractCoinsMarketChart: async (
+		params: GetRangeContractCoinsMarketChartInput,
+	) =>
 		(
 			await import("./charts/getRangeContractCoinsMarketChart.js")
 		).getRangeContractCoinsMarketChart(params),
 
 	// NFTs
-	getNftsById: async (params: any) =>
+	getNftsById: async (params: GetNftsByIdInput) =>
 		(await import("./nfts/getNftsById.js")).getNftsById(params),
-	getNftsList: async (params?: any) =>
+	getNftsList: async (params?: GetNftsListInput) =>
 		(await import("./nfts/getNftsList.js")).getNftsList(params),
-	getNftsMarketChart: async (params: any) =>
+	getNftsMarketChart: async (params: GetNftsMarketChartInput) =>
 		(await import("./nfts/getNftsMarketChart.js")).getNftsMarketChart(params),
-	getNftsMarkets: async (params: any) =>
+	getNftsMarkets: async (params: GetNftsMarketsInput) =>
 		(await import("./nfts/getNftsMarkets.js")).getNftsMarkets(params),
 
 	// Exchanges
-	getExchangesById: async (params: any) =>
+	getExchangesById: async (params: GetExchangesByIdInput) =>
 		(await import("./exchanges/getExchangesById.js")).getExchangesById(params),
-	getExchangesListDetailed: async (params?: any) =>
+	getExchangesListDetailed: async (params?: GetExchangesListInput) =>
 		(await import("./exchanges/getExchangesList.js")).getExchangesList(params),
-	getExchangesTickers: async (params: any) =>
+	getExchangesTickers: async (params: GetExchangesTickersInput) =>
 		(await import("./exchanges/getExchangesTickers.js")).getExchangesTickers(
 			params,
 		),
-	getRangeExchangesVolumeChart: async (params: any) =>
+	getRangeExchangesVolumeChart: async (
+		params: GetRangeExchangesVolumeChartInput,
+	) =>
 		(
 			await import("./exchanges/getRangeExchangesVolumeChart.js")
 		).getRangeExchangesVolumeChart(params),
