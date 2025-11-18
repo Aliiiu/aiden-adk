@@ -185,12 +185,14 @@ export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 	const defillamaModule = await import(
 		"../../mcp-servers/defillama-mcp/wrappers/index.js"
 	);
+	const iqaiModule = await import("../../mcp-servers/iqai/wrappers/index.js");
 
 	return createCodeExecutionTool({
 		availableModules: {
 			coingecko: createModule(coingeckoModule),
 			debank: createModule(debankModule),
 			defillama: createModule(defillamaModule),
+			iqai: createModule(iqaiModule),
 		},
 		timeout: 60000,
 	});

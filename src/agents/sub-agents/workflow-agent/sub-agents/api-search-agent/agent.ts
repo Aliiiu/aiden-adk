@@ -136,6 +136,7 @@ export const getApiSearchAgent = async () => {
     - **coingecko** - Market data, prices, charts, NFTs, exchanges, onchain/DEX data
     - **debank** - User portfolios, DeFi positions, wallet analytics, transaction history
     - **defillama** - Protocol TVL, chain rankings, DeFi metrics, historical data
+    - **iqai** - IQ AI agent discovery, stats, logs, and holdings data
 
     Use \`discover_tools\` to search by keywords like "price", "wallet", "protocol tvl", etc.
 

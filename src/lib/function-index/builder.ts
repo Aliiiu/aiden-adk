@@ -14,7 +14,7 @@ const logger = createChildLogger("Function Index Builder");
 
 export interface FunctionMetadata {
 	name: string;
-	module: "coingecko" | "debank" | "defillama";
+	module: "coingecko" | "debank" | "defillama" | "iqai";
 	category: string;
 	description: string;
 	parameters: string;
@@ -27,7 +27,7 @@ export interface FunctionMetadata {
  */
 function extractFunctionsFromFile(
 	filePath: string,
-	module: "coingecko" | "debank" | "defillama",
+	module: "coingecko" | "debank" | "defillama" | "iqai",
 ): FunctionMetadata[] {
 	if (!fs.existsSync(filePath)) {
 		logger.warn(`File not found: ${filePath}`);
@@ -121,6 +121,7 @@ export function buildFunctionIndex(): {
 			projectRoot,
 			"src/mcp-servers/defillama-mcp/wrappers/index.ts",
 		),
+		iqai: path.join(projectRoot, "src/mcp-servers/iqai/wrappers/index.ts"),
 	};
 
 	// Extract functions from each module
