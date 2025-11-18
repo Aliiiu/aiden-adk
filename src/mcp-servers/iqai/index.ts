@@ -1,6 +1,6 @@
 import { FastMCP } from "fastmcp";
 import { createChildLogger } from "../../lib/utils/logger.js";
-import { getIqAiTools } from "./tools.js";
+import { getIqAiTools } from "./tools/index.js";
 
 const logger = createChildLogger("IQ AI MCP");
 
