@@ -102,24 +102,6 @@ export const getApiSearchAgent = async () => {
     const details = await getProtocols({ protocol: protocolSlug });
     \`\`\`
 
-    **DefiLlama Data Structure:**
-    \`\`\`typescript
-    // Protocol response structure:
-    {
-      id: "123",
-      slug: "compound-finance",      // ← Use this for API queries
-      name: "Compound",
-      symbol: "COMP",
-      tvl: 1234567890,
-      chainTvls: {                    // ← Record, NOT array!
-        "Ethereum": 1000000,
-        "Arbitrum": 234567
-      },
-      currentChainTvls: {             // Current TVL by chain
-        "Ethereum": 1000000
-      }
-    }
-
     // Access chain-specific TVL:
     const ethTvl = protocol.chainTvls?.Ethereum || protocol.chainTvls?.ethereum;
 
