@@ -1,7 +1,3 @@
-/**
- * Get exchange data by ID
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -46,17 +42,17 @@ export type GetExchangesByIdResponse = z.infer<
 >;
 
 /**
- * Get detailed exchange data by exchange ID
+ * Get detailed exchange data by ID (order books not included).
+ *
+ * Use this after discovering an exchange via `getExchangesList` to retrieve metadata,
+ * tickers count, trust score, and links.
  *
  * @param params.id - Exchange ID (e.g., 'binance', 'coinbase_exchange')
- *
  * @returns Detailed exchange data including volume, tickers, trust score
  *
  * @example
  * ```typescript
- * const exchange = await getExchangesById({
- *   id: 'binance'
- * });
+ * const exchange = await getExchangesById({ id: 'binance' });
  * ```
  */
 export async function getExchangesById(
