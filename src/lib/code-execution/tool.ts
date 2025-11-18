@@ -46,24 +46,29 @@ export function createCodeExecutionTool(
 			const protocols = await getProtocols({});
 			const filtered = await jsonata('$[tvl > 1000000]').evaluate(protocols);
 
-			✅ CORRECT: Native JS for coingecko/iqai (NO jsonata!)
-			import { getAllAgents } from 'iqai';
-			const agents = await getAllAgents({});
-			const patrick = Array.isArray(agents)
-			  ? agents.find(a => a?.name?.toLowerCase().includes('patrick'))
-			  : null;
+			✅ CORRECT: Native JS for coingecko/iqai with defensive pattern (NO jsonata!)
+			import { someFunction } from 'iqai';
+			const response = await someFunction({});
+			console.log('Keys:', Array.isArray(response) ? 'N/A' : Object.keys(response));
+
+			// Defensive pattern - extract array from common locations
+			let dataArray = [];
+			if (Array.isArray(response)) {
+			  dataArray = response;
+			} else if (response?.agents) {
+			  dataArray = response.agents;
+			} else if (response?.data) {
+			  dataArray = response.data;
+			} else if (response) {
+			  dataArray = [response];  // Single object
+			}
+			const item = dataArray.find(a => a?.someField?.includes('search'));
 
 			❌ WRONG: const { getCoinsHistory } = await import('coingecko');  // Dynamic import FORBIDDEN!
 			❌ WRONG: import { jsonata } from 'coingecko';  // coingecko doesn't export jsonata!
 			❌ WRONG: import { jsonata } from 'iqai';  // iqai doesn't export jsonata!
-			❌ WRONG: import { getAllAgents } from 'iqai'; import { jsonata } from 'debank';  // DON'T mix!
-
-			⚠️ CRITICAL: ALWAYS inspect data structure BEFORE filtering!
-			const response = await getSomeData();
-			console.log('Type:', Array.isArray(response) ? 'array' : typeof response);
-			console.log('Keys:', Object.keys(response));
-			console.log('Sample:', JSON.stringify(response, null, 2).slice(0, 10));
-			// Response might be {agents: [...]} not [...] - NEVER assume!
+			❌ WRONG: Filtering without inspecting structure first! like below
+			❌ WRONG: const item = Array.isArray(response) ? response.find(...) : null;  // FAILS for nested response data!
 
 			Array operations
 			const sum = await jsonata('$sum(items.price)').evaluate(data);
