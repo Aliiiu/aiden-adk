@@ -103,6 +103,17 @@ export async function executeInSandbox(
 			`Result value: ${result === undefined ? "undefined" : "has value"}`,
 		);
 
+		// Short-circuit before serialization for clearer error messaging
+		if (result === undefined) {
+			return {
+				success: false,
+				error:
+					"Code execution returned undefined. Ensure your script ends with: return { summary: string, data: any }.",
+				executionTime,
+				consoleOutput: consoleOutput.length > 0 ? consoleOutput : undefined,
+			};
+		}
+
 		// Serialize result to ensure it's cloneable and remove any non-serializable objects
 		let serializedResult: any;
 		try {
