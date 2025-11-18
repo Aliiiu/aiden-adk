@@ -55,7 +55,15 @@ export type GetLatestPoolDataResponse = z.infer<
 >;
 
 /**
- * Get latest yield pool data with sorting
+ * Get latest yield farming pool data sorted by APY or pool TVL.
+ *
+ * Returns liquidity pools with yield opportunities. For protocol-level TVL rankings and changes, use getProtocols instead.
+ *
+ * @param input.sortCondition - Sort by: "apy" (annual percentage yield) or "tvlUsd" (pool TVL)
+ * @param input.order - Sort order: "desc" or "asc"
+ * @param input.limit - Number of pools to return (default: 10)
+ *
+ * @returns Array of yield pools with APY (1d, 7d, 30d), pool TVL, protocol, chain
  */
 export async function getLatestPoolData(
 	input?: GetLatestPoolDataInput,

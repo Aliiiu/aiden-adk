@@ -72,12 +72,14 @@ export type GetSearchOnchainPoolsResponse = z.infer<
 >;
 
 /**
- * Search for onchain pools by query
+ * Search for DEX trading pools (liquidity pairs) by token name, symbol, or contract address.
  *
- * @param params.query - Search query (token name, symbol, or address)
- * @param params.network - Optional network filter
+ * Returns onchain DEX pools for trading specific token pairs. For protocol TVL data or yield farming pools, use DefiLlama functions instead.
  *
- * @returns Matching pools
+ * @param params.query - Search query (token name, symbol, or contract address)
+ * @param params.network - Optional network filter (e.g., 'eth', 'bsc')
+ *
+ * @returns Matching DEX pools with trading pair info, token prices, 24h volume, reserves
  *
  * @example
  * ```typescript

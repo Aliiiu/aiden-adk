@@ -56,11 +56,17 @@ export type GetProtocolsInput = z.infer<typeof GetProtocolsInputSchema>;
 export type GetProtocolsResponse = z.infer<typeof GetProtocolsResponseSchema>;
 
 /**
- * Get protocol data - specific protocol or top protocols ranked by TVL or change
+ * Get DeFi protocol data with TVL metrics and rankings.
  *
- * NOTE: Only the documented parameters are supported. Do not pass ad-hoc fields
- * like `search`—use the `protocol` argument (optionally resolved via discovery)
- * or filter the returned array in your code.
+ * Fetch specific protocol details or rank all protocols by total value locked (TVL) and TVL changes over time.
+ *
+ * @param input.protocol - Optional protocol slug for detailed data (e.g., "aave", "uniswap")
+ * @param input.sortCondition - Ranking metric: "tvl", "change_1h", "change_1d", "change_7d"
+ * @param input.order - Sort order: "desc" (descending) or "asc" (ascending)
+ *
+ * @returns Protocol data including TVL, hourly/daily/weekly changes, chains, category
+ *
+ * NOTE: Only documented parameters are supported. Do not pass ad-hoc fields like `search`.
  */
 export async function getProtocols(
 	input: GetProtocolsInput,
