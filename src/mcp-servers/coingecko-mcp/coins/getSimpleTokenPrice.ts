@@ -1,5 +1,8 @@
 /**
- * Get simple token price by contract address
+ * Get current token price by contract address on a specific platform (chain).
+ *
+ * Use this for contract-level pricing (e.g., ERC-20 tokens). Requires `id` (platform)
+ * and `contract_addresses`. For broader coin pricing by ID, use `getCoinsMarkets`.
  */
 
 import { z } from "zod";

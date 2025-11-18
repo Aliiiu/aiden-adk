@@ -1,5 +1,8 @@
 /**
- * Get detailed data for a specific coin
+ * Get full profile, market, community, and developer data for a specific coin.
+ *
+ * Use this when you need detailed fundamentals, descriptions, tickers, and metrics.
+ * Discover coin IDs first via `search` or `getCoinsList`.
  */
 
 import { z } from "zod";

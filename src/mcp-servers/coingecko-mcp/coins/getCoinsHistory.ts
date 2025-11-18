@@ -1,5 +1,7 @@
 /**
- * Get historical data (price, market cap, 24hr volume) at a given date
+ * Get historical market data (price, market cap, 24h volume) for a coin at a specific date.
+ *
+ * Use this for point-in-time lookups (e.g., valuation at a past date). Requires the coin ID.
  */
 
 import { z } from "zod";
