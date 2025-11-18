@@ -53,6 +53,7 @@ export const getWorkflowAgent = async () => {
     **api-search-agent** knows:
     - Real-time cryptocurrency prices and market data (CoinGecko)
     - DeFi protocol metrics: TVL, volume, fees, revenue (DefiLlama)
+    - IQ AI agent/platform data: discovery, stats, holdings, activity (IQ AI Tools)
     - DEX trading volumes and liquidity data
     - Stablecoin circulation and peg data
     - Bridge volumes and cross-chain transaction data

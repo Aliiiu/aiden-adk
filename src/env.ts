@@ -13,6 +13,10 @@ export const envSchema = z.object({
 	IQ_GATEWAY_KEY: z.string(),
 	GOOGLE_GENERATIVE_AI_API_KEY: z.string(),
 	LOG_LEVEL: z.string().optional(),
+	// Langfuse Telemetry Configuration
+	LANGFUSE_PUBLIC_KEY: z.string().optional(),
+	LANGFUSE_SECRET_KEY: z.string().optional(),
+	LANGFUSE_BASEURL: z.string().optional(),
 });
 
 /**

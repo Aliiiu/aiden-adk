@@ -37,7 +37,6 @@ function getFunctionIndex() {
 
 /**
  * Extract user query from ADK ToolContext
- * The userContent contains the original user message that started the invocation
  */
 function extractQueryFromContext(context?: ToolContext): string | null {
 	if (!context?.userContent?.parts) return null;
@@ -46,9 +45,7 @@ function extractQueryFromContext(context?: ToolContext): string | null {
 }
 
 /**
- * Wraps an MCP tool to inject user query for data filtering
- * This wrapper extracts the user's original query from context and passes it
- * as _userQuery parameter to MCP tools for context-aware filtering
+ * Injects user query (_userQuery) into MCP tool calls for contextual filtering
  */
 function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
@@ -57,11 +54,8 @@ function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 		args: Record<string, unknown>,
 		context: ToolContext,
 	) => {
-		// Extract user query from context
 		const query = extractQueryFromContext(context);
-		if (query) {
-			logger.info(`Extracted user query for tool ${tool.name}`);
-		}
+		if (query) logger.info(`Extracted user query for tool ${tool.name}`);
 
 		const enhancedArgs = query ? { ...args, _userQuery: query } : args;
 		return await originalRunAsync(enhancedArgs, context);
@@ -71,12 +65,11 @@ function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 }
 
 /**
- * Wraps an MCP tool to catch errors and return them as safe, structured objects.
+ * Wraps an MCP tool to catch errors safely and return structured messages.
  */
 function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
 
-	// Override runAsync to catch errors and extract MCP content
 	tool.runAsync = async (
 		args: Record<string, unknown>,
 		context: ToolContext,
@@ -84,7 +77,6 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 		try {
 			return await originalRunAsync(args, context);
 		} catch (error) {
-			// Return error as a safe object instead of throwing
 			const errorMessage =
 				error instanceof Error ? error.message : "Unknown error";
 			console.error(`Error in tool ${tool.name}:`, errorMessage);
@@ -101,18 +93,20 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 	return tool;
 }
 
-export const getCoingeckoTools = async () => {
+/**
+ * Load CoinGecko tools via MCP
+ */
+export const getCoingeckoTools = async (): Promise<BaseTool[]> => {
 	try {
 		const toolset = new McpToolset({
 			name: "Coingecko MCP",
 			description: "mcp for coingecko",
-			debug: false, // Set to true to see detailed MCP logs
+			debug: false,
 			transport: {
 				mode: "stdio",
 				command: "npx",
 				args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
 			},
-			timeout: 120000, // 2 minutes (120s) for remote API calls
 			retryOptions: {
 				maxRetries: 1,
 				initialDelay: 1000,
@@ -121,8 +115,9 @@ export const getCoingeckoTools = async () => {
 
 		const tools = await toolset.getTools();
 		logger.info(`Loaded ${tools.length} CoinGecko tools`);
-
-		return tools.map((tool) => wrapToolWithErrorHandling(tool));
+		return tools.map((tool) =>
+			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
+		);
 	} catch (error) {
 		logger.warn("Failed to load CoinGecko MCP tools", error as Error);
 		return [];
@@ -130,24 +125,17 @@ export const getCoingeckoTools = async () => {
 };
 
 /**
- * Get DefiLlama tools
- *
- * Two approaches available:
- * 1. Direct import (current) - Simpler, faster, already working
- * 2. MCP Server via McpToolset - True MCP protocol, can be shared with other clients
+ * Load DefiLlama tools (direct import)
  */
-export const getDefillamaToolsWrapped = () => {
-	// OPTION 1: Direct import (current implementation - simpler and faster)
+export const getDefillamaToolsWrapped = (): BaseTool[] => {
 	const tools = getDefillamaTools();
 	return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
 };
 
 /**
- * Alternative: Get DefiLlama tools via MCP Server
- * Replace getDefillamaToolsWrapped() usage in agent.ts with this function
- * to use the true MCP protocol approach
+ * Load DefiLlama tools via MCP
  */
-export const getDefillamaToolsViaMcp = async () => {
+export const getDefillamaToolsViaMcp = async (): Promise<BaseTool[]> => {
 	try {
 		const projectRoot = process.cwd();
 		const defillamaMcpPath = path.join(
@@ -155,27 +143,27 @@ export const getDefillamaToolsViaMcp = async () => {
 			"src/mcp-servers/defillama-mcp/index.ts",
 		);
 
-		// Verify file exists
 		if (!fs.existsSync(defillamaMcpPath)) {
-			throw new Error(
-				`DefiLlama MCP server not found at: ${defillamaMcpPath}\nCurrent working directory: ${projectRoot}`,
-			);
+			throw new Error(`DefiLlama MCP server not found at: ${defillamaMcpPath}`);
 		}
 
 		const toolset = new McpToolset({
 			name: "DefiLlama MCP",
 			description: "DeFi data via DefiLlama MCP server",
+			debug: false,
 			transport: {
 				mode: "stdio",
 				command: "npx",
 				args: ["tsx", defillamaMcpPath],
 			},
-			timeout: 120000, // 2 minutes (120s) for large responses with AI processing
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
 		});
 
 		const tools = await toolset.getTools();
 		logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
-		// Apply both wrappers: query injection first, then error handling
 		return tools.map((tool) =>
 			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
 		);
@@ -186,16 +174,49 @@ export const getDefillamaToolsViaMcp = async () => {
 };
 
 /**
- * Get DeBank tools via MCP Server
- * Provides comprehensive blockchain and DeFi user data including:
- * - Chain information and supported networks
- * - Protocol details and TVL data
- * - User portfolios, balances, and positions
- * - Token holdings and NFT collections
- * - Transaction history and authorizations
- * - Gas prices and transaction simulation
+ * Load IQ AI tools via MCP
  */
-export const getDebankToolsViaMcp = async () => {
+export const getIqAiToolsViaMcp = async (): Promise<BaseTool[]> => {
+	try {
+		const projectRoot = process.cwd();
+		const iqAiMcpPath = path.join(projectRoot, "src/mcp-servers/iqai/index.ts");
+
+		if (!fs.existsSync(iqAiMcpPath)) {
+			throw new Error(
+				`IQ AI MCP server not found at: ${iqAiMcpPath}\nCurrent working directory: ${projectRoot}`,
+			);
+		}
+
+		const toolset = new McpToolset({
+			name: "IQ AI MCP",
+			description: "IQ AI agent data via IQ AI MCP server",
+			debug: false,
+			transport: {
+				mode: "stdio",
+				command: "npx",
+				args: ["tsx", iqAiMcpPath],
+			},
+			retryOptions: {
+				maxRetries: 1,
+				initialDelay: 1000,
+			},
+		});
+
+		const tools = await toolset.getTools();
+		logger.info(`Loaded ${tools.length} IQ AI tools via MCP`);
+		return tools.map((tool) =>
+			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
+		);
+	} catch (error) {
+		logger.warn("Failed to load IQ AI tools via MCP", error as Error);
+		return [];
+	}
+};
+
+/**
+ * Load DeBank tools via MCP
+ */
+export const getDebankToolsViaMcp = async (): Promise<BaseTool[]> => {
 	try {
 		const projectRoot = process.cwd();
 		const debankMcpPath = path.join(
@@ -203,7 +224,6 @@ export const getDebankToolsViaMcp = async () => {
 			"src/mcp-servers/debank-mcp/index.ts",
 		);
 
-		// Verify file exists
 		if (!fs.existsSync(debankMcpPath)) {
 			throw new Error(
 				`DeBank MCP server not found at: ${debankMcpPath}\nCurrent working directory: ${projectRoot}`,
@@ -218,12 +238,11 @@ export const getDebankToolsViaMcp = async () => {
 				command: "npx",
 				args: ["tsx", debankMcpPath],
 			},
-			timeout: 120000, // 2 minutes (120s) for large responses with AI processing
+			timeout: 120000,
 		});
 
 		const tools = await toolset.getTools();
 		logger.info(`Loaded ${tools.length} DeBank tools via MCP`);
-		// Apply both wrappers: query injection first, then error handling
 		return tools.map((tool) =>
 			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
 		);
