@@ -97,30 +97,20 @@ export const getDiscoverToolsTool = () => {
 			query: z
 				.string()
 				.describe(
-					"Search query (e.g., 'protocol tvl', 'wallet balance', 'price chart'). Use keywords to find functions.",
+					"Search query with ALL relevant context from the user's request. Examples: 'IQ ATP agent token price', 'Ethereum wallet balance', 'protocol tvl rankings'.",
 				),
-			module: z
-				.enum(["coingecko", "debank", "defillama", "iqai"])
-				.optional()
-				.describe("Filter results to a specific module (optional)"),
 			limit: z
 				.number()
 				.optional()
 				.default(10)
 				.describe("Maximum number of results to return (default: 10)"),
 		}),
-		fn: async ({ query, module, limit = 10 }) => {
+		fn: async ({ query, limit = 10 }) => {
 			try {
 				const { index, documents } = getFunctionIndex();
 
-				// Build search query with optional module filter
-				let searchQuery = query;
-				if (module) {
-					searchQuery = `${query} +module:${module}`;
-				}
-
 				// Search the index
-				const results = searchFunctions(index, documents, searchQuery, limit);
+				const results = searchFunctions(index, documents, query, limit);
 
 				if (results.length === 0) {
 					return {

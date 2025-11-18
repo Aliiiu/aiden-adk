@@ -39,6 +39,9 @@ export const getApiSearchAgent = async () => {
     \`\`\`
     **NEVER write code without doing this first!**
 
+    ⚠️ **CRITICAL: Pass the complete user query with all context!**
+    When searching for functions, include ALL relevant keywords from the user's request: chain names, platform names, token types, and actions.
+
     ### Step 2: RESOLVE - Get canonical identifiers (when query mentions entities)
 
     ⚠️ **CRITICAL**: APIs require CANONICAL IDENTIFIERS (slugs/IDs), not names!
@@ -145,7 +148,46 @@ export const getApiSearchAgent = async () => {
 
     ## Code Execution Rules (STRICT ENFORCEMENT)
 
-    1. ⚠️ **CRITICAL: Code Structure**
+    1. 🚨 **RULE #1 - INSPECT DATA STRUCTURE FIRST! (MOST IMPORTANT)** 🚨
+       **NEVER assume response is a direct array - ALWAYS use defensive pattern!**
+       **APIs return nested objects like {agents: [...]} or {data: [...]}!**
+
+       \`\`\`typescript
+       // 🚨 STEP 1: Always log the response
+       const response = await getAllAgents({});
+       console.log('=== STRUCTURE CHECK ===');
+       console.log('Type:', Array.isArray(response) ? 'array' : typeof response);
+       console.log('Keys:', Array.isArray(response) ? 'N/A' : Object.keys(response));
+       console.log('Sample:', JSON.stringify(response, null, 2).slice(0, 500));
+
+       // 🚨 STEP 2: Use defensive pattern - extract array from common locations
+       let dataArray = [];
+       if (Array.isArray(response)) {
+         dataArray = response;  // Direct array
+       } else if (response?.agents && Array.isArray(response.agents)) {
+         dataArray = response.agents;  // Nested as {agents: [...]}
+       } else if (response?.data && Array.isArray(response.data)) {
+         dataArray = response.data;  // Nested as {data: [...]}
+       } else if (typeof response === 'object' && response !== null) {
+         // Single object - wrap in array for consistent handling
+         dataArray = [response];
+       }
+
+       // 🚨 STEP 3: NOW you can safely filter/search the array
+       const item = dataArray.find(a => a?.name?.toLowerCase().includes('patrick'));
+       \`\`\`
+
+       **⚠️ CRITICAL MISTAKES TO AVOID:**
+       \`\`\`typescript
+       // ❌ WRONG: Checking Array.isArray() at top level without defensive pattern
+       const agents = await getAllAgents({});
+       const item = Array.isArray(agents) ? agents.find(...) : null;
+       // This FAILS if agents = {agents: [...]} because you're checking wrong level!
+
+       // ✅ CORRECT: Always use defensive pattern above
+       \`\`\`
+
+    2. ⚠️ **CRITICAL: Code Structure**
        Your code MUST end with a top-level return statement:
        \`\`\`typescript
        // If using an async function:
@@ -162,12 +204,6 @@ export const getApiSearchAgent = async () => {
        ❌ WRONG: \`myFunction();\` (no return)
        ❌ WRONG: \`await myFunction();\` (no return)
        ✅ CORRECT: \`return await myFunction();\`
-
-    2. ⚠️ **Return Format**
-       MUST return: \`{ summary: string, data: any }\`
-       - \`summary\`: Human-readable description (e.g., "Found Compound protocol with TVL $2.5B")
-       - \`data\`: The actual result object/array
-       - No export statements, no undefined returns!
 
     3. ⚠️ **Import Rules - ALL imports must be static at the top!**
        \`\`\`typescript
@@ -193,13 +229,11 @@ export const getApiSearchAgent = async () => {
        \`\`\`
        **Security note**: Dynamic imports are blocked to prevent code injection attacks.
 
-    4. ⚠️ **MUST use exact function names** from \`discover_tools\` - Never guess
-
-    5. ⚠️ **MUST use only documented parameters** - Functions reject unknown parameters
+    4. ⚠️ **MUST use only documented parameters** - Functions reject unknown parameters
        - Check \`discover_tools\` output for parameter list
        - NEVER invent parameters (e.g., no \`search\` param unless documented)
 
-    6. ⚠️ **JSONata Availability (CRITICAL)**
+    5. ⚠️ **JSONata Availability (CRITICAL)**
        **JSONata is ONLY available for \`debank\` and \`defillama\` modules!**
        **For \`coingecko\` and \`iqai\`: MUST use native JavaScript with safety checks**
 
@@ -330,36 +364,7 @@ export const getApiSearchAgent = async () => {
        - API responses are often large nested structures
        - JavaScript array methods fail on large datasets
 
-    7. **⚠️ CRITICAL: ALWAYS inspect data structure first!**
-       **NEVER assume field names OR structure** - APIs may use generic names and nested objects
-       \`\`\`typescript
-       // ⚠️ MANDATORY: Log data structure before ANY filtering
-       const response = await someFunction({});
-       console.log('Response type:', Array.isArray(response) ? 'array' : typeof response);
-       console.log('Response keys:', Object.keys(response));
-       console.log('Full sample:', JSON.stringify(response, null, 2).slice(0, 500));
-
-       // Common patterns after inspection:
-       // Pattern 1: Direct array
-       if (Array.isArray(response)) {
-         const filtered = response.filter(item => ...);
-       }
-
-       // Pattern 2: Nested array (e.g., {agents: [...], pagination: {...}})
-       if (response.agents && Array.isArray(response.agents)) {
-         const filtered = response.agents.filter(item => ...);
-       }
-
-       // Pattern 3: Wrapped object (e.g., {data: [...], status: 'ok'})
-       if (response.data && Array.isArray(response.data)) {
-         const filtered = response.data.filter(item => ...);
-       }
-
-       // ✅ Now you know the actual structure and field names
-       // Example: If you see {agents: [{name, ticker}]} then use response.agents
-       \`\`\`
-
-    8. **⚠️ JSONata can return undefined - ALWAYS handle this!**
+    6. **⚠️ JSONata can return undefined - ALWAYS handle this!**
        When JSONata filters match nothing, it returns \`undefined\` (NOT an empty array).
        \`\`\`typescript
        const filtered = await jsonata('$[tvlUsd > 1000000]').evaluate(data);
@@ -380,7 +385,7 @@ export const getApiSearchAgent = async () => {
        };
        \`\`\`
 
-    9. **Multiple values = comma-separated strings** - 'bitcoin,ethereum' not arrays
+    7. **Multiple values = comma-separated strings** - 'bitcoin,ethereum' not arrays
 
     ## ERROR HANDLING
     If code execution fails, explain: "I apologize, but I'm unable to retrieve that data right now. Please try again shortly."
