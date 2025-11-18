@@ -38,13 +38,40 @@ export function createCodeExecutionTool(
 			- JSONata for querying and transforming JSON data (import { jsonata } from 'debank' or 'defillama')
 			- Timeout: ${config.timeout || 30000}ms
 
-			JSONata usage example:
+			JSONata usage examples:
 			import { jsonata } from 'debank';
 			const data = await getSomeData();
-			const expression = jsonata('$sum(items.price)');
-			const result = await expression.evaluate(data);
 
-			The code must return a value at the end. Use import statements to access modules.
+			// Regex matching - use ~> operator (NOT =~ or ~)
+			const expr = jsonata('$[name ~> /bitcoin/i]');  // Case-insensitive
+			const result = await expr.evaluate(data);
+
+			// Array operations
+			const sum = await jsonata('$sum(items.price)').evaluate(data);
+			const first = await jsonata('$[0]').evaluate(data);
+
+			// Sorting with null handling (CRITICAL - filter nulls first!)
+			// WRONG: jsonata('$sort($, function($v) { -$v.change_7d })')  // Fails with negation
+			// CORRECT: Filter nulls first, sort ascending
+			const sorted = await jsonata('$sort($[change_7d != null], function($v) { $v.change_7d })').evaluate(data);
+			// For descending order, use $reverse()
+			const sortedDesc = await jsonata('$reverse($sort($[tvl != null], function($v) { $v.tvl }))').evaluate(data);
+
+			// Get top N items (NO [0..9] syntax!)
+			const top10 = (sortedDesc || []).slice(0, 10);
+
+			// Object construction (NEVER use with $map!)
+			// WRONG: jsonata('$map($, function($v) { {name: $v.name} })')  // Always fails!
+			// CORRECT: Just filter arrays
+			const filtered = await jsonata('$[tvl > 1000000]').evaluate(data);  // Returns full objects
+
+			// Handle undefined JSONata results (when filters match nothing)
+			const result = await jsonata('$[price > 100]').evaluate(data);
+			// WRONG: result.map(...)  // Crashes if undefined!
+			// CORRECT: const safeResult = result || [];
+
+			IMPORTANT: The code must return { summary: string, data: any } at the end.
+			Use import statements to access modules.
 		`,
 		schema: z.object({
 			code: z
@@ -77,9 +104,50 @@ export function createCodeExecutionTool(
 				};
 			}
 
+			const payload = result.result;
+			const failReturn = (message: string) => ({
+				success: false,
+				error: message,
+				executionTime: result.executionTime,
+				consoleOutput: result.consoleOutput,
+				hint: "Every script must end with: return { summary: string, data: any }.",
+			});
+
+			if (payload === undefined) {
+				logger.error("Code execution returned undefined payload.");
+				return failReturn(
+					"Code execution must return { summary: string, data: any }; received undefined.",
+				);
+			}
+
+			if (
+				typeof payload !== "object" ||
+				payload === null ||
+				Array.isArray(payload)
+			) {
+				logger.error("Code execution returned a non-object payload:", payload);
+				return failReturn(
+					"Code execution must return an object shaped { summary: string, data: any }.",
+				);
+			}
+
+			if (typeof (payload as Record<string, unknown>).summary !== "string") {
+				logger.error("Returned payload missing string summary:", payload);
+				return failReturn(
+					"Returned object must include a string `summary` field.",
+				);
+			}
+
+			if (!Object.hasOwn(payload, "data")) {
+				logger.error("Returned payload missing data field:", payload);
+				return failReturn(
+					"Returned object must include a `data` field (can be null).",
+				);
+			}
+
 			return {
 				success: true,
-				result: result.result,
+				result: payload,
 				executionTime: result.executionTime,
 				consoleOutput: result.consoleOutput,
 			};
