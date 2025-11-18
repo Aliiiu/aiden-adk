@@ -56,6 +56,11 @@ export type GetAgentStatsResponse =
 
 /**
  * Get live market and performance stats for an agent by address or ticker.
+ *
+ * Returns real-time price data (IQ and USD), market cap, 24h price changes, and performance metrics.
+ * Primary source for live pricing of agent tokens on IQ ATP DEX (IQ chain, Chain ID 252).
+ *
+ * Keywords: IQ chain, IQ ATP, agent token price, live price, market stats, price change, trading volume
  */
 export async function getAgentStats(
 	params: GetAgentStatsInput,

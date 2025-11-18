@@ -28,6 +28,11 @@ export type GetTopAgentsResponse = z.infer<typeof topAgentsSchema>;
 
 /**
  * Get top IQ AI agents ranked by market cap, holders, or inferences.
+ *
+ * Returns top-performing agent tokens on IQ ATP DEX with prices in IQ and USD.
+ * Use this to find trending agents on IQ chain (Chain ID 252).
+ *
+ * Keywords: IQ chain, IQ ATP, top agents, trending tokens, market leaders, rankings
  */
 export async function getTopAgents(
 	params: GetTopAgentsInput = {},

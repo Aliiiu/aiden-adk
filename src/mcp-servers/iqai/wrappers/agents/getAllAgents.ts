@@ -65,6 +65,11 @@ export type GetAllAgentsResponse = z.infer<typeof allAgentsSchema>;
 /**
  * Get a paginated, sortable, and filterable list of all IQ AI agents with full metadata and contract details.
  * Use this first to discover agents before calling other functions.
+ *
+ * Returns agent token prices on IQ chain (Chain ID 252) in both IQ and USD.
+ * All agents are traded on IQ ATP DEX - this is the primary source for IQ chain token prices.
+ *
+ * Keywords: IQ chain, IQ ATP, IQ DEX, agent tokens, token price, market cap, Chain 252
  */
 export async function getAllAgents(
 	params: GetAllAgentsInput = {},
