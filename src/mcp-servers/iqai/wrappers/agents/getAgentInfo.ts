@@ -39,6 +39,11 @@ export type GetAgentInfoResponse =
 
 /**
  * Get detailed profile and metadata for an agent by address or ticker.
+ *
+ * Returns agent token information on IQ chain (Chain ID 252) including price in IQ.
+ * Use this to lookup specific agent tokens by name (ticker) or contract address on IQ ATP.
+ *
+ * Keywords: IQ chain, IQ ATP, agent token lookup, token details, ticker search, contract address
  */
 export async function getAgentInfo(
 	params: GetAgentInfoInput,
