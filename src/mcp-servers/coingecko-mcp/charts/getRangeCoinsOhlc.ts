@@ -1,5 +1,7 @@
 /**
- * Get OHLC (candlestick) data for a coin within a date range
+ * Get OHLC (candlestick) data for a coin over a date range.
+ *
+ * Use this to build candlestick charts for the specified UNIX timestamp window.
  */
 
 import { z } from "zod";

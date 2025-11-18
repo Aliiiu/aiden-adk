@@ -1,5 +1,8 @@
 /**
- * Get historical market data for a coin within a date range
+ * Get historical market chart (prices, market caps, volumes) for a coin over a date range.
+ *
+ * Use this for time-series analysis between two UNIX timestamps. For single-date snapshots,
+ * use `getCoinsHistory`.
  */
 
 import { z } from "zod";
