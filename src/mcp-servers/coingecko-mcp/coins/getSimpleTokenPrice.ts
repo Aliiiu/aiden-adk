@@ -1,10 +1,3 @@
-/**
- * Get current token price by contract address on a specific platform (chain).
- *
- * Use this for contract-level pricing (e.g., ERC-20 tokens). Requires `id` (platform)
- * and `contract_addresses`. For broader coin pricing by ID, use `getCoinsMarkets`.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -54,7 +47,10 @@ export type GetSimpleTokenPriceResponse = z.infer<
 >;
 
 /**
- * Get simple token price by contract address
+ * Get current token price by contract address on a specific platform (chain).
+ *
+ * Use this for contract-level pricing (e.g., ERC-20 tokens). Requires `id` (platform)
+ * and `contract_addresses`. For broader coin pricing by ID, use `getCoinsMarkets`.
  *
  * @param params.id - Platform ID (e.g., 'ethereum', 'binance-smart-chain')
  * @param params.contract_addresses - Comma-separated contract addresses
@@ -64,7 +60,7 @@ export type GetSimpleTokenPriceResponse = z.infer<
  * @param params.include_24hr_change - Include 24h change (default: false)
  * @param params.include_last_updated_at - Include last updated timestamp (default: false)
  *
- * @returns Token prices
+ * @returns Token prices keyed by contract address
  *
  * @example
  * ```typescript

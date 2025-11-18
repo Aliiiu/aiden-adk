@@ -1,9 +1,3 @@
-/**
- * Get historical market data (price, market cap, 24h volume) for a coin at a specific date.
- *
- * Use this for point-in-time lookups (e.g., valuation at a past date). Requires the coin ID.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -48,7 +42,9 @@ export type GetCoinsHistoryResponse = z.infer<
 >;
 
 /**
- * Get historical snapshot of coin data at a specific date
+ * Get historical market data (price, market cap, 24h volume) for a coin at a specific date.
+ *
+ * Use this for point-in-time valuations. Requires the coin ID.
  *
  * @param params.id - Coin ID
  * @param params.date - Date in format dd-mm-yyyy (e.g., '30-12-2022')

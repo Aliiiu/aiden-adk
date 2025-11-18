@@ -1,10 +1,3 @@
-/**
- * Get full profile, market, community, and developer data for a specific coin.
- *
- * Use this when you need detailed fundamentals, descriptions, tickers, and metrics.
- * Discover coin IDs first via `search` or `getCoinsList`.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -108,9 +101,12 @@ export type GetCoinDetailsResponse = z.infer<
 >;
 
 /**
- * Get detailed data for a specific coin
+ * Get full profile, market, community, and developer data for a specific coin.
  *
- * @param params.id - Coin ID (use getCoinsList to find IDs)
+ * Use this when you need detailed fundamentals, descriptions, tickers, and metrics.
+ * Discover coin IDs first via `search` or `getCoinsList`.
+ *
+ * @param params.id - Coin ID (use getCoinsList/search to find IDs)
  * @param params.localization - Include localized languages (default: true)
  * @param params.tickers - Include ticker data (default: true)
  * @param params.market_data - Include market data (default: true)
