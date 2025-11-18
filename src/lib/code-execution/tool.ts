@@ -39,28 +39,31 @@ export function createCodeExecutionTool(
 			- Timeout: ${config.timeout || 30000}ms
 
 			⚠️ ALL imports must be STATIC at the top of the file!
-			✅ CORRECT:
-			import { getCoinCategories, getCoinsHistory } from 'coingecko';
-			import { jsonata } from 'debank';  // or 'defillama'
+			⚠️ JSONata is ONLY for debank/defillama! Use native JS for coingecko/iqai!
+
+			✅ CORRECT: JSONata for debank/defillama
+			import { getProtocols, jsonata } from 'defillama';
+			const protocols = await getProtocols({});
+			const filtered = await jsonata('$[tvl > 1000000]').evaluate(protocols);
+
+			✅ CORRECT: Native JS for coingecko/iqai (NO jsonata!)
+			import { getAllAgents } from 'iqai';
+			const agents = await getAllAgents({});
+			const patrick = Array.isArray(agents)
+			  ? agents.find(a => a?.name?.toLowerCase().includes('patrick'))
+			  : null;
 
 			❌ WRONG: const { getCoinsHistory } = await import('coingecko');  // Dynamic import FORBIDDEN!
 			❌ WRONG: import { jsonata } from 'coingecko';  // coingecko doesn't export jsonata!
+			❌ WRONG: import { jsonata } from 'iqai';  // iqai doesn't export jsonata!
+			❌ WRONG: import { getAllAgents } from 'iqai'; import { jsonata } from 'debank';  // DON'T mix!
 
 			⚠️ CRITICAL: ALWAYS inspect data structure BEFORE filtering!
-			const data = await getSomeData();
-			console.log('Fields:', Object.keys(data[0]));
-			console.log('Sample:', JSON.stringify(data[0], null, 2));
-			NEVER assume field names - use actual fields from log
-
-			Regex matching - use ~> operator (NOT =~ or ~)
-			const expr = jsonata('$[name ~> /bitcoin/i]');  // Case-insensitive
-			const result = await expr.evaluate(data);
-
-			For CoinGecko data (no jsonata), use native JS with safety checks:
-			MUST check Array.isArray() AND use optional chaining (?.)
-			(Array.isArray(coingeckoData)) {
-				const item = coingeckoData.find(x => x?.id?.toLowerCase().includes('meme'));
-			}
+			const response = await getSomeData();
+			console.log('Type:', Array.isArray(response) ? 'array' : typeof response);
+			console.log('Keys:', Object.keys(response));
+			console.log('Sample:', JSON.stringify(response, null, 2).slice(0, 10));
+			// Response might be {agents: [...]} not [...] - NEVER assume!
 
 			Array operations
 			const sum = await jsonata('$sum(items.price)').evaluate(data);
