@@ -1,7 +1,3 @@
-/**
- * Get list of all coin categories
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -19,7 +15,10 @@ export type GetCoinCategoriesResponse = z.infer<
 >;
 
 /**
- * Get list of all coin categories
+ * List all coin categories from CoinGecko.
+ *
+ * Use this to discover sector/segment groupings (e.g., DeFi, AI) and their identifiers
+ * before filtering or aggregating coins by category.
  *
  * @returns Array of coin categories
  *
