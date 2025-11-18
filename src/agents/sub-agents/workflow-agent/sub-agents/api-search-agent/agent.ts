@@ -186,13 +186,47 @@ export const getApiSearchAgent = async () => {
        - \`data\`: The actual result object/array
        - No export statements, no undefined returns!
 
-    3. ⚠️ **MUST use exact function names** from \`discover_tools\` - Never guess
+    3. ⚠️ **Import Rules - ALL imports must be static at the top!**
+       \`\`\`typescript
+       // ✅ CORRECT: All imports at the top of the file
+       import { getCoinsMarkets, getCoinsHistory } from 'coingecko';
+       import { jsonata } from 'debank';
 
-    4. ⚠️ **MUST use only documented parameters** - Functions reject unknown parameters
+       async function myFunction() {
+         const coins = await getCoinsMarkets({});
+         const history = await getCoinsHistory({ id: 'bitcoin', date: '01-01-2024' });
+         // ...
+       }
+
+       // ❌ WRONG: Dynamic import() is FORBIDDEN by sandbox
+       async function myFunction() {
+         const { getCoinsHistory } = await import('coingecko');  // SECURITY VIOLATION!
+       }
+
+       // ❌ WRONG: Conditional import
+       if (condition) {
+         import { someFunction } from 'module';  // NOT ALLOWED!
+       }
+       \`\`\`
+       **Security note**: Dynamic imports are blocked to prevent code injection attacks.
+
+    4. ⚠️ **MUST use exact function names** from \`discover_tools\` - Never guess
+
+    5. ⚠️ **MUST use only documented parameters** - Functions reject unknown parameters
        - Check \`discover_tools\` output for parameter list
        - NEVER invent parameters (e.g., no \`search\` param unless documented)
 
-    5. ⚠️ **JSONata Syntax (CRITICAL)**
+    6. ⚠️ **JSONata Import (CRITICAL)**
+       **JSONata is ONLY available from \`debank\` and \`defillama\` modules!**
+       \`\`\`typescript
+       // ✅ CORRECT: Import jsonata from debank or defillama
+       import { getCoinCategories } from 'coingecko';
+       import { jsonata } from 'debank';  // ← jsonata from debank or defillama
+
+       // ❌ WRONG: Trying to import jsonata from coingecko
+       import { getCoinCategories, jsonata } from 'coingecko';  // ERROR! coingecko doesn't export jsonata
+       \`\`\`
+
        **Regex matching**: Use \`~>\` operator (tilde greater-than)
        \`\`\`typescript
        ✅ CORRECT: jsonata('$[name ~> /compound/i]')      // Case-insensitive
@@ -202,11 +236,26 @@ export const getApiSearchAgent = async () => {
        ❌ WRONG:   jsonata('$[name ~ /compound/i]')        // ~ alone is NOT valid
        \`\`\`
 
-       **Array filtering**: Always use JSONata, never .find()/.filter()
+       **Array filtering**: Prefer JSONata when available, use native JS with safety checks otherwise
        \`\`\`typescript
-       ✅ CORRECT: jsonata('$[price > 100]').evaluate(data)
-       ✅ CORRECT: jsonata('$[0]').evaluate(data)          // Get first element
-       ❌ WRONG:   data.find(item => item.price > 100)
+       // ✅ BEST: Use JSONata (available from debank/defillama modules)
+       import { jsonata } from 'debank';
+       const filtered = await jsonata('$[price > 100]').evaluate(data);
+
+       // ✅ ACCEPTABLE: Native JS with MANDATORY null/undefined checks (for coingecko data)
+       // MUST verify it's an array AND check for null/undefined fields
+       if (Array.isArray(data)) {
+         const result = data.find(item =>
+           item?.id?.toLowerCase().includes('meme') ||  // ← Optional chaining required!
+           item?.name?.toLowerCase().includes('meme')
+         );
+       }
+
+       // ❌ WRONG: Using native JS without null checks
+       data.find(item => item.id.toLowerCase().includes('meme'))  // CRASHES if id is undefined!
+
+       // ❌ WRONG: Not checking if data is an array first
+       const result = data.find(...)  // CRASHES if data is not an array!
        \`\`\`
 
        **Sorting and null handling**: ⚠️ ALWAYS filter nulls before sorting
@@ -269,14 +318,26 @@ export const getApiSearchAgent = async () => {
        - API responses are often large nested structures
        - JavaScript array methods fail on large datasets
 
-    6. **ALWAYS inspect data first** - Log before any JSONata operations
+    7. **⚠️ CRITICAL: ALWAYS inspect data structure first!**
+       **NEVER assume field names** - APIs may use generic names
        \`\`\`typescript
-       console.log('Fields:', Object.keys(data[0]));
-       console.log('Sample:', data[0]);
-       // Now you know the structure and can filter safely
+       // ⚠️ MANDATORY: Log data structure before ANY JSONata filtering
+       const data = await someFunction({});
+       console.log('Response type:', Array.isArray(data) ? 'array' : typeof data);
+       if (Array.isArray(data) && data.length > 0) {
+         console.log('First item fields:', Object.keys(data[0]));
+         console.log('Sample data:', JSON.stringify(data[0], null, 2));
+       } else if (typeof data === 'object' && data !== null) {
+         console.log('Object fields:', Object.keys(data));
+         console.log('Sample data:', JSON.stringify(data, null, 2));
+       }
+
+       // ✅ Now you know the actual field names and can filter safely
+       // Example: If you see {total24h, total7d, name} then use those exact names
+       const filtered = await jsonata('$[total24h > 1000000]').evaluate(data);
        \`\`\`
 
-    7. **⚠️ JSONata can return undefined - ALWAYS handle this!**
+    8. **⚠️ JSONata can return undefined - ALWAYS handle this!**
        When JSONata filters match nothing, it returns \`undefined\` (NOT an empty array).
        \`\`\`typescript
        const filtered = await jsonata('$[tvlUsd > 1000000]').evaluate(data);
@@ -297,7 +358,7 @@ export const getApiSearchAgent = async () => {
        };
        \`\`\`
 
-    8. **Multiple values = comma-separated strings** - 'bitcoin,ethereum' not arrays
+    9. **Multiple values = comma-separated strings** - 'bitcoin,ethereum' not arrays
 
     ## ERROR HANDLING
     If code execution fails, explain: "I apologize, but I'm unable to retrieve that data right now. Please try again shortly."
