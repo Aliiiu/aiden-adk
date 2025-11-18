@@ -57,10 +57,16 @@ function extractFunctionsFromFile(
 		if (fs.existsSync(functionFilePath)) {
 			const functionContent = fs.readFileSync(functionFilePath, "utf-8");
 
-			// Extract JSDoc description
-			const jsdocMatch = functionContent.match(/\/\*\*\s*\n\s*\*\s*(.+?)\n/);
+			// Extract full JSDoc comment block (not just first line)
+			// This captures important notes about response structure and field semantics
+			const jsdocMatch = functionContent.match(/\/\*\*([\s\S]*?)\*\//);
 			if (jsdocMatch) {
-				description = jsdocMatch[1].trim();
+				// Clean up JSDoc: remove asterisks, trim lines, join with newlines
+				description = jsdocMatch[1]
+					.split("\n")
+					.map((line) => line.replace(/^\s*\*\s?/, "").trim())
+					.filter((line) => line.length > 0)
+					.join("\n");
 			}
 
 			// Extract function parameters from the function signature
