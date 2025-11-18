@@ -1,5 +1,7 @@
 /**
- * Get historical market data for a token by contract address
+ * Get historical market chart (prices, market caps, volumes) for a token by contract address.
+ *
+ * Use this for contract-specific time-series analysis between two UNIX timestamps.
  */
 
 import { z } from "zod";
