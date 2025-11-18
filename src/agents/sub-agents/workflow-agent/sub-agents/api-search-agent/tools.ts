@@ -1,11 +1,4 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
-import {
-	type BaseTool,
-	createTool,
-	McpToolset,
-	type ToolContext,
-} from "@iqai/adk";
+import { type BaseTool, createTool, type ToolContext } from "@iqai/adk";
 import dedent from "dedent";
 import type lunr from "lunr";
 import { z } from "zod";
@@ -16,8 +9,6 @@ import {
 	searchFunctions,
 } from "../../../../../lib/function-index/index.js";
 import { createChildLogger } from "../../../../../lib/utils/logger";
-import { getDebankTools } from "../../../../../mcp-servers/debank-mcp/tools";
-import { getDefillamaTools } from "../../../../../mcp-servers/defillama-mcp/tools";
 
 const logger = createChildLogger("API Search Tools");
 
@@ -47,7 +38,7 @@ function extractQueryFromContext(context?: ToolContext): string | null {
 /**
  * Injects user query (_userQuery) into MCP tool calls for contextual filtering
  */
-function wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
+function _wrapMcpToolWithQueryInjection(tool: BaseTool): BaseTool {
 	const originalRunAsync = tool.runAsync.bind(tool);
 
 	tool.runAsync = async (
@@ -94,166 +85,6 @@ function wrapToolWithErrorHandling(tool: BaseTool): BaseTool {
 }
 
 /**
- * Load CoinGecko tools via MCP
- */
-export const getCoingeckoTools = async (): Promise<BaseTool[]> => {
-	try {
-		const toolset = new McpToolset({
-			name: "Coingecko MCP",
-			description: "mcp for coingecko",
-			debug: false,
-			transport: {
-				mode: "stdio",
-				command: "npx",
-				args: ["mcp-remote", "https://mcp.api.coingecko.com/mcp"],
-			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
-		});
-
-		const tools = await toolset.getTools();
-		logger.info(`Loaded ${tools.length} CoinGecko tools`);
-		return tools.map((tool) =>
-			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
-		);
-	} catch (error) {
-		logger.warn("Failed to load CoinGecko MCP tools", error as Error);
-		return [];
-	}
-};
-
-/**
- * Load DefiLlama tools (direct import)
- */
-export const getDefillamaToolsWrapped = (): BaseTool[] => {
-	const tools = getDefillamaTools();
-	return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
-};
-
-/**
- * Load DefiLlama tools via MCP
- */
-export const getDefillamaToolsViaMcp = async (): Promise<BaseTool[]> => {
-	try {
-		const projectRoot = process.cwd();
-		const defillamaMcpPath = path.join(
-			projectRoot,
-			"src/mcp-servers/defillama-mcp/index.ts",
-		);
-
-		if (!fs.existsSync(defillamaMcpPath)) {
-			throw new Error(`DefiLlama MCP server not found at: ${defillamaMcpPath}`);
-		}
-
-		const toolset = new McpToolset({
-			name: "DefiLlama MCP",
-			description: "DeFi data via DefiLlama MCP server",
-			debug: false,
-			transport: {
-				mode: "stdio",
-				command: "npx",
-				args: ["tsx", defillamaMcpPath],
-			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
-		});
-
-		const tools = await toolset.getTools();
-		logger.info(`Loaded ${tools.length} DefiLlama tools via MCP`);
-		return tools.map((tool) =>
-			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
-		);
-	} catch (error) {
-		logger.warn("Failed to load DefiLlama tools via MCP", error as Error);
-		return getDefillamaToolsWrapped();
-	}
-};
-
-/**
- * Load IQ AI tools via MCP
- */
-export const getIqAiToolsViaMcp = async (): Promise<BaseTool[]> => {
-	try {
-		const projectRoot = process.cwd();
-		const iqAiMcpPath = path.join(projectRoot, "src/mcp-servers/iqai/index.ts");
-
-		if (!fs.existsSync(iqAiMcpPath)) {
-			throw new Error(
-				`IQ AI MCP server not found at: ${iqAiMcpPath}\nCurrent working directory: ${projectRoot}`,
-			);
-		}
-
-		const toolset = new McpToolset({
-			name: "IQ AI MCP",
-			description: "IQ AI agent data via IQ AI MCP server",
-			debug: false,
-			transport: {
-				mode: "stdio",
-				command: "npx",
-				args: ["tsx", iqAiMcpPath],
-			},
-			retryOptions: {
-				maxRetries: 1,
-				initialDelay: 1000,
-			},
-		});
-
-		const tools = await toolset.getTools();
-		logger.info(`Loaded ${tools.length} IQ AI tools via MCP`);
-		return tools.map((tool) =>
-			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
-		);
-	} catch (error) {
-		logger.warn("Failed to load IQ AI tools via MCP", error as Error);
-		return [];
-	}
-};
-
-/**
- * Load DeBank tools via MCP
- */
-export const getDebankToolsViaMcp = async (): Promise<BaseTool[]> => {
-	try {
-		const projectRoot = process.cwd();
-		const debankMcpPath = path.join(
-			projectRoot,
-			"src/mcp-servers/debank-mcp/index.ts",
-		);
-
-		if (!fs.existsSync(debankMcpPath)) {
-			throw new Error(
-				`DeBank MCP server not found at: ${debankMcpPath}\nCurrent working directory: ${projectRoot}`,
-			);
-		}
-
-		const toolset = new McpToolset({
-			name: "DeBank MCP",
-			description: "Blockchain and DeFi user data via DeBank MCP server",
-			transport: {
-				mode: "stdio",
-				command: "npx",
-				args: ["tsx", debankMcpPath],
-			},
-			timeout: 120000,
-		});
-
-		const tools = await toolset.getTools();
-		logger.info(`Loaded ${tools.length} DeBank tools via MCP`);
-		return tools.map((tool) =>
-			wrapToolWithErrorHandling(wrapMcpToolWithQueryInjection(tool)),
-		);
-	} catch (error) {
-		logger.warn("Failed to load DeBank tools via MCP", error as Error);
-		const tools = getDebankTools();
-		return tools.map((tool: BaseTool) => wrapToolWithErrorHandling(tool));
-	}
-};
-
-/**
  * Create a tool discovery helper using Lunr.js search index
  * Allows agents to search for functions by keywords without exhaustive listings
  */
@@ -269,7 +100,7 @@ export const getDiscoverToolsTool = () => {
 					"Search query (e.g., 'protocol tvl', 'wallet balance', 'price chart'). Use keywords to find functions.",
 				),
 			module: z
-				.enum(["coingecko", "debank", "defillama"])
+				.enum(["coingecko", "debank", "defillama", "iqai"])
 				.optional()
 				.describe("Filter results to a specific module (optional)"),
 			limit: z
@@ -301,7 +132,7 @@ export const getDiscoverToolsTool = () => {
 							- "wallet" or "user" for wallet/balance functions
 							- "pool" or "dex" for DEX/liquidity data
 						`,
-						availableModules: ["coingecko", "debank", "defillama"],
+						availableModules: ["coingecko", "debank", "defillama", "iqai"],
 					};
 				}
 
