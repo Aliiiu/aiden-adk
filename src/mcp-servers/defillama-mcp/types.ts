@@ -338,7 +338,7 @@ export type ChartResponse = {
 export type PoolData = {
 	pool: string;
 	chain: string;
-	project: string;
+	name: string;
 	symbol: string;
 	tvlUsd: number;
 	apy: number;

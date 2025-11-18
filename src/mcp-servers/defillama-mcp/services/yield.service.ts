@@ -70,8 +70,7 @@ export class YieldService extends BaseService {
 			});
 
 			const limited = sorted.slice(0, args.limit).map((pool) => ({
-				name: pool.project ?? pool.symbol ?? null,
-				project: pool.project ?? null,
+				name: pool.project ?? null,
 				chain: pool.chain ?? null,
 				id: pool.pool ?? null,
 				symbol: pool.symbol ?? null,
