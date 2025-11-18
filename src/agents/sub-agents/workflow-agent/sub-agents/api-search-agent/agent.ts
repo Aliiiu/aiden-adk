@@ -199,15 +199,36 @@ export const getApiSearchAgent = async () => {
        - Check \`discover_tools\` output for parameter list
        - NEVER invent parameters (e.g., no \`search\` param unless documented)
 
-    6. ⚠️ **JSONata Import (CRITICAL)**
-       **JSONata is ONLY available from \`debank\` and \`defillama\` modules!**
-       \`\`\`typescript
-       // ✅ CORRECT: Import jsonata from debank or defillama
-       import { getCoinCategories } from 'coingecko';
-       import { jsonata } from 'debank';  // ← jsonata from debank or defillama
+    6. ⚠️ **JSONata Availability (CRITICAL)**
+       **JSONata is ONLY available for \`debank\` and \`defillama\` modules!**
+       **For \`coingecko\` and \`iqai\`: MUST use native JavaScript with safety checks**
 
-       // ❌ WRONG: Trying to import jsonata from coingecko
-       import { getCoinCategories, jsonata } from 'coingecko';  // ERROR! coingecko doesn't export jsonata
+       \`\`\`typescript
+       // ✅ CORRECT: JSONata for debank/defillama data
+       import { getProtocols, jsonata } from 'defillama';
+       const protocols = await getProtocols({});
+       const filtered = await jsonata('$[tvl > 1000000]').evaluate(protocols);
+
+       // ✅ CORRECT: Native JS for coingecko/iqai data (NO jsonata!)
+       import { getAllAgents } from 'iqai';
+       const agents = await getAllAgents({});
+
+       // MUST use Array.isArray() check and optional chaining
+       const patrick = Array.isArray(agents)
+         ? agents.find(a =>
+             a?.name?.toLowerCase().includes('patrick') ||
+             a?.ticker?.toLowerCase().includes('patrick')
+           )
+         : null;
+
+       // ❌ WRONG: Trying to import jsonata from coingecko or iqai
+       import { getCoinCategories, jsonata } from 'coingecko';  // ERROR!
+       import { getAllAgents, jsonata } from 'iqai';  // ERROR!
+
+       // ❌ WRONG: Importing jsonata from debank to use with iqai/coingecko data
+       import { getAllAgents } from 'iqai';
+       import { jsonata } from 'debank';  // DON'T DO THIS - too confusing!
+       const filtered = await jsonata('...').evaluate(agents);  // NO!
        \`\`\`
 
        **Regex matching**: Use \`~>\` operator (tilde greater-than)
@@ -219,26 +240,34 @@ export const getApiSearchAgent = async () => {
        ❌ WRONG:   jsonata('$[name ~ /compound/i]')        // ~ alone is NOT valid
        \`\`\`
 
-       **Array filtering**: Prefer JSONata when available, use native JS with safety checks otherwise
+       **Array filtering**: Use JSONata for debank/defillama, native JS for coingecko/iqai
        \`\`\`typescript
-       // ✅ BEST: Use JSONata (available from debank/defillama modules)
-       import { jsonata } from 'debank';
-       const filtered = await jsonata('$[price > 100]').evaluate(data);
+       // ✅ CORRECT: JSONata for debank/defillama data
+       import { getProtocols, jsonata } from 'defillama';
+       const protocols = await getProtocols({});
+       const filtered = await jsonata('$[tvl > 1000000]').evaluate(protocols);
 
-       // ✅ ACCEPTABLE: Native JS with MANDATORY null/undefined checks (for coingecko data)
-       // MUST verify it's an array AND check for null/undefined fields
-       if (Array.isArray(data)) {
-         const result = data.find(item =>
-           item?.id?.toLowerCase().includes('meme') ||  // ← Optional chaining required!
-           item?.name?.toLowerCase().includes('meme')
-         );
-       }
+       // ✅ CORRECT: Native JS for coingecko/iqai data
+       import { getAllAgents } from 'iqai';
+       const agents = await getAllAgents({});
+       // MUST use Array.isArray() and optional chaining
+       const patrick = Array.isArray(agents)
+         ? agents.find(a => a?.name?.toLowerCase().includes('patrick'))
+         : null;
 
-       // ❌ WRONG: Using native JS without null checks
+       // For filtering with multiple conditions
+       const filtered = Array.isArray(agents)
+         ? agents.filter(a =>
+             (a?.tvl ?? 0) > 1000000 &&
+             a?.status?.toLowerCase() === 'active'
+           )
+         : [];
+
+       // ❌ WRONG: Native JS without Array.isArray() check
+       const result = data.find(item => ...)  // CRASHES if data is not an array!
+
+       // ❌ WRONG: Native JS without optional chaining
        data.find(item => item.id.toLowerCase().includes('meme'))  // CRASHES if id is undefined!
-
-       // ❌ WRONG: Not checking if data is an array first
-       const result = data.find(...)  // CRASHES if data is not an array!
        \`\`\`
 
        **Sorting and null handling**: ⚠️ ALWAYS filter nulls before sorting
@@ -302,22 +331,32 @@ export const getApiSearchAgent = async () => {
        - JavaScript array methods fail on large datasets
 
     7. **⚠️ CRITICAL: ALWAYS inspect data structure first!**
-       **NEVER assume field names** - APIs may use generic names
+       **NEVER assume field names OR structure** - APIs may use generic names and nested objects
        \`\`\`typescript
-       // ⚠️ MANDATORY: Log data structure before ANY JSONata filtering
-       const data = await someFunction({});
-       console.log('Response type:', Array.isArray(data) ? 'array' : typeof data);
-       if (Array.isArray(data) && data.length > 0) {
-         console.log('First item fields:', Object.keys(data[0]));
-         console.log('Sample data:', JSON.stringify(data[0], null, 2));
-       } else if (typeof data === 'object' && data !== null) {
-         console.log('Object fields:', Object.keys(data));
-         console.log('Sample data:', JSON.stringify(data, null, 2));
+       // ⚠️ MANDATORY: Log data structure before ANY filtering
+       const response = await someFunction({});
+       console.log('Response type:', Array.isArray(response) ? 'array' : typeof response);
+       console.log('Response keys:', Object.keys(response));
+       console.log('Full sample:', JSON.stringify(response, null, 2).slice(0, 500));
+
+       // Common patterns after inspection:
+       // Pattern 1: Direct array
+       if (Array.isArray(response)) {
+         const filtered = response.filter(item => ...);
        }
 
-       // ✅ Now you know the actual field names and can filter safely
-       // Example: If you see {total24h, total7d, name} then use those exact names
-       const filtered = await jsonata('$[total24h > 1000000]').evaluate(data);
+       // Pattern 2: Nested array (e.g., {agents: [...], pagination: {...}})
+       if (response.agents && Array.isArray(response.agents)) {
+         const filtered = response.agents.filter(item => ...);
+       }
+
+       // Pattern 3: Wrapped object (e.g., {data: [...], status: 'ok'})
+       if (response.data && Array.isArray(response.data)) {
+         const filtered = response.data.filter(item => ...);
+       }
+
+       // ✅ Now you know the actual structure and field names
+       // Example: If you see {agents: [{name, ticker}]} then use response.agents
        \`\`\`
 
     8. **⚠️ JSONata can return undefined - ALWAYS handle this!**
