@@ -43,18 +43,22 @@ export type GetTopHoldersOfProtocolResponse = z.infer<
 >;
 
 /**
- * Retrieve a list of top holders within a specified DeFi protocol
+ * Get the largest wallet holders (by USD value) within a specific DeFi protocol.
  *
- * @param input.id - Protocol ID (e.g., 'uniswap', 'aave')
- * @param input.start - Optional pagination offset (default: 0, max: 1000)
- * @param input.limit - Optional max number of holders (default and max: 100)
+ * Returns top users ranked by total value in a protocol. This is for analyzing protocol user distribution.
+ * For a specific user's protocol positions, use getUserComplexProtocolList.
+ * For token holder distribution, use getTopHoldersOfToken.
  *
- * @returns Array of top holders with their balances
+ * @param input.id - Protocol identifier (e.g., 'uniswap', 'aave', 'bsc_pancakeswap')
+ * @param input.start - Pagination offset (default: 0, max: 1000)
+ * @param input.limit - Number of top holders to return (default and max: 100)
+ *
+ * @returns Array of top holders: wallet address and USD value held in the protocol
  *
  * @example
  * ```typescript
- * const holders = await getTopHoldersOfProtocol({ id: 'uniswap', limit: 50 });
- * console.log(holders);
+ * const holders = await getTopHoldersOfProtocol({ id: 'aave', limit: 50 });
+ * // Returns: [{ address: '0x...', value: 5000000 }, ...]
  * ```
  */
 export async function getTopHoldersOfProtocol(

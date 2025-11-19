@@ -41,16 +41,21 @@ export type GetAllProtocolsOfSupportedChainsResponse = z.infer<
 >;
 
 /**
- * Retrieve a list of all DeFi protocols across specified or all supported chains
+ * Get all DeFi protocols with their names, chains, TVL, and metadata for discovery.
  *
- * @param input.chain_ids - Optional comma-separated chain IDs (e.g., 'eth,bsc,matic')
+ * Returns protocol directory across chains. This is for discovering available protocols and their identifiers.
+ * For protocol TVL rankings and changes over time, use DefiLlama getProtocols.
+ * For user-specific positions in protocols, use getUserComplexProtocolList or getUserAllComplexProtocolList.
+ * For yield farming pool data with APY, use DefiLlama getLatestPoolData.
  *
- * @returns Array of protocols with ID, name, chain, TVL, and other details
+ * @param input.chain_ids - Optional comma-separated chain IDs to filter (e.g., 'eth,bsc,matic')
+ *
+ * @returns Array of protocols: ID, name, chain, TVL, logo, website, portfolio support status
  *
  * @example
  * ```typescript
  * const protocols = await getAllProtocolsOfSupportedChains({ chain_ids: 'eth,bsc' });
- * console.log(protocols);
+ * // Returns: [{ id: 'uniswap', name: 'Uniswap', chain: 'eth', tvl: 5000000000 }, ...]
  * ```
  */
 export async function getAllProtocolsOfSupportedChains(

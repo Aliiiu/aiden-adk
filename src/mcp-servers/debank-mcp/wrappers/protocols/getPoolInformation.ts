@@ -39,20 +39,25 @@ export type GetPoolInformationResponse = z.infer<
 >;
 
 /**
- * Retrieve detailed information about a specific liquidity pool
+ * Get detailed information about a specific liquidity pool by contract address.
  *
- * @param input.id - Pool ID (typically a contract address)
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
+ * Returns pool metadata, TVL, and user count. This is for looking up a specific pool's details.
+ * For finding pools by token or DEX, use CoinGecko getSearchOnchainPools.
+ * For yield farming pools with APY, use DefiLlama getLatestPoolData.
+ * For user-specific LP positions, use getUserComplexProtocolList.
  *
- * @returns Pool details including protocol, TVL, user count
+ * @param input.id - Pool contract address
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ *
+ * @returns Pool details: name, protocol, TVL (USD value), user count, contract addresses
  *
  * @example
  * ```typescript
  * const pool = await getPoolInformation({
- *   id: '0x00000000219ab540356cbb839cbe05303d7705fa',
+ *   id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640', // USDC-WETH pool
  *   chain_id: 'eth'
  * });
- * console.log(pool);
+ * console.log(pool.usd_value); // Pool TVL
  * ```
  */
 export async function getPoolInformation(

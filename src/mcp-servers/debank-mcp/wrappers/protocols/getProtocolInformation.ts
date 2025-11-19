@@ -33,16 +33,21 @@ export type GetProtocolInformationResponse = z.infer<
 >;
 
 /**
- * Fetch detailed information about a specific DeFi protocol
+ * Get detailed information about a specific DeFi protocol by its identifier.
  *
- * @param input.id - Protocol ID (e.g., 'uniswap', 'aave', 'bsc_pancakeswap')
+ * Returns protocol metadata and current TVL. This is for looking up a specific protocol's details.
+ * For protocol TVL rankings and changes, use DefiLlama getProtocols.
+ * For user-specific positions in a protocol, use getUserComplexProtocolList.
+ * For yield pool data with APY, use DefiLlama getLatestPoolData.
  *
- * @returns Protocol details including TVL, chain, name, logo, and site URL
+ * @param input.id - Protocol identifier (e.g., 'uniswap', 'aave', 'bsc_pancakeswap')
+ *
+ * @returns Protocol details: name, chain, current TVL, logo, website, portfolio support
  *
  * @example
  * ```typescript
  * const protocol = await getProtocolInformation({ id: 'uniswap' });
- * console.log(protocol);
+ * console.log(protocol.tvl); // Current total value locked
  * ```
  */
 export async function getProtocolInformation(
