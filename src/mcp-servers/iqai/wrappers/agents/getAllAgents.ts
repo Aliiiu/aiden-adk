@@ -63,15 +63,13 @@ const allAgentsSchema = z
 export type GetAllAgentsResponse = z.infer<typeof allAgentsSchema>;
 
 /**
- * Get a paginated, sortable, and filterable list of all IQ AI agent tokens (e.g., Sophia, GPT, Eliza).
+ * List all AI agent tokens on IQ ATP platform (e.g., Sophia, GPT, Eliza).
  *
- * Returns agent token directory with prices in IQ and USD. All agents are traded on IQ ATP DEX (IQ chain, Chain ID 252).
- * This is for discovering AI agent tokens on IQ ATP. Use this first to find agent tickers/addresses
- * before calling getAgentStats or getAgentInfo.
+ * Returns directory of AI agent tokens on IQ ATP DEX (Chain ID 252). These are AI agents, not regular crypto.
+ * Use this to discover AI agent tickers before calling getAgentStats or getAgentInfo.
  *
- * This is ONLY for agent tokens on IQ ATP, NOT for IQ base token itself.
- * For IQ token price, use CoinGecko getCoinsMarkets.
- * For general token listings across chains, use CoinGecko.
+ * NOT FOR: Regular cryptocurrency listings or base tokens.
+ * For regular crypto listings, use CoinGecko search or getCoinsMarkets.
  *
  * @param params.sort - Sort by: 'marketCap', 'holders', 'inferences', 'latest'
  * @param params.order - Sort order: 'desc' or 'asc'
@@ -81,12 +79,12 @@ export type GetAllAgentsResponse = z.infer<typeof allAgentsSchema>;
  * @param params.page - Page number (default: 1)
  * @param params.limit - Results per page (default: 50)
  *
- * @returns Paginated agent list: { agents: [{ ticker, name, currentPriceInIQ, currentPriceInUSD, ... }], pagination }
+ * @returns AI agent directory: { agents: [{ ticker, name, ... }], pagination }
  *
  * @example
  * ```typescript
  * const agentList = await getAllAgents({ sort: 'marketCap', limit: 10 });
- * // Returns top 10 agents: { agents: [{ ticker: 'Sophia', name: 'Sophia AI', currentPriceInIQ: 0.5, ... }], ... }
+ * // Returns top 10 AI agents: { agents: [{ ticker: 'Sophia', name: 'Sophia AI', ... }], ... }
  * ```
  */
 export async function getAllAgents(

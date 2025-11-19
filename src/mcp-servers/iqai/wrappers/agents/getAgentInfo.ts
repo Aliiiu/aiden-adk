@@ -38,23 +38,23 @@ export type GetAgentInfoResponse =
 	| Array<z.infer<typeof agentInfoSchema>>;
 
 /**
- * Get detailed profile and metadata for an agent token by address or ticker (e.g., Sophia, GPT).
+ * Get profile for AI agent tokens on IQ ATP by ticker (e.g., Sophia, GPT, Eliza).
  *
- * Returns agent token information on IQ chain (Chain ID 252) including price in IQ, bio, socials, contracts.
- * This is for looking up specific AI agent tokens on IQ ATP by their ticker symbol or contract address.
+ * Returns AI agent metadata on IQ ATP (Chain ID 252) including bio, socials, contracts.
+ * These are AI agents on IQ ATP platform, not regular cryptocurrency tokens.
  *
- * This is ONLY for agent tokens on IQ ATP (like Sophia, GPT, Eliza), NOT for IQ base token itself.
- * For IQ token information, use CoinGecko getSimpleTokenPrice.
+ * NOT FOR: Regular crypto tokens or base tokens.
+ * For regular cryptocurrency info, use CoinGecko search and getCoinDetails.
  *
  * @param params.address - Agent token contract address on IQ chain
- * @param params.ticker - Agent ticker symbol (e.g., 'Sophia', 'GPT')
+ * @param params.ticker - Agent ticker symbol (e.g., 'Sophia', 'GPT', 'Eliza')
  *
- * @returns Agent profile: { ticker, name, bio, currentPriceInIq, tokenContract, category, ... }
+ * @returns AI agent profile: { ticker, name, bio, tokenContract, category, ... }
  *
  * @example
  * ```typescript
  * const sophiaInfo = await getAgentInfo({ ticker: 'Sophia' });
- * // Returns: { ticker: 'Sophia', name: 'Sophia AI', bio: '...', currentPriceInIq: '0.5', ... }
+ * // Returns: { ticker: 'Sophia', name: 'Sophia AI', bio: '...', ... }
  * ```
  */
 export async function getAgentInfo(

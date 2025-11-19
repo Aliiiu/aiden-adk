@@ -27,24 +27,23 @@ const topAgentsSchema = z
 export type GetTopAgentsResponse = z.infer<typeof topAgentsSchema>;
 
 /**
- * Get top IQ AI agent tokens ranked by market cap, holders, or inferences (e.g., Sophia, GPT).
+ * Get top AI agent tokens ranked by market cap, holders, or inferences (Sophia, GPT, Eliza).
  *
- * Returns top-performing agent tokens on IQ ATP DEX with prices in IQ and USD.
- * This is for finding trending AI agents on IQ chain (Chain ID 252).
+ * Returns top AI agents on IQ ATP platform (Chain ID 252). These are AI agents, not regular crypto rankings.
  *
- * This is ONLY for agent tokens on IQ ATP, NOT for IQ base token itself.
- * For general crypto rankings across chains, use CoinGecko getCoinsMarkets.
+ * NOT FOR: Regular cryptocurrency rankings or base token rankings.
+ * For crypto rankings across chains, use CoinGecko getCoinsMarkets.
  * For DeFi protocol rankings, use DefiLlama getProtocols.
  *
  * @param params.sort - Rank by: 'mcap' (market cap), 'holders', 'inferences' (default: 'mcap')
  * @param params.limit - Number of top agents to return (default: 10)
  *
- * @returns Top agents: { agents: [{ ticker, name, currentPriceInIQ, currentPriceInUSD, holdersCount, ... }] }
+ * @returns Top AI agents: { agents: [{ ticker, name, holdersCount, ... }] }
  *
  * @example
  * ```typescript
  * const topAgents = await getTopAgents({ sort: 'mcap', limit: 5 });
- * // Returns: { agents: [{ ticker: 'Sophia', currentPriceInIQ: 0.5, currentPriceInUSD: 0.003, ... }] }
+ * // Returns top 5 AI agents: { agents: [{ ticker: 'Sophia', ... }] }
  * ```
  */
 export async function getTopAgents(
