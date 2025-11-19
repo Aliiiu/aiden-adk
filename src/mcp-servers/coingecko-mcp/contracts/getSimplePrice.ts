@@ -1,10 +1,3 @@
-/**
- * Get current price for one or more coins by ID in multiple fiat/crypto currencies.
- *
- * Lightweight price lookup without full market payloads. Use when you only need prices.
- * Discover coin IDs via `search` or `getCoinsList`.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -54,7 +47,9 @@ export type GetSimplePriceResponse = z.infer<
 >;
 
 /**
- * Get current price of tokens for multiple currencies
+ * Lightweight price lookup without full market payloads for one or more coins by ID.
+ *
+ * Use this when you only need prices (optionally 24h change/volume/market cap).   * Discover coin IDs first via `search` or `getCoinsList`.
  *
  * @param params.ids - Coin IDs (comma-separated, e.g., 'bitcoin,ethereum')
  * @param params.vs_currencies - Target currencies (comma-separated, e.g., 'usd,eur')
