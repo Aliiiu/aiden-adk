@@ -47,9 +47,22 @@ export type GetSimplePriceResponse = z.infer<
 >;
 
 /**
- * Lightweight price lookup without full market payloads for one or more coins by ID.
+ * Get current price for a specific coin by its CoinGecko ID (lightweight price lookup).
  *
- * Use this when you only need prices (optionally 24h change/volume/market cap).   * Discover coin IDs first via `search` or `getCoinsList`.
+ * Use this to get the price of a specific coin when you know or can find its CoinGecko ID.
+ * This is the PRIMARY function for individual coin price queries, single token price lookups,
+ * and fetching current price data for named coins (bitcoin, ethereum, specific tokens).
+ *
+ * IMPORTANT: Requires CoinGecko IDs (NOT ticker symbols). Many coins have different IDs than their ticker.
+ * Always use search() first to find the correct ID when the coin ID is unknown.
+ *
+ * Workflow for coin price lookups:
+ * 1. Use search({ query: 'coin name or symbol' }) to find coin ID
+ * 2. Use getSimplePrice({ ids: 'found-coin-id', vs_currencies: 'usd' })
+ *
+ * For ranked lists or browsing top coins, use getCoinsMarkets instead.
+ * For detailed coin fundamentals, use getCoinDetails.
+ * For contract-specific tokens, use getSimpleTokenPrice.
  *
  * @param params.ids - Coin IDs (comma-separated, e.g., 'bitcoin,ethereum')
  * @param params.vs_currencies - Target currencies (comma-separated, e.g., 'usd,eur')
@@ -59,7 +72,7 @@ export type GetSimplePriceResponse = z.infer<
  * @param params.include_last_updated_at - Include last updated timestamp (default: false)
  * @param params.precision - Decimal precision for currency (default: 'full')
  *
- * @returns Price data for requested coins in requested currencies
+ * @returns Price data: { coinId: { usd: price, ... }, ... }
  *
  * @example
  * ```typescript
@@ -68,6 +81,7 @@ export type GetSimplePriceResponse = z.infer<
  *   vs_currencies: 'usd,eur',
  *   include_24hr_change: true
  * });
+ * // Returns: { bitcoin: { usd: 50000, eur: 42000, usd_24h_change: 2.5 }, ethereum: { ... } }
  * ```
  */
 export async function getSimplePrice(
