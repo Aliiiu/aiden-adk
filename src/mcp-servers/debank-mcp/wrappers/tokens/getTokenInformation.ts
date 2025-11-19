@@ -42,12 +42,17 @@ export type GetTokenInformationResponse = z.infer<
 >;
 
 /**
- * Fetch comprehensive details about a specific token
+ * Get general token information (price, symbol, decimals, logo) by contract address.
  *
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.id - Token contract address or native token ID
+ * Returns token metadata and current price. This is for general token lookups by contract address.
+ * For user-specific token balances in a wallet, use getUserTokenList.
+ * For historical prices across date ranges, use CoinGecko getRangeCoinsMarketChart.
+ * For market data (market cap, volume, rankings), use CoinGecko getCoinsMarkets.
  *
- * @returns Token details including price, symbol, decimals, logo
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.id - Token contract address or native token identifier
+ *
+ * @returns Token metadata: name, symbol, decimals, current USD price, logo, verification status
  *
  * @example
  * ```typescript
@@ -55,7 +60,7 @@ export type GetTokenInformationResponse = z.infer<
  *   chain_id: 'eth',
  *   id: '0xdac17f958d2ee523a2206206994597c13d831ec7' // USDT
  * });
- * console.log(token);
+ * console.log(token.price); // Current price
  * ```
  */
 export async function getTokenInformation(

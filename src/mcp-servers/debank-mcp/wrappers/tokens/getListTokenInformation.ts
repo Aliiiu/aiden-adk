@@ -48,12 +48,16 @@ export type GetListTokenInformationResponse = z.infer<
 >;
 
 /**
- * Retrieve detailed information for multiple tokens at once
+ * Get general information for multiple tokens (prices, symbols, decimals) by contract addresses.
  *
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.ids - Comma-separated token addresses (up to 100)
+ * Returns metadata and current prices for up to 100 tokens in one call. This is for batch token lookups.
+ * For user-specific token balances in a wallet, use getUserTokenList or getUserAllTokenList.
+ * For market data across many coins (rankings, volume), use CoinGecko getCoinsMarkets.
  *
- * @returns Array of token details
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.ids - Comma-separated token contract addresses (max: 100)
+ *
+ * @returns Array of token metadata: name, symbol, decimals, current USD price, logo, verification
  *
  * @example
  * ```typescript
@@ -61,7 +65,7 @@ export type GetListTokenInformationResponse = z.infer<
  *   chain_id: 'eth',
  *   ids: '0xdac17f958d2ee523a2206206994597c13d831ec7,0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
  * });
- * console.log(tokens);
+ * // Returns: [{ name: 'Tether USD', price: 1.0 }, { name: 'USD Coin', price: 1.0 }]
  * ```
  */
 export async function getListTokenInformation(

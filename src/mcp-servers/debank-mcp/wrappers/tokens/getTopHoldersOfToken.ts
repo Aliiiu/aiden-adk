@@ -43,23 +43,27 @@ export type GetTopHoldersOfTokenResponse = z.infer<
 >;
 
 /**
- * Fetch the top holders of a specified token
+ * Get the largest wallet holders of a token by contract address with their balances and USD values.
  *
- * @param input.id - Token contract address or native token ID
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.start - Optional pagination offset (default: 0, max: 10000)
- * @param input.limit - Optional max number of holders (default: 100)
+ * Returns top holders ranked by balance. This is for analyzing token distribution and whale wallets.
+ * For a specific user's token holdings, use getUserTokenList.
+ * For protocol-level user distribution, use getTopHoldersOfProtocol.
  *
- * @returns Array of top token holders
+ * @param input.id - Token contract address or native token identifier
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.start - Pagination offset (default: 0, max: 10000)
+ * @param input.limit - Number of top holders to return (default: 100, max: 1000)
+ *
+ * @returns Array of top holders: wallet address, token amount, USD value
  *
  * @example
  * ```typescript
  * const holders = await getTopHoldersOfToken({
- *   id: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+ *   id: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
  *   chain_id: 'eth',
  *   limit: 50
  * });
- * console.log(holders);
+ * // Returns: [{ address: '0x...', amount: 1000000, usd_value: 1000000 }, ...]
  * ```
  */
 export async function getTopHoldersOfToken(

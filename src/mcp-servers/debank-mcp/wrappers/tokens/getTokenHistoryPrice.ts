@@ -26,22 +26,26 @@ export type GetTokenHistoryPriceResponse = z.infer<
 >;
 
 /**
- * Retrieve the historical price of a token for a given date
+ * Get historical price of a token on a specific date by contract address.
  *
- * @param input.id - Token contract address or native token ID
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.date_at - Date in format YYYY-MM-DD (e.g., '2023-05-18')
+ * Returns single-day historical price. This is for point-in-time price lookups by contract address.
+ * For price ranges ("last N days", "from X to Y"), use CoinGecko getRangeCoinsMarketChart.
+ * For user's historical portfolio value, use getUserTokenList with historical wallet analysis.
  *
- * @returns Historical price data for the specified date
+ * @param input.id - Token contract address or native token identifier
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.date_at - Date in YYYY-MM-DD format (e.g., '2023-05-18')
+ *
+ * @returns Historical price in USD for the specified date
  *
  * @example
  * ```typescript
  * const price = await getTokenHistoryPrice({
- *   id: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+ *   id: '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
  *   chain_id: 'eth',
  *   date_at: '2023-05-18'
  * });
- * console.log(price);
+ * console.log(price.price); // e.g., 0.9998
  * ```
  */
 export async function getTokenHistoryPrice(
