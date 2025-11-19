@@ -65,13 +65,14 @@ export type GetAgentStatsResponse =
  *
  * @param params.address - Agent token contract address on IQ chain
  * @param params.ticker - Agent ticker symbol (e.g., 'Sophia', 'GPT', 'Eliza')
- * @param params.extendedStats - Include extended metrics (only works with address, not ticker)
+ * @param params.extendedStats - Include extended metrics (default: true). MUST be false when using ticker.
  *
  * @returns Agent stats: market cap, holders, inference count for AI agents
  *
  * @example
  * ```typescript
- * const sophiaStats = await getAgentStats({ ticker: 'Sophia' });
+ * // When using ticker, MUST set extendedStats: false
+ * const sophiaStats = await getAgentStats({ ticker: 'Sophia', extendedStats: false });
  * // Returns: { name: 'Sophia', currentPriceInIQ: 0.5, marketCap: 500000, ... }
  * ```
  */
