@@ -63,7 +63,30 @@ export type GetDexsDataInput = z.infer<typeof GetDexsDataInputSchema>;
 export type GetDexsDataResponse = z.infer<typeof GetDexsDataResponseSchema>;
 
 /**
- * Get decentralized exchange volume data
+ * Get DEX (decentralized exchange) trading volume metrics and rankings across protocols.
+ *
+ * Returns DEX trading volumes (24h, 7d, 30d) for protocol comparison. This is for analyzing DEX trading activity.
+ * For DEX liquidity pools with token pairs, use CoinGecko getSearchOnchainPools.
+ * For yield farming pools with APY, use getLatestPoolData.
+ * For user-specific trading history, use DeBank getUserHistoryList.
+ *
+ * @param input.protocol - Optional DEX protocol slug for specific protocol summary (e.g., 'uniswap')
+ * @param input.chain - Optional chain filter for chain-specific DEX data
+ * @param input.sortCondition - Metric for sorting: 'total24h', 'total7d', 'total30d'
+ * @param input.order - Sort order: 'desc' or 'asc'
+ * @param input.excludeTotalDataChart - Exclude aggregated chart data (default: true)
+ * @param input.excludeTotalDataChartBreakdown - Exclude per-chain breakdown (default: true)
+ *
+ * @returns Array of DEX protocols with volume metrics (24h, 7d, 30d), changes, per-chain breakdown
+ *
+ * @example
+ * ```typescript
+ * const dexRankings = await getDexsData({
+ *   sortCondition: 'total24h',
+ *   order: 'desc'
+ * });
+ * // Returns: [{ displayName: 'Uniswap', total24h: 5000000000, change_1d: 5.2 }, ...]
+ * ```
  */
 export async function getDexsData(
 	input?: GetDexsDataInput,

@@ -81,15 +81,34 @@ export type GetFeesAndRevenueResponse = z.infer<
 >;
 
 /**
- * Get fees and revenue metrics for protocols or chains.
+ * Get protocol fee and revenue metrics (daily fees, protocol revenue, token holder revenue).
  *
- * IMPORTANT RESPONSE NOTES:
- * - The numeric fields are named generically (`total24h`, `total7d`, `total30d`, etc.).
- * - Their meaning depends on the `dataType` argument:
- *   - `dailyFees`  → values represent fees
- *   - `dailyRevenue` → values represent revenue
- *   - `dailyHoldersRevenue` → values represent holders’ revenue
- * - There are no fields such as `totalRevenue` or `totalFees`; consumers must read the totals above.
+ * Returns fee/revenue aggregates for protocol comparison. This is for analyzing protocol economics and revenue.
+ * For DEX trading volumes, use getDexsData.
+ * For protocol TVL, use getProtocols.
+ * For user-specific transaction fees, use DeBank getUserHistoryList.
+ *
+ * **IMPORTANT**: Field meanings depend on dataType parameter:
+ * - `dailyFees` → total24h/total7d represent fees paid by users
+ * - `dailyRevenue` → total24h/total7d represent protocol revenue
+ * - `dailyHoldersRevenue` → total24h/total7d represent revenue going to token holders
+ *
+ * @param input.dataType - Metric type: 'dailyFees', 'dailyRevenue', or 'dailyHoldersRevenue'
+ * @param input.protocol - Optional protocol slug for specific protocol data
+ * @param input.chain - Optional chain filter
+ * @param input.sortCondition - Sort by: 'total24h', 'total7d', 'total30d', 'totalAllTime'
+ * @param input.order - Sort order: 'desc' or 'asc'
+ *
+ * @returns Array of protocols with fee/revenue metrics (24h, 7d, 30d, 1y, allTime), percentage changes
+ *
+ * @example
+ * ```typescript
+ * const protocolFees = await getFeesAndRevenue({
+ *   dataType: 'dailyRevenue',
+ *   sortCondition: 'total24h'
+ * });
+ * // Returns: [{ name: 'Uniswap', total24h: 5000000, change_1d: 10.5 }, ...]
+ * ```
  */
 export async function getFeesAndRevenue(
 	input?: GetFeesAndRevenueInput,
