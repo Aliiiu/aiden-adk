@@ -27,7 +27,24 @@ export type GetHistoricalPoolDataResponse = z.infer<
 >;
 
 /**
- * Get historical yield pool data
+ * Get historical yield farming pool data with APY and TVL trends over time for a specific pool.
+ *
+ * Returns time-series data for a pool's APY and TVL. This is for analyzing yield trends for a specific pool.
+ * For current yield pool rankings, use getLatestPoolData.
+ * For protocol-level TVL trends, use getHistoricalChainTvl.
+ * For user-specific LP positions, use DeBank getUserComplexProtocolList.
+ *
+ * @param input.pool - Pool identifier from DefiLlama yields API (e.g., pool ID from getLatestPoolData)
+ *
+ * @returns Time-series array: [{ poolId, timestamp, tvlUsd, apy, apyBase }, ...]
+ *
+ * @example
+ * ```typescript
+ * const poolHistory = await getHistoricalPoolData({
+ *   pool: '747c1d2a-c668-4682-b9f9-296708a3dd90'
+ * });
+ * // Returns APY and TVL history for the pool
+ * ```
  */
 export async function getHistoricalPoolData(
 	input: GetHistoricalPoolDataInput,

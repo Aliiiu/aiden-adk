@@ -66,7 +66,28 @@ export type GetOptionsDataResponse = z.infer<
 >;
 
 /**
- * Get options protocol metrics
+ * Get options protocol trading volume metrics (notional volume for options contracts).
+ *
+ * Returns options trading volumes across protocols. This is for analyzing options trading activity.
+ * For DEX spot trading volumes, use getDexsData.
+ * For protocol fees/revenue, use getFeesAndRevenue.
+ *
+ * @param input.protocol - Optional options protocol name for specific protocol data
+ * @param input.chain - Optional chain filter
+ * @param input.dataType - Data metric: 'dailyNotionalVolume', 'dailyPremiumVolume' (default: 'dailyNotionalVolume')
+ * @param input.sortCondition - Sort by: 'total24h', 'total7d', 'total30d'
+ * @param input.order - Sort order: 'desc' or 'asc'
+ *
+ * @returns Array of options protocols with notional volume metrics (24h, 7d, 30d), percentage changes
+ *
+ * @example
+ * ```typescript
+ * const optionsVolume = await getOptionsData({
+ *   dataType: 'dailyNotionalVolume',
+ *   sortCondition: 'total24h'
+ * });
+ * // Returns: [{ displayName: 'Deribit', total24h: 5000000000, change_1d: 15.2 }, ...]
+ * ```
  */
 export async function getOptionsData(
 	input?: GetOptionsDataInput,
