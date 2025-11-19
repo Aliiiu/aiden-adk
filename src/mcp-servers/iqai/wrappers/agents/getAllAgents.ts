@@ -63,13 +63,31 @@ const allAgentsSchema = z
 export type GetAllAgentsResponse = z.infer<typeof allAgentsSchema>;
 
 /**
- * Get a paginated, sortable, and filterable list of all IQ AI agents with full metadata and contract details.
- * Use this first to discover agents before calling other functions.
+ * Get a paginated, sortable, and filterable list of all IQ AI agent tokens (e.g., Sophia, GPT, Eliza).
  *
- * Returns agent token prices on IQ chain (Chain ID 252) in both IQ and USD.
- * All agents are traded on IQ ATP DEX - this is the primary source for IQ chain token prices.
+ * Returns agent token directory with prices in IQ and USD. All agents are traded on IQ ATP DEX (IQ chain, Chain ID 252).
+ * This is for discovering AI agent tokens on IQ ATP. Use this first to find agent tickers/addresses
+ * before calling getAgentStats or getAgentInfo.
  *
- * Keywords: IQ chain, IQ ATP, IQ DEX, agent tokens, token price, market cap, Chain 252
+ * This is ONLY for agent tokens on IQ ATP, NOT for IQ base token itself.
+ * For IQ token price, use CoinGecko getCoinsMarkets.
+ * For general token listings across chains, use CoinGecko.
+ *
+ * @param params.sort - Sort by: 'marketCap', 'holders', 'inferences', 'latest'
+ * @param params.order - Sort order: 'desc' or 'asc'
+ * @param params.category - Filter by: 'OnChain', 'Productivity', 'Entertainment', 'Informative', 'Creative'
+ * @param params.status - Filter by: 'alive' or 'latent'
+ * @param params.chainId - Chain ID (default: 252 for IQ chain)
+ * @param params.page - Page number (default: 1)
+ * @param params.limit - Results per page (default: 50)
+ *
+ * @returns Paginated agent list: { agents: [{ ticker, name, currentPriceInIQ, currentPriceInUSD, ... }], pagination }
+ *
+ * @example
+ * ```typescript
+ * const agentList = await getAllAgents({ sort: 'marketCap', limit: 10 });
+ * // Returns top 10 agents: { agents: [{ ticker: 'Sophia', name: 'Sophia AI', currentPriceInIQ: 0.5, ... }], ... }
+ * ```
  */
 export async function getAllAgents(
 	params: GetAllAgentsInput = {},

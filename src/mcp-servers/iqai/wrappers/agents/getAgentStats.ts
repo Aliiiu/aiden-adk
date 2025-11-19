@@ -55,12 +55,26 @@ export type GetAgentStatsResponse =
 	| Array<z.infer<typeof agentStatsSchema>>;
 
 /**
- * Get live market and performance stats for an agent by address or ticker.
+ * Get live market and performance stats for an agent token by address or ticker (e.g., Sophia, GPT).
  *
- * Returns real-time price data (IQ and USD), market cap, 24h price changes, and performance metrics.
- * Primary source for live pricing of agent tokens on IQ ATP DEX (IQ chain, Chain ID 252).
+ * Returns real-time price data (IQ and USD), market cap, 24h price changes, and performance metrics
+ * for AI agent tokens traded on IQ ATP DEX (IQ chain, Chain ID 252).
  *
- * Keywords: IQ chain, IQ ATP, agent token price, live price, market stats, price change, trading volume
+ * This is ONLY for agent tokens on IQ ATP (like Sophia, GPT, Eliza), NOT for IQ base token itself.
+ * For IQ token price, use CoinGecko getCoinsMarkets.
+ * For general crypto prices not on IQ chain, use CoinGecko.
+ *
+ * @param params.address - Agent token contract address on IQ chain
+ * @param params.ticker - Agent ticker symbol (e.g., 'Sophia', 'GPT')
+ * @param params.extendedStats - Include extended metrics (only works with address, not ticker)
+ *
+ * @returns Agent token stats: price in IQ/USD, market cap, 24h changes, holders, inference count
+ *
+ * @example
+ * ```typescript
+ * const sophiaStats = await getAgentStats({ ticker: 'Sophia' });
+ * // Returns: { name: 'Sophia', currentPriceInIQ: 0.5, currentPriceInUSD: 0.003, marketCap: 500000, ... }
+ * ```
  */
 export async function getAgentStats(
 	params: GetAgentStatsInput,
