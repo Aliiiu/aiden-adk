@@ -1,7 +1,3 @@
-/**
- * Get OHLCV data for an onchain token
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

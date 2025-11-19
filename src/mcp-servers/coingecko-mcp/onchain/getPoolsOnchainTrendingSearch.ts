@@ -1,7 +1,3 @@
-/**
- * Get trending onchain pools
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

@@ -1,7 +1,3 @@
-/**
- * Get onchain pools with advanced filtering
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

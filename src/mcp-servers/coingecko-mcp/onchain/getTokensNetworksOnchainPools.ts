@@ -1,7 +1,3 @@
-/**
- * Get pools for a specific token
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
