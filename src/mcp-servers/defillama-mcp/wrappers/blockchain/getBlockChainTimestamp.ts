@@ -31,7 +31,25 @@ export type GetBlockChainTimestampResponse = z.infer<
 >;
 
 /**
- * Get block data for a specific chain and timestamp
+ * Get blockchain block height (number) for a specific timestamp on a chain.
+ *
+ * Returns block metadata at a timestamp. This is for finding block numbers at specific times for on-chain queries.
+ * For general chain data, use getChains.
+ * For historical TVL at specific times, use getHistoricalChainTvl.
+ *
+ * @param input.chain - Chain identifier (e.g., 'ethereum', 'polygon', 'bsc')
+ * @param input.timestamp - Target timestamp (Unix seconds, milliseconds, or ISO string)
+ *
+ * @returns Block data: { height: block_number, timestamp: unix_seconds }
+ *
+ * @example
+ * ```typescript
+ * const block = await getBlockChainTimestamp({
+ *   chain: 'ethereum',
+ *   timestamp: 1640995200
+ * });
+ * // Returns: { height: 13916166, timestamp: 1640995200 }
+ * ```
  */
 export async function getBlockChainTimestamp(
 	input: GetBlockChainTimestampInput,
