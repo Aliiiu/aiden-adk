@@ -1,7 +1,3 @@
-/**
- * Get global cryptocurrency statistics
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -25,9 +21,9 @@ export const GetGlobalResponseSchema = z.object({
 export type GetGlobalResponse = z.infer<typeof GetGlobalResponseSchema>;
 
 /**
- * Get global cryptocurrency statistics
+ * Get global cryptocurrency market statistics (market cap, volume, dominance).
  *
- * @returns Global market data including total market cap, volume, etc.
+ * @returns Global market data including total market cap, volume, and dominance metrics.
  *
  * @example
  * ```typescript

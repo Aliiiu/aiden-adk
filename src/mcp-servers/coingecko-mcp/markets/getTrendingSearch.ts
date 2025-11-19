@@ -1,9 +1,3 @@
-/**
- * Get CoinGecko's trending search coins and NFT collections over the last 24 hours.
- *
- * Use this to surface currently popular assets based on user search activity.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -55,9 +49,11 @@ export type GetTrendingSearchResponse = z.infer<
 >;
 
 /**
- * Get trending search coins in the last 24 hours
+ * Get CoinGecko's trending search coins and NFT collections over the last 24 hours.
  *
- * @returns Trending coins data
+ * Use this to surface currently popular assets based on user search activity.
+ *
+ * @returns Trending coins and NFT collections
  *
  * @example
  * ```typescript

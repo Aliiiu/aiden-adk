@@ -1,10 +1,3 @@
-/**
- * Search the CoinGecko catalog for coins, exchanges, categories, and NFT collections.
- *
- * Use this to discover canonical coin IDs before price/market calls, or to find
- * exchanges and NFT collections matching a keyword.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -60,11 +53,13 @@ export type SearchInput = z.infer<typeof SearchInputSchema>;
 export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 
 /**
- * Search for coins, exchanges, and NFTs
+ * Search the CoinGecko catalog for coins, exchanges, categories, and NFT collections.
+ *
+ * Use this to discover canonical coin IDs before price/market calls, or to find
+ * exchanges and NFT collections matching a keyword.
  *
  * @param params.query - Search query
- *
- * @returns Search results
+ * @returns Search results grouped by asset type
  *
  * @example
  * ```typescript

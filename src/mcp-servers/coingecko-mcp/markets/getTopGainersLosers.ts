@@ -1,9 +1,3 @@
-/**
- * Get today's top gainers and losers ranked by price change percentage on a vs_currency.
- *
- * Useful for daily market movers dashboards. Defaults to USD if no currency is provided.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -49,7 +43,9 @@ export type GetTopGainersLosersResponse = z.infer<
 >;
 
 /**
- * Get top gainers and losers by price change percentage
+ * Get today's top gainers and losers ranked by price change percentage on a vs_currency.
+ *
+ * Useful for daily market movers dashboards. Defaults to USD if no currency is provided.
  *
  * @param params.vs_currency - Target currency (default: 'usd')
  * @param params.duration - Time period: 1h, 24h (default: '24h')
