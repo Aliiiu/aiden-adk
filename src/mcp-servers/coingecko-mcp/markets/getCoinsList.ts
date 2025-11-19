@@ -1,7 +1,3 @@
-/**
- * Get list of all supported coins with id, name, and symbol
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -29,10 +25,12 @@ export type GetCoinsListInput = z.infer<typeof GetCoinsListInputSchema>;
 export type GetCoinsListResponse = z.infer<typeof GetCoinsListResponseSchema>;
 
 /**
- * Get list of all supported coins with id, name, and symbol
+ * List all supported coins with ID, name, and symbol.
+ *
+ * Use this to discover coin IDs before calling price/market endpoints. Optional platform
+ * addresses can be included when you need contract mappings.
  *
  * @param params.include_platform - Include platform contract addresses (default: false)
- *
  * @returns Array of all supported coins
  *
  * @example

@@ -1,7 +1,3 @@
-/**
- * Get exchange tickers (trading pairs) by exchange ID
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -62,7 +58,10 @@ export type GetExchangesTickersResponse = z.infer<
 >;
 
 /**
- * Get exchange tickers (trading pairs) by exchange ID
+ * Get trading tickers (pairs) on a specific exchange.
+ *
+ * Use this after discovering an exchange via `getExchangesList` to pull pairs, prices,
+ * and volumes. Optional filters for coin IDs and orderbook depth.
  *
  * @param params.id - Exchange ID (e.g., 'binance')
  * @param params.coin_ids - Filter tickers by coin IDs (comma-separated)

@@ -1,7 +1,3 @@
-/**
- * Get list of all exchanges
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -47,7 +43,9 @@ export type GetExchangesListResponse = z.infer<
 >;
 
 /**
- * Get list of all supported exchanges
+ * List cryptocurrency exchanges with basic metadata.
+ *
+ * Use this to discover exchange IDs before fetching tickers or volume charts.
  *
  * @param params.per_page - Results per page (default: 100)
  * @param params.page - Page number (default: 1)
@@ -56,9 +54,7 @@ export type GetExchangesListResponse = z.infer<
  *
  * @example
  * ```typescript
- * const exchanges = await getExchangesList({
- *   per_page: 50
- * });
+ * const exchanges = await getExchangesList({ per_page: 50 });
  * ```
  */
 export async function getExchangesList(

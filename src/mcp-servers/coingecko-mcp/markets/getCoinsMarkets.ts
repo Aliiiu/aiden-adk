@@ -1,11 +1,3 @@
-/**
- * Get current market data (price, volume, market cap, sparkline) for one or more coins.
- *
- * Ideal for real-time price lookups, portfolio summaries, and comparing multiple assets.
- * For contract-specific tokens on a chain, prefer `getSimpleTokenPrice` or onchain price
- * endpoints. Discover coin IDs first via `getCoinsList` or `search`.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -102,7 +94,10 @@ export type GetCoinsMarketsResponse = z.infer<
 >;
 
 /**
- * Get cryptocurrency market data for all coins
+ * Get current market data (price, volume, market cap, sparkline) for one or more coins.
+ *
+ * Ideal for real-time price lookups, portfolio summaries, and comparing multiple   * assets.
+ * For contract-specific tokens on a chain, prefer `getSimpleTokenPrice` or onchain * price endpoints. Discover coin IDs first via `getCoinsList` or `search`.
  *
  * @param params.vs_currency - Target currency (default: 'usd')
  * @param params.order - Sort order: market_cap_desc, volume_desc, id_asc, id_desc
