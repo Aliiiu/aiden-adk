@@ -75,12 +75,16 @@ export type GetUserComplexProtocolListResponse = z.infer<
 >;
 
 /**
- * Retrieve detailed portfolios of a user on a specific chain across protocols
+ * Get a specific wallet's DeFi positions (lending, borrowing, staking, LP) across protocols on a chain.
  *
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.id - User's wallet address
+ * Returns wallet-specific protocol positions: supplied assets, borrowed debt, rewards, and net values.
+ * This is for analyzing a specific user's DeFi positions. For protocol-level TVL rankings or yield data
+ * (not user-specific), use DefiLlama getProtocols or getLatestPoolData.
  *
- * @returns Array of protocol positions with details
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.id - User's wallet address (e.g., '0x...')
+ *
+ * @returns Array of user's protocol positions with supplied/borrowed/reward tokens and USD values
  *
  * @example
  * ```typescript
@@ -88,7 +92,7 @@ export type GetUserComplexProtocolListResponse = z.infer<
  *   chain_id: 'eth',
  *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
  * });
- * console.log(positions);
+ * // Returns: [{ name: 'Aave', stats: { asset_usd_value, debt_usd_value }, ... }]
  * ```
  */
 export async function getUserComplexProtocolList(

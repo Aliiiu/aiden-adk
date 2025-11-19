@@ -52,20 +52,25 @@ export type GetUserAllTokenListResponse = z.infer<
 >;
 
 /**
- * Retrieve a user's token balances across all supported chains
+ * Get all tokens held by a specific wallet address across all supported chains.
  *
- * @param input.id - User's wallet address
- * @param input.is_all - Optional: include all tokens (default: true)
- * @param input.has_balance - Optional: only include tokens with a positive balance
+ * Returns complete token portfolio for a wallet across every chain. This is wallet-specific holdings.
+ * For general token market data (not tied to a wallet), use CoinGecko.
+ * For protocol TVL or yield data, use DefiLlama.
  *
- * @returns Array of tokens across all chains
+ * @param input.id - User's wallet address (e.g., '0x...')
+ * @param input.is_all - Include all tokens including dust (default: true)
+ * @param input.has_balance - Filter to only tokens with non-zero balance
+ *
+ * @returns Array of tokens across all chains with balances, prices, USD values
  *
  * @example
  * ```typescript
  * const tokens = await getUserAllTokenList({
- *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
+ *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+ *   has_balance: true
  * });
- * console.log(tokens);
+ * // Returns tokens from eth, bsc, polygon, arbitrum, etc.
  * ```
  */
 export async function getUserAllTokenList(

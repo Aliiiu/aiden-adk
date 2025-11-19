@@ -53,22 +53,27 @@ export type GetUserTokenListResponse = z.infer<
 >;
 
 /**
- * Retrieve a list of tokens held by a user on a specific chain
+ * Get all tokens held by a specific wallet address on a chain with balances and USD values.
  *
- * @param input.id - User's wallet address
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.is_all - Optional: include all tokens (default: true)
- * @param input.has_balance - Optional: include only tokens with non-zero balance
+ * Returns token holdings for a specific user wallet. This is wallet-specific token balances.
+ * For general token market data (prices, market cap, not tied to a wallet), use CoinGecko.
+ * For protocol TVL or yield pools, use DefiLlama.
  *
- * @returns Array of tokens with balances
+ * @param input.id - User's wallet address (e.g., '0x...')
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.is_all - Include all tokens including dust (default: true)
+ * @param input.has_balance - Filter to only tokens with non-zero balance
+ *
+ * @returns Array of tokens with wallet balances, prices, and USD values
  *
  * @example
  * ```typescript
  * const tokens = await getUserTokenList({
  *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
- *   chain_id: 'eth'
+ *   chain_id: 'eth',
+ *   has_balance: true
  * });
- * console.log(tokens);
+ * // Returns: [{ symbol: 'USDC', amount: 1000, price: 1, usd_value: 1000 }, ...]
  * ```
  */
 export async function getUserTokenList(

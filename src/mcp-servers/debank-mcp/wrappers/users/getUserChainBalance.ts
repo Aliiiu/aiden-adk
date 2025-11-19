@@ -22,12 +22,16 @@ export type GetUserChainBalanceResponse = z.infer<
 >;
 
 /**
- * Fetch the current balance of a user on a specified chain
+ * Get a specific wallet's total balance on a single chain.
  *
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.id - User's wallet address
+ * Returns USD value of all holdings for a wallet on one chain. This is wallet-specific balance.
+ * For balances across all chains, use getUserTotalBalance.
+ * For general token prices (not wallet-specific), use CoinGecko.
  *
- * @returns Balance in USD value
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.id - User's wallet address (e.g., '0x...')
+ *
+ * @returns Total USD value of wallet holdings on the specified chain
  *
  * @example
  * ```typescript
@@ -35,7 +39,7 @@ export type GetUserChainBalanceResponse = z.infer<
  *   chain_id: 'eth',
  *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb'
  * });
- * console.log(balance);
+ * console.log(balance.usd_value); // e.g., 15000
  * ```
  */
 export async function getUserChainBalance(

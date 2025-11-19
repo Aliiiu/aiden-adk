@@ -43,13 +43,17 @@ export type GetUserNftListResponse = z.infer<
 >;
 
 /**
- * Fetch a list of NFTs owned by a user on a specific chain
+ * Get all NFTs owned by a specific wallet address on a chain with metadata and attributes.
  *
- * @param input.id - User's wallet address
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
- * @param input.is_all - Optional: include all NFTs (default: true)
+ * Returns wallet-specific NFT holdings with content URLs, traits, and collection info.
+ * This is for analyzing a specific user's NFT portfolio. For general NFT collection data
+ * (not wallet-specific), use NFT marketplaces or other tools.
  *
- * @returns Array of NFTs with details
+ * @param input.id - User's wallet address (e.g., '0x...')
+ * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
+ * @param input.is_all - Include all NFTs including low-value ones (default: true)
+ *
+ * @returns Array of NFTs with name, description, content URLs, traits, collection info
  *
  * @example
  * ```typescript
@@ -57,7 +61,7 @@ export type GetUserNftListResponse = z.infer<
  *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
  *   chain_id: 'eth'
  * });
- * console.log(nfts);
+ * // Returns: [{ name: 'Bored Ape #123', content: '...', attributes: [...] }]
  * ```
  */
 export async function getUserNftList(

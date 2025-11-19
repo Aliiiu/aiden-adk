@@ -78,12 +78,25 @@ export type GetUserAllComplexProtocolListResponse = z.infer<
 >;
 
 /**
- * Retrieve a user's detailed portfolios across all supported chains
+ * Get a specific wallet's DeFi positions (lending, borrowing, staking, LP) across all chains.
  *
- * @param input.id - User's wallet address
- * @param input.chain_ids - Optional comma-separated chain IDs to filter
+ * Returns wallet-specific protocol positions across all supported chains. This is for analyzing
+ * a specific user's complete DeFi portfolio. For protocol-level TVL rankings or yield data
+ * (not user-specific), use DefiLlama getProtocols or getLatestPoolData.
  *
- * @returns Array of protocol positions across all/specified chains
+ * @param input.id - User's wallet address (e.g., '0x...')
+ * @param input.chain_ids - Optional comma-separated chain IDs to filter (e.g., 'eth,bsc')
+ *
+ * @returns Array of user's protocol positions across chains with supplied/borrowed/reward tokens
+ *
+ * @example
+ * ```typescript
+ * const positions = await getUserAllComplexProtocolList({
+ *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
+ *   chain_ids: 'eth,arb'
+ * });
+ * // Returns all Aave, Compound, Uniswap positions for this wallet
+ * ```
  */
 export async function getUserAllComplexProtocolList(
 	input: GetUserAllComplexProtocolListInput,
