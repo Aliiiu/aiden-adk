@@ -1,7 +1,3 @@
-/**
- * Get detailed info for a specific onchain pool
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

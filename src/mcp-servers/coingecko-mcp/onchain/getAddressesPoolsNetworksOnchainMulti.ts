@@ -1,7 +1,3 @@
-/**
- * Get info for multiple pools by addresses
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

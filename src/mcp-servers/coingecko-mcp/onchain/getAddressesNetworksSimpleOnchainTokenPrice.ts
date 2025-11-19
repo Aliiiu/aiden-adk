@@ -1,7 +1,3 @@
-/**
- * Get simple token prices for multiple addresses
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

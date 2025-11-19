@@ -1,7 +1,3 @@
-/**
- * Get list of onchain categories for pools
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

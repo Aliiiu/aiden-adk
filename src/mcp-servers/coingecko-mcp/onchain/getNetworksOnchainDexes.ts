@@ -1,7 +1,3 @@
-/**
- * Get list of DEXes on a specific network
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

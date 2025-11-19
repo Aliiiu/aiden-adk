@@ -1,7 +1,3 @@
-/**
- * Get new pools across a specific network (alternate endpoint)
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

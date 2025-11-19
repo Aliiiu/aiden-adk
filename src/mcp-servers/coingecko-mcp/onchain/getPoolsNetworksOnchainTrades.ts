@@ -1,7 +1,3 @@
-/**
- * Get recent trades for an onchain pool
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

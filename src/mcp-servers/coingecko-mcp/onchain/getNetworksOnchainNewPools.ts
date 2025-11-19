@@ -1,7 +1,3 @@
-/**
- * Get newly created pools on a network
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

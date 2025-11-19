@@ -1,7 +1,3 @@
-/**
- * Get list of all supported onchain networks/blockchains
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
