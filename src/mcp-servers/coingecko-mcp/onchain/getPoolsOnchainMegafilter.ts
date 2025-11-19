@@ -80,9 +80,12 @@ export type GetPoolsOnchainMegafilterResponse = z.infer<
 >;
 
 /**
- * Get onchain pools with mega filter (advanced search)
+ * Search and filter DEX trading pools with advanced criteria (volume, price change, DEX, etc.).
  *
- * @param params.network - Network ID
+ * Returns onchain DEX pools matching specific trading criteria. This is for finding active trading pools based on metrics.
+ * For protocol rankings by TVL, use DefiLlama getProtocols. For yield farming pools, use DefiLlama getLatestPoolData.
+ *
+ * @param params.network - Network ID (e.g., 'eth', 'bsc')
  * @param params.dex - DEX filter
  * @param params.min_volume_usd - Minimum 24h volume in USD
  * @param params.max_volume_usd - Maximum 24h volume in USD

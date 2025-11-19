@@ -29,13 +29,16 @@ export type GetAddressesNetworksSimpleOnchainTokenPriceResponse = z.infer<
 >;
 
 /**
- * Get simple price for tokens by their contract addresses
+ * Get current onchain DEX prices for tokens by their contract addresses.
  *
- * @param params.network - Network ID
- * @param params.addresses - Comma-separated token addresses
- * @param params.vs_currencies - Comma-separated target currencies (default: 'usd')
+ * Returns live token prices from onchain DEX data. Use this for contract address price lookups on specific networks.
+ * For coin prices by ID, use getSimplePrice or getCoinsMarkets. For historical prices, use getRangeCoinsMarketChart.
  *
- * @returns Token prices for specified addresses
+ * @param params.network - Network ID (e.g., 'eth', 'bsc', 'polygon')
+ * @param params.addresses - Comma-separated token contract addresses on the network
+ * @param params.vs_currencies - Comma-separated target currencies (default: 'usd', e.g., 'usd,eth,btc')
+ *
+ * @returns Current token prices for each address in specified currencies
  *
  * @example
  * ```typescript

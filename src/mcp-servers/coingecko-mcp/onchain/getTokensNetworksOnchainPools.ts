@@ -70,13 +70,16 @@ export type GetTokensNetworksOnchainPoolsResponse = z.infer<
 >;
 
 /**
- * Get all trading pools for a specific token
+ * Get all DEX trading pools (liquidity pairs) where a specific token is traded.
  *
- * @param params.network - Network ID
- * @param params.token_address - Token contract address
- * @param params.page - Page number (default: 1)
+ * Returns onchain DEX pools for a token across different DEXes on the network. This is for finding trading venues for a token.
+ * For yield farming pools with APY, use DefiLlama getLatestPoolData. For protocol TVL, use DefiLlama getProtocols.
  *
- * @returns Pools where the token is traded
+ * @param params.network - Network ID (e.g., 'eth', 'bsc', 'polygon')
+ * @param params.token_address - Token contract address on the specified network
+ * @param params.page - Page number for pagination (default: 1)
+ *
+ * @returns DEX pools: pair info, reserves, 24h volume, DEX name, base/quote tokens
  *
  * @example
  * ```typescript

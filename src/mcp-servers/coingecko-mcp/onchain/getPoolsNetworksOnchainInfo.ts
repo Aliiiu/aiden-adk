@@ -54,12 +54,15 @@ export type GetPoolsNetworksOnchainInfoResponse = z.infer<
 >;
 
 /**
- * Get detailed information for a specific pool on a network
+ * Get detailed information for a specific DEX trading pool (liquidity pair) by contract address.
  *
- * @param params.network - Network ID (e.g., 'eth', 'bsc')
- * @param params.pool_address - Pool contract address
+ * Returns onchain DEX pool metadata, token pair info, and social links. This is for specific pool lookups by address.
+ * For protocol TVL or yield data, use DefiLlama. For discovering pools by token, use getSearchOnchainPools.
  *
- * @returns Pool details including reserves, fees, volume
+ * @param params.network - Network ID (e.g., 'eth', 'bsc', 'polygon')
+ * @param params.pool_address - Pool contract address on the specified network
+ *
+ * @returns DEX pool details: name, symbol, token addresses, categories, social links
  *
  * @example
  * ```typescript

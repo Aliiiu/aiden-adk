@@ -38,12 +38,15 @@ export type GetTokensNetworksOnchainInfoResponse = z.infer<
 >;
 
 /**
- * Get detailed information for a token on a network
+ * Get detailed onchain information for a specific token by contract address.
  *
- * @param params.network - Network ID (e.g., 'eth', 'bsc')
- * @param params.token_address - Token contract address
+ * Returns token metadata, supply, holder count, and onchain DEX data. This is for individual token lookups by contract address.
+ * For coin market data by ID, use getCoinsMarkets or getCoinDetails. For protocol-level data, use DefiLlama.
  *
- * @returns Token details including supply, holders, price
+ * @param params.network - Network ID (e.g., 'eth', 'bsc', 'polygon', 'arb')
+ * @param params.token_address - Token contract address on the specified network
+ *
+ * @returns Token details: name, symbol, total supply, holder count, DEX trading data, social links
  *
  * @example
  * ```typescript
