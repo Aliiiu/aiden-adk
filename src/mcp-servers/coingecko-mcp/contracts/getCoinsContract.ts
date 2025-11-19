@@ -1,10 +1,3 @@
-/**
- * Get coin data by contract address on a specific platform (chain).
- *
- * Use this to resolve token details via contract address. Requires platform `id`
- * (e.g., 'ethereum') and `contract_address`.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -75,7 +68,10 @@ export type GetCoinsContractResponse = z.infer<
 >;
 
 /**
- * Get coin data by contract address
+ * Get coin data by contract address on a specific platform (chain).
+ *
+ * Use this to resolve token details via contract address. Requires platform `id`
+ * (e.g., 'ethereum') and `contract_address`.
  *
  * @param params.id - Asset platform ID (e.g., 'ethereum', 'binance-smart-chain')
  * @param params.contract_address - Token contract address

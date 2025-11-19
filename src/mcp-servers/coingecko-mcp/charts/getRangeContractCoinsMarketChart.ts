@@ -1,9 +1,3 @@
-/**
- * Get historical market chart (prices, market caps, volumes) for a token by contract address.
- *
- * Use this for contract-specific time-series analysis between two UNIX timestamps.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -38,7 +32,9 @@ export type GetRangeContractCoinsMarketChartResponse = z.infer<
 >;
 
 /**
- * Get historical market data for a token by contract address
+ * Get historical market chart (prices, market caps, volumes) for a token by contract address
+ *
+ * Use this for contract-specific time-series analysis between two UNIX timestamps.
  *
  * @param params.id - Asset platform ID (e.g., 'ethereum')
  * @param params.contract_address - Token contract address

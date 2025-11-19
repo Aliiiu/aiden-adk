@@ -1,9 +1,3 @@
-/**
- * Get OHLC (candlestick) data for a coin over a date range.
- *
- * Use this to build candlestick charts for the specified UNIX timestamp window.
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -39,6 +33,7 @@ export type GetRangeCoinsOhlcResponse = z.infer<
 
 /**
  * Get OHLC (candlestick) data for a coin within a date range
+ * Use this to build candlestick charts for the specified UNIX timestamp window.
  *
  * @param params.id - Coin ID
  * @param params.vs_currency - Target currency (e.g., 'usd')

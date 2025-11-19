@@ -1,7 +1,3 @@
-/**
- * Shared utilities for CoinGecko MCP wrappers
- */
-
 import { McpToolset } from "@iqai/adk";
 import { createChildLogger } from "../../lib/utils/index.js";
 
@@ -78,7 +74,7 @@ export async function executeTool(
 		// MCP tools return { content: [{ type: 'text', text: '...' }] }
 		if (result && Array.isArray(result.content)) {
 			const textContent = result.content.find((c: any) => c.type === "text");
-			if (textContent && textContent.text) {
+			if (textContent?.text) {
 				try {
 					// Try to parse as JSON
 					return JSON.parse(textContent.text);
