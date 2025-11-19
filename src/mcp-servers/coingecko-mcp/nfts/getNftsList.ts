@@ -1,7 +1,3 @@
-/**
- * Get list of all supported NFT collections
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -51,7 +47,9 @@ export type GetNftsListInput = z.infer<typeof GetNftsListInputSchema>;
 export type GetNftsListResponse = z.infer<typeof GetNftsListResponseSchema>;
 
 /**
- * Get list of all supported NFT collections
+ * List supported NFT collections with sorting and filters (e.g., platform, floor price).
+ *
+ * Use this to discover NFT collection IDs before fetching details or charts.
  *
  * @param params.order - Sort order: 'h24_volume_native_asc', 'h24_volume_native_desc', etc.
  * @param params.asset_platform_id - Filter by asset platform (e.g., 'ethereum')

@@ -1,7 +1,3 @@
-/**
- * Get NFT collection data (name, floor price, 24h volume, etc.) based on asset platform and/or collection id
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -51,14 +47,16 @@ export type GetNftsMarketsResponse = z.infer<
 >;
 
 /**
- * Get NFT market data for collections
+ * Get market data for multiple NFT collections with platform and sorting filters.
+ *
+ * Use this to build ranked NFT dashboards (floor price, volume, market cap) across collections.
  *
  * @param params.asset_platform_id - Asset platform ID (required)
  * @param params.order - Sort order
  * @param params.per_page - Results per page (default: 100)
  * @param params.page - Page number (default: 1)
  *
- * @returns NFT market data including floor price, volume, market cap
+ * @returns NFT market data including floor price, volume, and market cap
  *
  * @example
  * ```typescript

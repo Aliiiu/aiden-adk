@@ -1,7 +1,3 @@
-/**
- * Get historical market data for an NFT collection
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -36,12 +32,14 @@ export type GetNftsMarketChartResponse = z.infer<
 >;
 
 /**
- * Get historical market data (floor price, volume) for an NFT collection
+ * Get historical floor price and volume chart data for an NFT collection.
+ *
+ * Use this to analyze NFT collection trends over a time window (days or 'max').
  *
  * @param params.id - NFT collection ID
- * @param params.days - Data up to number of days ago (e.g., 1, 7, 14, 30, 90, 365)
+ * @param params.days - Data window (number of days or 'max')
  *
- * @returns Historical floor price and volume data
+ * @returns Historical floor price and volume arrays
  *
  * @example
  * ```typescript

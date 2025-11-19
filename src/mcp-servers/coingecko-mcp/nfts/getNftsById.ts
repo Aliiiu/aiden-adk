@@ -1,7 +1,3 @@
-/**
- * Get current data for an NFT collection
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -38,17 +34,14 @@ export type GetNftsByIdInput = z.infer<typeof GetNftsByIdInputSchema>;
 export type GetNftsByIdResponse = z.infer<typeof GetNftsByIdResponseSchema>;
 
 /**
- * Get current data for an NFT collection by ID
+ * Get current data for an NFT collection by ID.
  *
  * @param params.id - NFT collection ID
- *
  * @returns Detailed NFT collection data including floor price, volume, attributes
  *
  * @example
  * ```typescript
- * const collection = await getNftsById({
- *   id: 'cryptopunks'
- * });
+ * const collection = await getNftsById({ id: 'cryptopunks' });
  * ```
  */
 export async function getNftsById(
