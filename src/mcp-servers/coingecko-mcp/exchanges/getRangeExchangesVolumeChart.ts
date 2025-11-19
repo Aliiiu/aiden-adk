@@ -1,7 +1,3 @@
-/**
- * Get exchange volume chart data within a time range
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 

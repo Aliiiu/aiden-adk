@@ -1,7 +1,3 @@
-/**
- * Get list of supported vs currencies
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -14,7 +10,7 @@ export type GetSimpleSupportedVsCurrenciesResponse = z.infer<
 >;
 
 /**
- * Get list of supported vs currencies
+ * List supported vs_currencies for price endpoints.
  *
  * @returns Array of supported currency codes
  *
