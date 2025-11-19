@@ -37,12 +37,21 @@ export type GetChainInput = z.infer<typeof GetChainInputSchema>;
 export type GetChainResponse = z.infer<typeof GetChainResponseSchema>;
 
 /**
- * Retrieve detailed information about a specific blockchain chain
+ * Get detailed information about a specific blockchain chain by its identifier.
+ *
+ * Returns chain metadata and configuration. This is for looking up a specific chain's details.
+ * For listing all available chains, use getSupportedChainList.
+ *
+ * @param input.id - Chain identifier (e.g., 'eth', 'bsc', 'matic', 'arb', 'polygon')
+ *
+ * @returns Chain details: name, logo, native token, wrapped token, pre-exec simulation support
  *
  * @example
  * ```typescript
  * const chain = await getChain({ id: 'eth' });
- * // Returns: { id: 'eth', name: 'Ethereum', logo_url: '...', ... }
+ * console.log(chain.name); // 'Ethereum'
+ * console.log(chain.native_token_id); // 'eth'
+ * console.log(chain.is_support_pre_exec); // true/false
  * ```
  */
 export async function getChain(

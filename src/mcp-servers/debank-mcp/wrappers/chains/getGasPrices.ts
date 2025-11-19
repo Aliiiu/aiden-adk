@@ -28,16 +28,21 @@ export type GetGasPricesInput = z.infer<typeof GetGasPricesInputSchema>;
 export type GetGasPricesResponse = z.infer<typeof GetGasPricesResponseSchema>;
 
 /**
- * Fetch current gas prices for different transaction speed levels
+ * Get current gas prices for a chain with slow/normal/fast speed tiers and estimated confirmation times.
  *
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic')
+ * Returns real-time gas market data for transaction fee estimation. This is for optimizing transaction costs
+ * and timing. For gas usage simulation, use preExecTransaction.
  *
- * @returns Gas prices for slow, normal, and fast speeds
+ * @param input.chain_id - Chain identifier (e.g., 'eth', 'bsc', 'matic', 'arb', 'polygon')
+ *
+ * @returns Gas prices in Gwei for slow/normal/fast speeds with estimated confirmation times in seconds
  *
  * @example
  * ```typescript
  * const gasPrices = await getGasPrices({ chain_id: 'eth' });
- * console.log(gasPrices);
+ * console.log(gasPrices.fast.price); // e.g., 50 (Gwei)
+ * console.log(gasPrices.fast.estimated_seconds); // e.g., 15
+ * console.log(gasPrices.normal.price); // e.g., 40 (Gwei)
  * ```
  */
 export async function getGasPrices(
