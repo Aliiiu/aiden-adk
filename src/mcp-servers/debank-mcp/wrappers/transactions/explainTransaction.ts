@@ -39,22 +39,27 @@ export type ExplainTransactionResponse = z.infer<
 >;
 
 /**
- * Decode and explain a transaction in human-readable terms
+ * Decode and explain a transaction payload in human-readable terms with protocol and action details.
  *
- * @param input.tx - Transaction object as JSON string
+ * Returns step-by-step breakdown of what a transaction will do. This is for understanding transaction intent
+ * before signing. For simulating execution results (balance changes, gas), use preExecTransaction.
+ * For historical transactions of a wallet, use getUserHistoryList.
  *
- * @returns Human-readable explanation of the transaction
+ * @param input.tx - Transaction payload as JSON string (from, to, data, value, etc.)
+ *
+ * @returns Human-readable explanation: action type, protocol name/logo, step-by-step actions
  *
  * @example
  * ```typescript
  * const explanation = await explainTransaction({
  *   tx: JSON.stringify({
  *     from: '0x...',
- *     to: '0x...',
+ *     to: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984', // Uniswap
  *     data: '0x...'
  *   })
  * });
- * console.log(explanation);
+ * console.log(explanation.action_type); // e.g., 'swap'
+ * console.log(explanation.actions); // Step-by-step breakdown
  * ```
  */
 export async function explainTransaction(

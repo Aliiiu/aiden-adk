@@ -64,12 +64,16 @@ export type PreExecTransactionResponse = z.infer<
 >;
 
 /**
- * Simulate the execution of a transaction before submitting on-chain
+ * Simulate transaction execution to preview balance changes, gas costs, and success/failure before submitting.
  *
- * @param input.tx - Transaction object as JSON string
- * @param input.pending_tx_list - Optional JSON array of pending transactions
+ * Returns predicted balance changes (tokens/NFTs sent/received) and gas estimates. This is for validating
+ * transactions before signing. For human-readable transaction explanation, use explainTransaction.
+ * For historical transaction results, use getUserHistoryList.
  *
- * @returns Simulation results including balance changes and gas estimates
+ * @param input.tx - Transaction payload as JSON string (from, to, data, value, gas, etc.)
+ * @param input.pending_tx_list - Optional JSON array of pending txs for simulation context
+ *
+ * @returns Simulation: balance changes (send/receive tokens/NFTs, USD change), gas (used, limit, price), success status
  *
  * @example
  * ```typescript
@@ -81,7 +85,8 @@ export type PreExecTransactionResponse = z.infer<
  *     value: '0x0'
  *   })
  * });
- * console.log(simulation);
+ * console.log(simulation.balance_change.usd_value_change); // Net USD change
+ * console.log(simulation.gas.gas_used); // Estimated gas
  * ```
  */
 export async function preExecTransaction(
