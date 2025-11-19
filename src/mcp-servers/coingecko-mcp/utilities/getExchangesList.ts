@@ -1,7 +1,3 @@
-/**
- * Get list of all exchanges
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -45,7 +41,9 @@ export type GetUtilitiesExchangesListResponse = z.infer<
 >;
 
 /**
- * Get list of all exchanges
+ * List cryptocurrency exchanges with basic metadata.
+ *
+ * Use this to discover exchange IDs before requesting tickers or volume charts.
  *
  * @param params.per_page - Results per page (default: 100)
  * @param params.page - Page number (default: 1)

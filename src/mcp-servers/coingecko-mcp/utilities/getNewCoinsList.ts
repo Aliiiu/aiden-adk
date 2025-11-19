@@ -1,7 +1,3 @@
-/**
- * Get newly added coins (latest 200)
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -26,7 +22,9 @@ export type GetNewCoinsListResponse = z.infer<
 >;
 
 /**
- * Get newly added coins (latest 200)
+ * List newly added coins on CoinGecko (latest 200).
+ *
+ * Use this to surface the newest assets entering the catalog.
  *
  * @returns Array of recently added coins
  *

@@ -1,7 +1,3 @@
-/**
- * Search CoinGecko API documentation
- */
-
 import { z } from "zod";
 import { executeTool } from "../shared.js";
 
@@ -27,17 +23,16 @@ export type SearchDocsInput = z.infer<typeof SearchDocsInputSchema>;
 export type SearchDocsResponse = z.infer<typeof SearchDocsResponseSchema>;
 
 /**
- * Search CoinGecko API documentation
+ * Search the CoinGecko API documentation.
  *
- * @param params.query - Search query for documentation
+ * Use this to find API reference pages and examples matching a keyword.
  *
- * @returns Relevant documentation entries
+ * @param params.query - Search term
+ * @returns Matching documentation entries
  *
  * @example
  * ```typescript
- * const docs = await searchDocs({
- *   query: 'trending coins'
- * });
+ * const docs = await searchDocs({ query: 'price' });
  * ```
  */
 export async function searchDocs(
