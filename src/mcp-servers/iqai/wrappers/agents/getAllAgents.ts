@@ -79,12 +79,14 @@ export type GetAllAgentsResponse = z.infer<typeof allAgentsSchema>;
  * @param params.page - Page number (default: 1)
  * @param params.limit - Results per page (default: 50)
  *
- * @returns AI agent directory: { agents: [{ ticker, name, ... }], pagination }
+ * @returns Object with agents array: { agents: [{ ticker, name, holdersCount, ... }], pagination }
  *
  * @example
  * ```typescript
- * const agentList = await getAllAgents({ sort: 'marketCap', limit: 10 });
- * // Returns top 10 AI agents: { agents: [{ ticker: 'Sophia', name: 'Sophia AI', ... }], ... }
+ * const response = await getAllAgents({ sort: 'marketCap', limit: 10 });
+ * const agents = response.agents;  // Access the agents array
+ * const agent = agents.find(a => a.ticker.toLowerCase() === 'sophia');
+ * // Returns: { agents: [{ticker: 'Sophia', name: 'Sophia AI', holdersCount: 100, ...}], pagination: {...} }
  * ```
  */
 export async function getAllAgents(
