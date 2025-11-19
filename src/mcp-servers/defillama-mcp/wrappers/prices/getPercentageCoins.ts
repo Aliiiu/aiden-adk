@@ -37,7 +37,27 @@ export type GetPercentageCoinsResponse = z.infer<
 >;
 
 /**
- * Get percentage price changes for coins
+ * Get percentage price changes for coins over a time period (e.g., 24h, 7d change).
+ *
+ * Returns price change percentages. This is for calculating price performance over custom periods.
+ * For current prices with built-in change metrics, use CoinGecko getCoinsMarkets.
+ * For continuous price series to calculate changes, use getChartCoins.
+ *
+ * @param input.coins - Comma-separated coin identifiers in 'chain:address' format
+ * @param input.period - Lookback period (e.g., '1d', '7d', '30d')
+ * @param input.timestamp - Reference timestamp for the calculation
+ * @param input.lookForward - Look forward instead of backward from timestamp
+ *
+ * @returns Percentage changes: { coins: { 'id': percentage_change_number } }
+ *
+ * @example
+ * ```typescript
+ * const changes = await getPercentageCoins({
+ *   coins: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7',
+ *   period: '7d'
+ * });
+ * // Returns: { coins: { 'ethereum:0x...': 2.5 } } // 2.5% increase
+ * ```
  */
 export async function getPercentageCoins(
 	input: GetPercentageCoinsInput,

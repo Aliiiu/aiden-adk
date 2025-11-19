@@ -43,7 +43,32 @@ export type GetChartCoinsInput = z.infer<typeof GetChartCoinsInputSchema>;
 export type GetChartCoinsResponse = z.infer<typeof GetChartCoinsResponseSchema>;
 
 /**
- * Get price chart data for coins
+ * Get price chart time-series data for coins within a date range with optional aggregation.
+ *
+ * Returns continuous price series for charting. This is for visualizing price trends over custom date ranges.
+ * For date range analysis ("last N days", "average price"), use CoinGecko getRangeCoinsMarketChart.
+ * For current prices, use getPricesCurrentCoins.
+ * For sparse historical samples, use getBatchHistorical.
+ *
+ * @param input.coins - Coin identifier in 'chain:address' format
+ * @param input.start - Start timestamp (Unix seconds) or ISO date
+ * @param input.end - End timestamp (Unix seconds) or ISO date
+ * @param input.span - Aggregation span in seconds (e.g., 86400 for daily)
+ * @param input.period - Aggregation period (e.g., '1d', '1h')
+ * @param input.searchWidth - Search window width for price samples
+ *
+ * @returns Chart data: { coins: { 'id': { decimals, symbol, confidence, prices: [{timestamp, price}] } } }
+ *
+ * @example
+ * ```typescript
+ * const chart = await getChartCoins({
+ *   coins: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7',
+ *   start: 1640995200,
+ *   end: 1643673600,
+ *   period: '1d'
+ * });
+ * // Returns daily price series for date range
+ * ```
  */
 export async function getChartCoins(
 	input: GetChartCoinsInput,

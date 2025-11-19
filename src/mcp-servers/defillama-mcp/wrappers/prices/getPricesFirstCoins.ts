@@ -31,7 +31,23 @@ export type GetPricesFirstCoinsResponse = z.infer<
 >;
 
 /**
- * Get first recorded prices for coins
+ * Get the first recorded price for coins (token launch price).
+ *
+ * Returns the earliest known price data. This is for finding token launch prices and initial listing dates.
+ * For current prices, use getPricesCurrentCoins.
+ * For historical prices at specific times, use getHistoricalPricesByContractAddress.
+ *
+ * @param input.coins - Comma-separated coin identifiers in 'chain:address' format
+ *
+ * @returns Mapping of coin IDs to first price: { coins: { 'id': { price, symbol, timestamp } } }
+ *
+ * @example
+ * ```typescript
+ * const firstPrices = await getPricesFirstCoins({
+ *   coins: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7'
+ * });
+ * // Returns: { coins: { 'ethereum:0x...': { price: 1.0, timestamp: 1587945600 } } }
+ * ```
  */
 export async function getPricesFirstCoins(
 	input: GetPricesFirstCoinsInput,

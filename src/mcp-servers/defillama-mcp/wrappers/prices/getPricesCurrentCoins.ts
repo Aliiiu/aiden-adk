@@ -37,7 +37,25 @@ export type GetPricesCurrentCoinsResponse = z.infer<
 >;
 
 /**
- * Get current prices for coins
+ * Get current prices for multiple coins/tokens by their DefiLlama identifiers (chain:address format).
+ *
+ * Returns current USD prices for batch lookups. This is for general price lookups across many chains.
+ * For single token price by contract, use DeBank getTokenInformation or CoinGecko endpoints.
+ * For user-specific token balances with prices, use DeBank getUserTokenList.
+ * For IQ chain agent tokens, use IQAI getAgentStats.
+ *
+ * @param input.coins - Comma-separated coin identifiers in 'chain:address' format (e.g., 'ethereum:0x...bitcoin')
+ * @param input.searchWidth - Search window width to find nearby price points
+ *
+ * @returns Mapping of coin identifiers to price data: { decimals, price, symbol, timestamp, confidence }
+ *
+ * @example
+ * ```typescript
+ * const prices = await getPricesCurrentCoins({
+ *   coins: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7,coingecko:bitcoin'
+ * });
+ * // Returns: { coins: { 'ethereum:0x...': { price: 1.0, symbol: 'USDT', ... } } }
+ * ```
  */
 export async function getPricesCurrentCoins(
 	input: GetPricesCurrentCoinsInput,

@@ -38,7 +38,27 @@ export type GetHistoricalPricesByContractAddressResponse = z.infer<
 >;
 
 /**
- * Get historical prices for coins by contract address
+ * Get historical prices for coins at a specific timestamp by contract address (point-in-time lookup).
+ *
+ * Returns price snapshot at a specific time. This is for point-in-time historical price lookups.
+ * For date range queries ("last N days", "from X to Y"), use CoinGecko getRangeCoinsMarketChart.
+ * For current prices, use getPricesCurrentCoins.
+ * For continuous chart data, use getChartCoins.
+ *
+ * @param input.coins - Comma-separated coin identifiers in 'chain:address' format
+ * @param input.timestamp - Target timestamp (Unix seconds, milliseconds, or ISO string)
+ * @param input.searchWidth - Search window width to find historical quotes
+ *
+ * @returns Historical price at timestamp: { coins: { 'id': { decimals, price, symbol, timestamp, confidence } } }
+ *
+ * @example
+ * ```typescript
+ * const historicalPrice = await getHistoricalPricesByContractAddress({
+ *   coins: 'ethereum:0xdac17f958d2ee523a2206206994597c13d831ec7',
+ *   timestamp: 1640995200
+ * });
+ * // Returns price at that specific timestamp
+ * ```
  */
 export async function getHistoricalPricesByContractAddress(
 	input: GetHistoricalPricesByContractAddressInput,
