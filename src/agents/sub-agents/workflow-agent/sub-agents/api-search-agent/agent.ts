@@ -48,17 +48,40 @@ export const getApiSearchAgent = async () => {
 
     ## Important Discovery Patterns
 
-    **1. CoinGecko Slug Resolution**
-    When using coingecko module and user asks about a coin by name:
+    **1. CoinGecko Coin ID Resolution**
+    When using coingecko module and user asks about a specific coin:
     \`\`\`typescript
-    import { search } from 'coingecko';
+    import { search, getSimplePrice } from 'coingecko';
 
-    // Search for the coin to get its ID
-    const results = await search({ query: 'matic' });
-    const coinId = results.coins[0].id;  // "matic-network"
+    // Step 1: Search returns multiple coins sorted by market cap rank
+    const results = await search({ query: userQuery });
 
-    // Use the ID in other functions
-    const price = await getCoinsMarkets({ ids: coinId });
+    // Step 2: Find best match by NAME (case-insensitive)
+    // ⚠️ CRITICAL: ALWAYS match by coin.name, NEVER by coin.symbol!
+    // Reason: Tokens rebrand and change symbols. Old symbols appear in parentheses in name field.
+    //
+    // ❌ WRONG: coins.find(c => c.symbol === query)     // Fails for rebranded tokens
+    // ❌ WRONG: coins.find(c => c.id.includes(query))   // Matches unrelated tokens
+    // ✅ CORRECT: Match by name field only (see below)
+    const query = userQuery.toLowerCase();
+    const coin = results.coins.find(c => {
+      const name = c.name?.toLowerCase() || '';
+      // Exact name match
+      if (name === query) return true;
+      // Parentheses match (handles rebranded tokens with old name in parentheses)
+      if (name.includes(\`(\${query}\`) || name.includes(\`\${query})\`)) return true;
+      return false;
+    });
+
+    // Fallback: If no name match, use first result (highest market cap rank)
+    const coinId = coin?.id || results.coins[0]?.id;
+
+    // Step 3: Use getSimplePrice (NOT getCoinsMarkets!) with discovered ID
+    const priceData = await getSimplePrice({
+      ids: coinId,
+      vs_currencies: 'usd'
+    });
+    // Access price: priceData[coinId].usd
     \`\`\`
 
     **2. DeBank Parameter Discovery with JSONata**
