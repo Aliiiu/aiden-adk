@@ -94,10 +94,19 @@ export type GetCoinsMarketsResponse = z.infer<
 >;
 
 /**
- * Get current market data (price, volume, market cap, sparkline) for one or more coins.
+ * Get paginated list of top cryptocurrencies ranked by market cap, volume, or ID.
  *
- * Ideal for real-time price lookups, portfolio summaries, and comparing multiple   * assets.
- * For contract-specific tokens on a chain, prefer `getSimpleTokenPrice` or onchain * price endpoints. Discover coin IDs first via `getCoinsList` or `search`.
+ * Returns ALL coins in ranked order (NOT specific coins by name or ID). This is for browsing
+ * top cryptocurrencies, market overviews, leaderboards, and rankings.
+ *
+ * IMPORTANT: This does NOT accept coin IDs or coin names. It returns a paginated list sorted by rank.
+ * NOT for specific coin price lookups - use getSimplePrice for that.
+ *
+ * To get a specific coin's price:
+ * 1. First use search() to find the coin ID
+ * 2. Then use getSimplePrice({ ids: 'coin-id', vs_currencies: 'usd' })
+ *
+ * For contract-specific tokens on a chain, use getSimpleTokenPrice or onchain price endpoints.
  *
  * @param params.vs_currency - Target currency (default: 'usd')
  * @param params.order - Sort order: market_cap_desc, volume_desc, id_asc, id_desc
@@ -107,17 +116,20 @@ export type GetCoinsMarketsResponse = z.infer<
  * @param params.price_change_percentage - Price change timeframes: 1h,24h,7d,14d,30d,200d,1y
  * @param params.locale - Language locale (default: 'en')
  * @param params.precision - Decimal places for currency (default: 2)
+ * @param params.category - Filter by category (e.g., 'decentralized-finance-defi')
  *
- * @returns Array of coin market data with prices, volumes, market caps, etc.
+ * @returns Paginated array of coins sorted by rank with prices, volumes, market caps, etc.
  *
  * @example
  * ```typescript
+ * // Get top 10 coins by market cap
  * const markets = await getCoinsMarkets({
  *   vs_currency: 'usd',
  *   order: 'market_cap_desc',
  *   per_page: 10,
  *   price_change_percentage: '24h,7d'
  * });
+ * // Returns: [{ id: 'bitcoin', symbol: 'btc', current_price: 50000, ... }, ...]
  * ```
  */
 export async function getCoinsMarkets(
