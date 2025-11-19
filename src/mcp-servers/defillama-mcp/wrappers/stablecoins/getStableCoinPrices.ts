@@ -17,7 +17,20 @@ export type GetStableCoinPricesResponse = z.infer<
 >;
 
 /**
- * Get historical stablecoin price data
+ * Get historical stablecoin price snapshots (peg tracking over time).
+ *
+ * Returns historical USD prices for stablecoins. This is for analyzing stablecoin peg stability over time.
+ * For current stablecoin prices, use getStableCoin with includePrices.
+ * For general token prices, use DeBank getTokenInformation or CoinGecko.
+ *
+ * @returns Time-series array: [{ date: unix_timestamp, prices: { 'stablecoin_id': usd_price } }, ...]
+ *
+ * @example
+ * ```typescript
+ * const priceHistory = await getStableCoinPrices();
+ * // Returns: [{ date: 1640995200, prices: { '1': 0.9998, '2': 1.0001 } }, ...]
+ * // Useful for detecting de-peg events
+ * ```
  */
 export async function getStableCoinPrices(): Promise<GetStableCoinPricesResponse> {
 	return executeServiceMethod(
