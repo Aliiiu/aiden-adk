@@ -17,7 +17,7 @@ const logAndWrapError = (context: string, error: unknown): Error => {
 };
 
 export class ChainService extends BaseService {
-	async getChain(args: { id: string }): Promise<string> {
+	async getChain(args: { id: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<ChainInfo>(
 				`${this.baseUrl}/chain?id=${args.id}`,
@@ -31,7 +31,7 @@ export class ChainService extends BaseService {
 		}
 	}
 
-	async getSupportedChainList(): Promise<string> {
+	async getSupportedChainList(): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<ChainInfo[]>(
 				`${this.baseUrl}/chain/list`,
@@ -45,7 +45,7 @@ export class ChainService extends BaseService {
 		}
 	}
 
-	async getGasPrices(args: { chain_id: string }): Promise<string> {
+	async getGasPrices(args: { chain_id: string }): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<GasMarket>(
 				`${this.baseUrl}/gas_market?chain_id=${args.chain_id}`,

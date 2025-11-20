@@ -1,5 +1,6 @@
 import winston from "winston";
 import { z } from "zod";
+import { env } from "../../env";
 
 export const LogLevelSchema = z.enum(["error", "warn", "info", "debug"]);
 export type LogLevel = z.infer<typeof LogLevelSchema>;
@@ -10,7 +11,7 @@ export const parseLogLevel = (level?: string): LogLevel => {
 };
 
 export const getLogLevelFromEnv = (): LogLevel => {
-	return parseLogLevel(process.env.LOG_LEVEL);
+	return parseLogLevel(env.LOG_LEVEL);
 };
 
 export interface LoggerOptions {

@@ -15,10 +15,6 @@ const logAndWrapError = (context: string, error: unknown): Error => {
 	return wrappedError;
 };
 
-/**
- * Fees & Revenue Service
- * Handles protocol fees and revenue data
- */
 export class FeesService extends BaseService {
 	async getFeesAndRevenue(args: {
 		excludeTotalDataChart?: boolean;
@@ -28,7 +24,7 @@ export class FeesService extends BaseService {
 		protocol?: string;
 		sortCondition: string;
 		order: "asc" | "desc";
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const excludeTotalDataChart =
 				args.excludeTotalDataChart !== undefined
@@ -52,12 +48,6 @@ export class FeesService extends BaseService {
 
 				return await this.formatResponse(data, {
 					title: `Fees & Revenue: ${args.protocol}`,
-					currencyFields: [
-						"dailyUserFees",
-						"dailyHoldersRevenue",
-						"dailySupplySideRevenue",
-						"holdersRevenue30d",
-					],
 					numberFields: ["change_1d", "change_7d", "change_1m"],
 				});
 			}
@@ -79,13 +69,10 @@ export class FeesService extends BaseService {
 		}
 	}
 
-	/**
-	 * Process fees response and format top protocols
-	 */
 	private async processFeesResponse(
 		data: FeesOverviewResponse,
 		args: { sortCondition: string; order: "asc" | "desc"; chain?: string },
-	): Promise<string> {
+	): Promise<unknown> {
 		if (data.protocols) {
 			const sorted = data.protocols.sort((a, b) => {
 				const aVal = (a[args.sortCondition as keyof typeof a] as number) || 0;
@@ -95,13 +82,19 @@ export class FeesService extends BaseService {
 
 			const top10 = sorted.slice(0, 10).map((protocol) => ({
 				name: protocol.name,
+				slug: protocol.slug,
+				id: protocol.id ?? protocol.defillamaId,
+				total24h: protocol.total24h,
+				total48hto24h: protocol.total48hto24h,
+				total7d: protocol.total7d,
+				total14dto7d: protocol.total14dto7d,
+				total30d: protocol.total30d,
+				total60dto30d: protocol.total60dto30d,
+				total1y: protocol.total1y,
+				totalAllTime: protocol.totalAllTime,
 				change_1d: protocol.change_1d,
 				change_7d: protocol.change_7d,
 				change_1m: protocol.change_1m,
-				dailyUserFees: protocol.dailyUserFees,
-				dailyHoldersRevenue: protocol.dailyHoldersRevenue,
-				dailySupplySideRevenue: protocol.dailySupplySideRevenue,
-				holdersRevenue30d: protocol.holdersRevenue30d,
 			}));
 
 			const title = args.chain
@@ -110,12 +103,6 @@ export class FeesService extends BaseService {
 
 			return await this.formatResponse(top10, {
 				title,
-				currencyFields: [
-					"dailyUserFees",
-					"dailyHoldersRevenue",
-					"dailySupplySideRevenue",
-					"holdersRevenue30d",
-				],
 				numberFields: ["change_1d", "change_7d", "change_1m"],
 			});
 		}

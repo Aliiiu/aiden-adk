@@ -26,6 +26,7 @@ export type ProtocolData = {
 	id: string;
 	name: string;
 	symbol: string;
+	slug: string; // Canonical protocol identifier for API queries (required)
 	category: string;
 	chains: string[];
 	tvl: number;
@@ -107,10 +108,6 @@ export type FeesProtocolData = {
 	change_7d?: number;
 	change_1m?: number;
 	chains?: string[];
-	dailyUserFees?: number;
-	dailyHoldersRevenue?: number;
-	dailySupplySideRevenue?: number;
-	holdersRevenue30d?: number;
 	[key: string]: unknown;
 };
 
@@ -341,7 +338,7 @@ export type ChartResponse = {
 export type PoolData = {
 	pool: string;
 	chain: string;
-	project: string;
+	name: string;
 	symbol: string;
 	tvlUsd: number;
 	apy: number;

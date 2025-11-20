@@ -22,7 +22,7 @@ export class BlockchainService extends BaseService {
 	async getBlockChainTimestamp(args: {
 		chain: string;
 		timestamp: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const unixTime = this.toUnixSeconds(args.timestamp);
 			const url = `${this.COINS_URL}/block/${args.chain}/${unixTime}`;

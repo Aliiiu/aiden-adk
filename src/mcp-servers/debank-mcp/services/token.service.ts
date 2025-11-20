@@ -24,7 +24,7 @@ export class TokenService extends BaseService {
 	async getTokenInformation(args: {
 		id: string;
 		chain_id: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<TokenInfo>(
 				`${this.baseUrl}/token?id=${args.id}&chain_id=${args.chain_id}`,
@@ -45,7 +45,7 @@ export class TokenService extends BaseService {
 	async getListTokenInformation(args: {
 		chain_id: string;
 		ids: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<TokenInfo[]>(
 				`${this.baseUrl}/token/list?chain_id=${args.chain_id}&ids=${args.ids}`,
@@ -68,7 +68,7 @@ export class TokenService extends BaseService {
 		chain_id: string;
 		start?: number;
 		limit?: number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				id: args.id,
@@ -97,7 +97,7 @@ export class TokenService extends BaseService {
 		id: string;
 		chain_id: string;
 		date_at: string;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const data = await this.fetchWithToolConfig<TokenHistoricalPrice>(
 				`${this.baseUrl}/token/history_price?id=${args.id}&chain_id=${args.chain_id}&date_at=${args.date_at}`,

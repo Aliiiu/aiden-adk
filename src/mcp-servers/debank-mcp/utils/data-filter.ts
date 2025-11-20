@@ -1,69 +1,36 @@
 import type { LanguageModel } from "ai";
 import { generateText } from "ai";
 import endent from "endent";
-import jq from "jqts";
+import jsonata from "jsonata";
 import { createChildLogger } from "../../../lib/utils";
 
 const logger = createChildLogger("LLM Data Filter");
 
 /**
- * List of JQ functions NOT supported by jqts v0.0.8
- * These will cause runtime errors if used in queries
- */
-const UNSUPPORTED_JQTS_FUNCTIONS = [
-	// String case conversion
-	"ascii_downcase",
-	"ascii_upcase",
-	// String manipulation
-	"split",
-	"join",
-	"ltrimstr",
-	"rtrimstr",
-	"explode",
-	"implode",
-	"tojson",
-	"fromjson",
-	// Advanced string operations
-	"test",
-	"match",
-	"capture",
-	"scan",
-	"splits",
-	"sub",
-	"gsub",
-	// Date/time
-	"now",
-	"gmtime",
-	"mktime",
-	"strftime",
-	"strptime",
-	// Other advanced functions
-	"limit",
-	"until",
-	"recurse",
-	"walk",
-	"env",
-	"$ENV",
-];
-
-/**
- * Validates a JQ query to ensure it only uses jqts-supported functions
- * @param query - The JQ query string to validate
+ * Validates a JSONata expression to ensure it's syntactically valid
+ * @param query - The JSONata expression string to validate
  * @returns Validation result with error message if invalid
  */
-function validateJqQuery(query: string): { valid: boolean; error?: string } {
-	for (const func of UNSUPPORTED_JQTS_FUNCTIONS) {
-		// Check if function name appears in query (with word boundary to avoid partial matches)
-		const regex = new RegExp(`\\b${func}\\b`);
-		if (regex.test(query)) {
-			return {
-				valid: false,
-				error: `Unsupported jqts function: '${func}'. jqts is a limited JavaScript JQ port and doesn't support this function.`,
-			};
-		}
+function validateJsonataQuery(query: string): {
+	valid: boolean;
+	error?: string;
+} {
+	if (!query || query.trim().length === 0) {
+		return {
+			valid: false,
+			error: "Query cannot be empty",
+		};
 	}
-
-	return { valid: true };
+	try {
+		jsonata(query);
+		return { valid: true };
+	} catch (error) {
+		return {
+			valid: false,
+			error:
+				error instanceof Error ? error.message : "Invalid JSONata expression",
+		};
+	}
 }
 
 interface DataFilterConfig {
@@ -88,7 +55,7 @@ export class LLMDataFilter {
 		const schema = this.getJSONSchema(parsedData);
 
 		const prompt = endent`
-			You are a JSON data filtering expert. Your task is to generate a JQ query that will filter the JSON data based on the user's request.
+			You are a JSON data filtering expert. Your task is to generate a JSONata expression that will filter the JSON data based on the user's request.
 
 			## Schema of the data:
 			${JSON.stringify(schema, null, 2)}
@@ -99,36 +66,19 @@ export class LLMDataFilter {
 			## User's request:
 			${query}
 
-			## CRITICAL: jqts Function Limitations
-			**WARNING**: This system uses jqts (JavaScript JQ port), NOT full JQ. Many functions are NOT supported.
-
-			**SUPPORTED Functions (you can use these):**
-			- Basic filtering: select, map, sort_by, group_by, unique, unique_by, flatten, reverse
-			- Aggregation: add, min, max, min_by, max_by, length
-			- Comparison: ==, !=, >, <, >=, <=, and, or, not
-			- Object operations: keys, has, to_entries, from_entries, with_entries
-			- Type checking: type, arrays, objects, strings, numbers, booleans, nulls
-			- Math: floor, sqrt, tonumber, tostring
-			- String checking: contains, startswith, endswith, index, indices, inside
-
-			**NOT SUPPORTED (DO NOT USE - will cause errors):**
-			- ❌ String case conversion: ascii_downcase, ascii_upcase
-			- ❌ String manipulation: split, join, ltrimstr, rtrimstr, explode, implode
-			- ❌ Regex operations: test, match, capture, scan, sub, gsub
-			- ❌ Date/time functions: now, gmtime, mktime, strftime
-			- ❌ Advanced control flow: limit, until, recurse, walk, env
-
-			**General Filtering Principles:**
-			- Work with data as-is from the schema - avoid trying to transform or normalize strings
-			- Focus on structural filtering: selecting fields, filtering by numeric/boolean conditions
-			- Use simple string operations if needed: contains, startswith, endswith (not case conversion)
-			- When uncertain about a function, prefer simpler queries with basic select/map operations
-			- If you cannot filter precisely due to limitations, select broader data and let post-processing handle it
+			## JSONata Expression Guidelines
+			JSONata is a powerful JSON query and transformation language (https://jsonata.org). You can:
+			- Filter arrays using expressions like [key > 0]
+			- Project objects/arrays using { "name": field, "value": other } or [ { ... } ]
+			- Sort/limit via functions like $sort(), $reverse(), $substring(), $sum(), etc.
+			- Call built-in functions ($sum, $count, $fromMillis, $substring, $contains, $match, etc.)
+			- Use variables via ($var := expression; ...)
+			- Compose transformations declaratively
 
 			## Critical Instructions:
 			1. Analyze the schema to understand the structure of the data
 			2. IMPORTANT: Check if the root is an array or object before using array operations
-			3. Generate a JQ query that will filter the data to match the user's request
+			3. Generate a JSONata expression that will filter the data to match the user's request
 			4. **NEVER RETURN BARE PRIMITIVES**: Your query MUST always return an object or array, never a bare number/string
 			5. **ALWAYS USE DESCRIPTIVE KEYS**: Include field names that describe what the value represents
 			6. **INCLUDE UNITS IN KEY NAMES**: e.g., "tvl_usd", "price_usd", "volume_24h", "total_locked_value"
@@ -137,32 +87,31 @@ export class LLMDataFilter {
 			   - Filter arrays to include only relevant items
 			   - Return objects with descriptive keys, not bare values
 			   - Return meaningful data (not empty arrays or objects)
-			8. If the user wants to limit results, use JQ's limit or array slicing
-			9. If the user wants to sort, use JQ's sort_by function
+			8. If the user wants to limit results, use JSONata functions like $substring() on arrays or [0..9]
+			9. If the user wants to sort, use $sort() or similar JSONata helpers
 
 			## Examples for ARRAYS:
-			- To get top 10 items: ".[0:10] | map({name, tvl_usd: .tvl})"
-			- To sort by a field: "sort_by(.field_name) | map({name, value})"
-			- To filter by condition: "map(select(.value > 100)) | map({name, value})"
-			- To get specific fields: "map({name, value, price_usd: .price})"
+			- [0..9].({name: name, tvl_usd: tvl})
+			- $sort($)[field].({name: name, value: field})
+			- *.value > 100 ? {name: name, value: value}
 
 			## Examples for OBJECTS:
-			- To select specific fields: "{protocol_name: .name, total_value_usd: .value, market_cap: .price}"
-			- To filter nested arrays: "{items: .items | map(select(.value > 100))}"
-			- To limit nested array: "{top_items: .items[0:10]}"
-			- To extract single computed value: "{ethereum_tvl_usd: (.chainTvls.Ethereum.tvl | map(.totalLiquidityUSD) | add)}"
+			- {protocol_name: name, total_value_usd: value, market_cap: price}
+			- {items: items[value > 100].({name: name, value: value})}
+			- {top_items: items[0..9]}
+			- {ethereum_tvl_usd: chainTvls.Ethereum.tvl.totalLiquidityUSD.$sum()}
 
 			## BAD Examples (DON'T DO THIS):
-			- ❌ ".chainTvls.Ethereum.tvl | map(.totalLiquidityUSD) | add" (returns bare number)
-			- ❌ ".name" (returns bare string)
-			- ❌ ".[0].price" (returns bare number)
+			- ".chainTvls.Ethereum.tvl | map(.totalLiquidityUSD) | add" (returns bare number)
+			- ".name" (returns bare string)
+			- ".[0].price" (returns bare number)
 
 			## GOOD Examples (DO THIS):
-			- ✅ "{ethereum_tvl_usd: (.chainTvls.Ethereum.tvl | map(.totalLiquidityUSD) | add)}"
-			- ✅ "{protocol_name: .name}"
-			- ✅ "{first_item_price_usd: .[0].price}"
+			- "{ethereum_tvl_usd: (.chainTvls.Ethereum.tvl | map(.totalLiquidityUSD) | add)}"
+			- "{protocol_name: .name}"
+			- "{first_item_price_usd: .[0].price}"
 
-			IMPORTANT: Respond with ONLY the JQ query, nothing else. No explanation, no markdown, just the query. The query MUST return an object or array, NEVER a bare primitive.
+			IMPORTANT: Respond with ONLY the JSONata expression, nothing else. No explanation, no markdown, just the expression. The expression MUST return an object or array, NEVER a bare primitive.
 		`;
 
 		try {
@@ -171,20 +120,19 @@ export class LLMDataFilter {
 				prompt,
 			});
 
-			const jqQuery = result.text.trim();
-			logger.info(`Generated JQ query: ${jqQuery}`);
+			const expressionText = result.text.trim();
+			logger.info(`Generated JSONata expression: ${expressionText}`);
 
-			// Validate query before compilation
-			const validation = validateJqQuery(jqQuery);
+			const validation = validateJsonataQuery(expressionText);
 			if (!validation.valid) {
-				logger.warn(`Invalid JQ query detected: ${validation.error}`);
-				logger.info(`Problematic query: ${jqQuery}`);
+				logger.warn(`Invalid JSONata expression detected: ${validation.error}`);
+				logger.info(`Problematic query: ${expressionText}`);
 				logger.info("Falling back to smart data summary");
 				return this.getFallbackData(parsedData);
 			}
 
-			const pattern = jq.compile(jqQuery);
-			let filteredData: JSONValue = pattern.evaluate(parsedData);
+			const expression = jsonata(expressionText);
+			let filteredData = await expression.evaluate(parsedData);
 
 			if (
 				!filteredData ||
@@ -201,9 +149,9 @@ export class LLMDataFilter {
 				typeof filteredData === "boolean"
 			) {
 				logger.info(
-					`JQ query returned bare primitive (${typeof filteredData}), wrapping in object`,
+					`JSONata expression returned bare primitive (${typeof filteredData}), wrapping in object`,
 				);
-				filteredData = { result: filteredData } as JSONValue;
+				filteredData = { result: filteredData };
 			}
 
 			logger.info(`Successfully filtered data`);
@@ -230,7 +178,6 @@ export class LLMDataFilter {
 			const summary: Record<string, unknown> = {};
 			for (const [key, value] of Object.entries(parsedData)) {
 				if (Array.isArray(value)) {
-					// Include first 5 items of arrays
 					summary[key] = value.slice(0, 5);
 				} else if (typeof value === "object" && value !== null) {
 					// For nested objects, just include keys

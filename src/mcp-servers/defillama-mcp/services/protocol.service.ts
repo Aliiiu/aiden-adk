@@ -23,7 +23,7 @@ export class ProtocolService extends BaseService {
 	/**
 	 * Get chains ranked by TVL
 	 */
-	async getChains(args: { order: "asc" | "desc" }): Promise<string> {
+	async getChains(args: { order: "asc" | "desc" }): Promise<unknown> {
 		try {
 			const data = await this.fetchData<ChainData[]>(
 				`${this.BASE_URL}/v2/chains`,
@@ -54,7 +54,7 @@ export class ProtocolService extends BaseService {
 		protocol?: string;
 		sortCondition: "change_1h" | "change_1d" | "change_7d" | "tvl";
 		order: "asc" | "desc";
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			if (args.protocol) {
 				const protocolSlug = args.protocol;
@@ -94,19 +94,38 @@ export class ProtocolService extends BaseService {
 				return args.order === "asc" ? aVal - bVal : bVal - aVal;
 			});
 
-			const top10 = sorted.slice(0, 10).map((protocol) => ({
-				name: protocol.name,
-				symbol: protocol.symbol,
-				tvl: protocol.tvl,
-				chainTvls: protocol.chainTvls,
-				change_1h: protocol.change_1h,
-				change_1d: protocol.change_1d,
-				change_7d: protocol.change_7d,
-				currentChainTvls: protocol.currentChainTvls,
-			}));
+			const isDefaultParams =
+				args.sortCondition === "tvl" && args.order === "desc";
+			const protocols = isDefaultParams
+				? sorted.map((protocol) => ({
+						id: protocol.id,
+						slug: protocol.slug,
+						name: protocol.name,
+						symbol: protocol.symbol,
+						tvl: protocol.tvl,
+						chainTvls: protocol.chainTvls,
+						change_1h: protocol.change_1h,
+						change_1d: protocol.change_1d,
+						change_7d: protocol.change_7d,
+						currentChainTvls: protocol.currentChainTvls,
+					}))
+				: sorted.slice(0, 10).map((protocol) => ({
+						name: protocol.name,
+						symbol: protocol.symbol,
+						tvl: protocol.tvl,
+						chainTvls: protocol.chainTvls,
+						change_1h: protocol.change_1h,
+						change_1d: protocol.change_1d,
+						change_7d: protocol.change_7d,
+						currentChainTvls: protocol.currentChainTvls,
+					}));
 
-			return await this.formatResponse(top10, {
-				title: `Top 10 Protocols by ${args.sortCondition}`,
+			const title = isDefaultParams
+				? "All Protocols (sorted by TVL)"
+				: `Top 10 Protocols by ${args.sortCondition}`;
+
+			return await this.formatResponse(protocols, {
+				title,
 				currencyFields: ["tvl"],
 				numberFields: ["change_1h", "change_1d", "change_7d"],
 			});
@@ -122,7 +141,7 @@ export class ProtocolService extends BaseService {
 	/**
 	 * Get historical chain TVL data
 	 */
-	async getHistoricalChainTvl(args: { chain?: string }): Promise<string> {
+	async getHistoricalChainTvl(args: { chain?: string }): Promise<unknown> {
 		try {
 			const url = args.chain
 				? `${this.BASE_URL}/v2/historicalChainTvl/${args.chain}`

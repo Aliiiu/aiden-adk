@@ -26,13 +26,10 @@ const logAndWrapError = (context: string, error: unknown): Error => {
  * Handles cryptocurrency token price data
  */
 export class PriceService extends BaseService {
-	/**
-	 * Get current prices for coins
-	 */
 	async getPricesCurrentCoins(args: {
 		coins: string;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const coinsSegment = encodeURIComponent(args.coins);
 			const params = new URLSearchParams();
@@ -58,10 +55,7 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get first recorded prices for coins
-	 */
-	async getPricesFirstCoins(args: { coins: string }): Promise<string> {
+	async getPricesFirstCoins(args: { coins: string }): Promise<unknown> {
 		try {
 			const url = `${this.COINS_URL}/prices/first/${args.coins}`;
 			const data = await this.fetchData<FirstPricesResponse>(url);
@@ -77,13 +71,10 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get batch historical prices
-	 */
 	async getBatchHistorical(args: {
 		coins: string;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const params = new URLSearchParams({
 				coins: args.coins,
@@ -108,14 +99,11 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get historical prices by contract address at specific timestamp
-	 */
 	async getHistoricalPricesByContractAddress(args: {
 		coins: string;
 		timestamp: string | number;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const unixTime = this.toUnixSeconds(args.timestamp);
 			const coinsSegment = encodeURIComponent(args.coins);
@@ -142,15 +130,12 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get percentage price change for coins
-	 */
 	async getPercentageCoins(args: {
 		coins: string;
 		period?: string;
 		lookForward?: boolean;
 		timestamp?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			const coinsSegment = encodeURIComponent(args.coins);
 			const params = new URLSearchParams();
@@ -178,9 +163,6 @@ export class PriceService extends BaseService {
 		}
 	}
 
-	/**
-	 * Get chart data for coins
-	 */
 	async getChartCoins(args: {
 		coins: string;
 		start?: string | number;
@@ -188,7 +170,7 @@ export class PriceService extends BaseService {
 		span?: number;
 		period?: string;
 		searchWidth?: string | number;
-	}): Promise<string> {
+	}): Promise<unknown> {
 		try {
 			let url = `${this.COINS_URL}/chart/${args.coins}`;
 			const params = new URLSearchParams();
