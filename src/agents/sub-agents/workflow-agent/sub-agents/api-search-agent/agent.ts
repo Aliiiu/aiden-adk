@@ -107,7 +107,36 @@ export const getApiSearchAgent = async () => {
     });
     \`\`\`
 
-    **3. DefiLlama Protocol Discovery**
+    **3. IQAI Agent Discovery**
+    When querying for a specific AI agent on IQ ATP by name:
+    \`\`\`typescript
+    import { getAllAgents, getAgentStats } from 'iqai';
+
+    // Step 1: Get all agents (returns nested structure)
+    const response = await getAllAgents({ limit: 100 });
+    const agents = response.agents;  // Access the agents array
+
+    // Step 2: Find agent by name or ticker (case-insensitive)
+    // ⚠️ CRITICAL: Use native JS for iqai (NO jsonata!)
+    const searchTerm = agent-name;
+    const agent = agents.find(a =>
+      a?.name?.toLowerCase().includes(searchTerm) ||
+      a?.ticker?.toLowerCase().includes(searchTerm)
+    );
+
+    if (!agent) {
+      return { summary: 'Agent not found on IQ ATP', data: null };
+    }
+
+    // Step 3: Use exact ticker from discovered agent
+    // ⚠️ MUST set extendedStats: false when using ticker
+    const stats = await getAgentStats({
+      ticker: agent.ticker,
+      extendedStats: false
+    });
+    \`\`\`
+
+    **4. DefiLlama Protocol Discovery**
     Use getProtocols() to get ALL protocols from API, then filter with JSONata:
     \`\`\`typescript
     import { getProtocols, jsonata } from 'defillama';
