@@ -1,7 +1,3 @@
-/**
- * Simulate transaction execution before submitting
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
