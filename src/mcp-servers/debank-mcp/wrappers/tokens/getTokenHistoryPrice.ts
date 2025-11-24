@@ -1,7 +1,3 @@
-/**
- * Get historical price of a token
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 

@@ -1,7 +1,3 @@
-/**
- * Get top holders of a token
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 

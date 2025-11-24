@@ -1,7 +1,3 @@
-/**
- * Get information for multiple tokens
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
