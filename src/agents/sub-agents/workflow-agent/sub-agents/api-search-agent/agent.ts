@@ -146,8 +146,13 @@ export const getApiSearchAgent = async () => {
     const allProtocols = await getProtocols({});
 
     // Find protocol by name using JSONata
-    // ⚠️ Use ~> operator for regex (NOT =~ or ~)
-    const expr = jsonata('$[name ~> /compound/i]');
+    // ⚠️ CRITICAL: Search multiple fields since protocols may rebrand!
+    // Check: name, module, previousNames array (if exists)
+    const expr = jsonata(\`$[
+      name ~> /compound/i or
+      module ~> /compound/i or
+      previousNames[$ ~> /compound/i]
+    ]\`);
     const protocol = await expr.evaluate(allProtocols);
 
     // Extract slug (canonical identifier) for API queries
@@ -162,6 +167,30 @@ export const getApiSearchAgent = async () => {
 
     // OR extract all chain TVLs with JSONata:
     const allChainTvls = await jsonata('chainTvls.*').evaluate(protocol);
+    \`\`\`
+
+    **5. DefiLlama Options/DEX/Fees Protocol Search**
+    For getOptionsData(), getDexsData(), and getFeesAndRevenue():
+    \`\`\`typescript
+    import { getOptionsData, jsonata } from 'defillama';
+
+    // Get ALL protocols (without protocol parameter)
+    const allData = await getOptionsData({ sortCondition: 'total24h' });
+
+    // ⚠️ CRITICAL: Search multiple fields since protocols may rebrand!
+    // Check: name, module, previousNames array (if exists)
+    const expr = jsonata(\`$[
+      name ~> /protocol-name/i or
+      module ~> /protocol-name/i or
+      previousNames[$ ~> /protocol-name/i]
+    ]\`);
+    const protocol = await expr.evaluate(allData);
+
+    // Use the exact name/module value for specific protocol query
+    const protocolId = protocol?.module || protocol?.name;
+    if (protocolId) {
+      const details = await getOptionsData({ protocol: protocolId });
+    }
     \`\`\`
 
     **Common JSONata Patterns:**
