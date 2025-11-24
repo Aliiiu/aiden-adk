@@ -1,7 +1,3 @@
-/**
- * Get all DeFi protocols across supported chains
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 

@@ -1,7 +1,3 @@
-/**
- * Get detailed information about a liquidity pool
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
