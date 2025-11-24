@@ -59,11 +59,25 @@ export type GetLatestPoolDataResponse = z.infer<
  *
  * Returns liquidity pools with yield opportunities. For protocol-level TVL rankings and changes, use getProtocols instead.
  *
+ * CRITICAL FIELD NAMES: APY fields use camelCase (NOT snake_case):
+ * - apy30d or apyPct30D (NOT apy_30d)
+ * - apy7d or apyPct7D (NOT apy_7d)
+ * - apy1d or apyPct1D (NOT apy_1d)
+ * - apy (current APY)
+ *
  * @param input.sortCondition - Sort by: "apy" (annual percentage yield) or "tvlUsd" (pool TVL)
  * @param input.order - Sort order: "desc" or "asc"
  * @param input.limit - Number of pools to return (default: 10)
  *
- * @returns Array of yield pools with APY (1d, 7d, 30d), pool TVL, protocol, chain
+ * @returns Array of yield pools with APY fields (apy1d, apy7d, apy30d), tvlUsd, project, chain
+ *
+ * @example
+ * ```typescript
+ * const pools = await getLatestPoolData({ sortCondition: 'tvlUsd', order: 'desc', limit: 10 });
+ * pools.forEach(pool => {
+ *   console.log(`${pool.name}: TVL=$${pool.tvlUsd}, 30d APY=${pool.apy30d}%`);
+ * });
+ * ```
  */
 export async function getLatestPoolData(
 	input?: GetLatestPoolDataInput,
