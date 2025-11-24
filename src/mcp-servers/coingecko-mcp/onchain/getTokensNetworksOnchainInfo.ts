@@ -3,7 +3,7 @@ import { executeTool } from "../shared.js";
 
 export const GetTokensNetworksOnchainInfoInputSchema = z.object({
 	network: z.string().describe("Network identifier"),
-	token_address: z.string().describe("Token contract address"),
+	address: z.string().describe("Token contract address"),
 });
 
 const TokenInfoAttributesSchema = z
@@ -44,7 +44,7 @@ export type GetTokensNetworksOnchainInfoResponse = z.infer<
  * For coin market data by ID, use getCoinsMarkets or getCoinDetails. For protocol-level data, use DefiLlama.
  *
  * @param params.network - Network ID (e.g., 'eth', 'bsc', 'polygon', 'arb')
- * @param params.token_address - Token contract address on the specified network
+ * @param params.address - Token contract address on the specified network
  *
  * @returns Token details: name, symbol, total supply, holder count, DEX trading data, social links
  *
@@ -52,7 +52,7 @@ export type GetTokensNetworksOnchainInfoResponse = z.infer<
  * ```typescript
  * const tokenInfo = await getTokensNetworksOnchainInfo({
  *   network: 'eth',
- *   token_address: '0x...'
+ *   address: '0x...'
  * });
  * ```
  */

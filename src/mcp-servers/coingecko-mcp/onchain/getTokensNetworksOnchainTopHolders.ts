@@ -3,8 +3,13 @@ import { executeTool } from "../shared.js";
 
 export const GetTokensNetworksOnchainTopHoldersInputSchema = z.object({
 	network: z.string().describe("Network identifier"),
-	token_address: z.string().describe("Token contract address"),
-	page: z.number().int().positive().optional().describe("Page number"),
+	address: z.string().describe("Token contract address"),
+	holders: z
+		.string()
+		.optional()
+		.describe(
+			"Number of top token holders to return (integer as string or 'max'). Default: 10",
+		),
 });
 
 const HolderEntrySchema = z.object({
@@ -38,8 +43,8 @@ export type GetTokensNetworksOnchainTopHoldersResponse = z.infer<
  * Get top holders/wallets for a specific token
  *
  * @param params.network - Network ID
- * @param params.token_address - Token contract address
- * @param params.page - Page number (default: 1)
+ * @param params.address - Token contract address
+ * @param params.holders - Number of top holders to return (as string: '10', '50', 'max'). Default: '10'
  *
  * @returns Top holders with balances and percentages
  *
@@ -47,8 +52,10 @@ export type GetTokensNetworksOnchainTopHoldersResponse = z.infer<
  * ```typescript
  * const holders = await getTokensNetworksOnchainTopHolders({
  *   network: 'eth',
- *   token_address: '0x...'
+ *   address: '0xcfeaead4947f0705a14ec42ac3d44129e1ef3ed5',
+ *   holders: '50'
  * });
+ * // Access holders: holders.data.attributes.holders
  * ```
  */
 export async function getTokensNetworksOnchainTopHolders(
