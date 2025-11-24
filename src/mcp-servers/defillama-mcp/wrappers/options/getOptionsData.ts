@@ -72,21 +72,25 @@ export type GetOptionsDataResponse = z.infer<
  * For DEX spot trading volumes, use getDexsData.
  * For protocol fees/revenue, use getFeesAndRevenue.
  *
- * @param input.protocol - Optional options protocol name for specific protocol data
+ * Returns ALL protocols when no protocol parameter provided. Can filter by specific protocol using protocol param.
+ *
+ * @param input.protocol - Specific protocol slug for individual protocol data (e.g., 'binance-cex', 'bybit', 'deribit')
  * @param input.chain - Optional chain filter
  * @param input.dataType - Data metric: 'dailyNotionalVolume', 'dailyPremiumVolume' (default: 'dailyNotionalVolume')
  * @param input.sortCondition - Sort by: 'total24h', 'total7d', 'total30d'
  * @param input.order - Sort order: 'desc' or 'asc'
  *
- * @returns Array of options protocols with notional volume metrics (24h, 7d, 30d), percentage changes
+ * @returns Array of all options protocols (sorted) OR single protocol data (when protocol param provided)
  *
  * @example
  * ```typescript
- * const optionsVolume = await getOptionsData({
- *   dataType: 'dailyNotionalVolume',
- *   sortCondition: 'total24h'
- * });
+ * // Get all options protocols sorted by 24h volume
+ * const allOptions = await getOptionsData({ sortCondition: 'total24h' });
  * // Returns: [{ displayName: 'Deribit', total24h: 5000000000, change_1d: 15.2 }, ...]
+ *
+ * // Get specific protocol (Binance)
+ * const binanceData = await getOptionsData({ protocol: 'binance-cex' });
+ * // Returns: { name: 'binance-cex', displayName: 'Binance', total24h: 123456, ... }
  * ```
  */
 export async function getOptionsData(
