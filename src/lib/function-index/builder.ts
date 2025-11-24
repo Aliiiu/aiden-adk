@@ -137,10 +137,10 @@ export function buildFunctionIndex(): {
 	// Build Lunr index
 	const index = lunr(function () {
 		this.ref("name");
-		this.field("name", { boost: 10 }); // Function name is most important
-		this.field("module", { boost: 5 });
-		this.field("category", { boost: 7 });
-		this.field("description", { boost: 3 });
+		this.field("description", { boost: 10 });
+		this.field("category", { boost: 2 });
+		this.field("module");
+		this.field("name");
 		this.field("parameters");
 
 		for (const func of allFunctions) {
