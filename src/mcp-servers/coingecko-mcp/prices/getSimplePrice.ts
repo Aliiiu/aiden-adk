@@ -56,12 +56,15 @@ export type GetSimplePriceResponse = z.infer<
  * IMPORTANT: Requires CoinGecko IDs (NOT ticker symbols). Many coins have different IDs than their ticker.
  * Always use search() first to find the correct ID when the coin ID is unknown.
  *
+ * LIMITATIONS: Returns ONLY current price + optional market cap/volume/24h change.
+ * Does NOT include ATH, ATL, or detailed market data. For complete market data use getCoinDetails().
+ *
  * Workflow for coin price lookups:
  * 1. Use search({ query: 'coin name or symbol' }) to find coin ID
  * 2. Use getSimplePrice({ ids: 'found-coin-id', vs_currencies: 'usd' })
  *
- * NOT for: Historical prices (use getCoinsHistory), ranked lists (use getCoinsMarkets),
- * batch historical data (use DefiLlama), or contract-specific tokens (use getSimpleTokenPrice).
+ * For ATH/ATL data use getCoinDetails(). For historical prices use getCoinsHistory().
+ * For contract tokens use getSimpleTokenPrice().
  *
  * @param params.ids - Coin IDs (comma-separated, e.g., 'bitcoin,ethereum')
  * @param params.vs_currencies - Target currencies (comma-separated, e.g., 'usd,eur')
