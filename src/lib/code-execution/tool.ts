@@ -41,6 +41,10 @@ export function createCodeExecutionTool(
 			⚠️ ALL imports must be STATIC at the top of the file!
 			⚠️ JSONata is ONLY for debank/defillama! Use native JS for coingecko/iqai!
 
+			⚠️ CRITICAL: Use discover_tools FIRST to get correct parameter names and examples!
+			Each function has specific parameter naming.
+			The examples in discover_tools show the EXACT correct usage. Follow them precisely.
+
 			✅ CORRECT: JSONata for debank/defillama
 			import { getProtocols, jsonata } from 'defillama';
 			const protocols = await getProtocols({});
