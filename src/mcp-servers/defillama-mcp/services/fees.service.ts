@@ -80,7 +80,7 @@ export class FeesService extends BaseService {
 				return args.order === "asc" ? aVal - bVal : bVal - aVal;
 			});
 
-			const top10 = sorted.slice(0, 10).map((protocol) => ({
+			const formattedProtocols = sorted.map((protocol) => ({
 				name: protocol.name,
 				slug: protocol.slug,
 				id: protocol.id ?? protocol.defillamaId,
@@ -98,10 +98,10 @@ export class FeesService extends BaseService {
 			}));
 
 			const title = args.chain
-				? `Top 10 Protocols by Fees: ${args.chain}`
-				: "Top 10 Protocols by Fees";
+				? `Protocols by Fees: ${args.chain}`
+				: "Protocols by Fees";
 
-			return await this.formatResponse(top10, {
+			return await this.formatResponse(formattedProtocols, {
 				title,
 				numberFields: ["change_1d", "change_7d", "change_1m"],
 			});
