@@ -22,9 +22,6 @@ export interface FunctionMetadata {
 	example?: string;
 }
 
-/**
- * Extract function metadata from TypeScript wrapper files
- */
 function extractFunctionsFromFile(
 	filePath: string,
 	module: "coingecko" | "debank" | "defillama" | "iqai",
@@ -44,7 +41,6 @@ function extractFunctionsFromFile(
 	while (match !== null) {
 		const [, functionName, category] = match;
 
-		// Try to read the actual function file to get JSDoc
 		const functionFilePath = path.join(
 			path.dirname(filePath),
 			category,
@@ -54,30 +50,95 @@ function extractFunctionsFromFile(
 		let description = "";
 		let parameters = "";
 
+		let example = "";
+
 		if (fs.existsSync(functionFilePath)) {
 			const functionContent = fs.readFileSync(functionFilePath, "utf-8");
 
-			// Extract full JSDoc comment block (not just first line)
+			// Extract full JSDoc comment block
 			// This captures important notes about response structure and field semantics
 			const jsdocMatch = functionContent.match(/\/\*\*([\s\S]*?)\*\//);
 			if (jsdocMatch) {
+				const rawJsdoc = jsdocMatch[1];
+
 				// Clean up JSDoc: remove asterisks, trim lines, join with newlines
-				description = jsdocMatch[1]
+				description = rawJsdoc
 					.split("\n")
 					.map((line) => line.replace(/^\s*\*\s?/, "").trim())
 					.filter((line) => line.length > 0)
 					.join("\n");
+
+				// Extract @example block separately for better code generation guidance
+				const exampleMatch = rawJsdoc.match(
+					/@example[\s\S]*?```(?:typescript|ts)?\s*([\s\S]*?)```/,
+				);
+				if (exampleMatch) {
+					// Clean up the example code block - remove asterisks and extra whitespace
+					example = exampleMatch[1]
+						.split("\n")
+						.map((line) => line.replace(/^\s*\*\s?/, "").trim())
+						.filter((line) => line.length > 0)
+						.join("\n");
+				}
 			}
 
-			// Extract function parameters from the function signature
-			const paramsMatch = functionContent.match(
-				/export\s+(?:async\s+)?function\s+\w+\s*\(\s*(?:params[?:]?\s*:\s*)?(\{[^}]+\}|\w+)/,
+			// Extract parameters from Zod schema for better agent guidance
+			// This provides structured parameter info even without examples
+			// Handles: z.object({ ... }); z.object({ ... }).strict(); z.object({ ... }).optional();
+			const zodSchemaMatch = functionContent.match(
+				/export\s+const\s+(\w+InputSchema)\s*=\s*z(?:\s*\n)?\s*\.object\(\{([\s\S]*?)\}\)(?:\s*\.(?:strict|loose|optional)\(\))*\s*;/,
 			);
-			if (paramsMatch) {
-				parameters = paramsMatch[1]
-					.replace(/\s+/g, " ")
-					.replace(/[{}]/g, "")
-					.trim();
+			if (zodSchemaMatch) {
+				const schemaBody = zodSchemaMatch[2];
+				const paramEntries: string[] = [];
+
+				// Match each parameter with its full chain including .describe()
+				// Matches patterns like: name: z.string().describe("desc") or name: z.number().optional().describe("desc")
+				const paramLines = schemaBody.split(/,\s*(?=\w+:)/);
+
+				for (const line of paramLines) {
+					// Extract parameter name
+					const nameMatch = line.match(/^\s*(\w+):/);
+					if (!nameMatch) continue;
+					const paramName = nameMatch[1];
+
+					// Extract Zod type (handle multi-line definitions)
+					const typeMatch = line.match(/z(?:\s*\n)?\s*\.(\w+)\(/);
+					if (!typeMatch) continue;
+					const zodType = typeMatch[1];
+
+					// Extract description - handle multi-line .describe() calls
+					// Use [\s\S]*? to match any character including newlines
+					// Pattern: .describe( ... "description", ... ) - note the comma after the string
+					let descMatch = line.match(/\.describe\([\s\S]*?"([^"]*)"[\s\S]*?\)/);
+					if (!descMatch) {
+						descMatch = line.match(/\.describe\([\s\S]*?'([^']*)'[\s\S]*?\)/);
+					}
+					if (!descMatch) continue;
+					const description = descMatch[1];
+
+					// Check if optional
+					const isOptional = line.includes(".optional()");
+
+					paramEntries.push(
+						`${paramName}${isOptional ? "?" : ""}: ${zodType} - ${description}`,
+					);
+				}
+
+				if (paramEntries.length > 0) {
+					parameters = paramEntries.join("; ");
+				}
+			}
+
+			// Check if function takes no parameters
+			if (!parameters) {
+				// Look for function signature with no parameters or empty object
+				const funcSignature = functionContent.match(
+					/export\s+(?:async\s+)?function\s+\w+\s*\(\s*\)/,
+				);
+				if (funcSignature) {
+					parameters = "none - this function takes no parameters";
+				}
 			}
 		}
 
@@ -87,8 +148,9 @@ function extractFunctionsFromFile(
 			category,
 			description:
 				description || `${category} function from ${module}`.replace(/-/g, " "),
-			parameters: parameters || "see function signature",
+			parameters: parameters || "see JSDoc @param tags in description field",
 			filePath: functionFilePath,
+			example: example || undefined,
 		});
 
 		// Get next match
