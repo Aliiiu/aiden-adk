@@ -49,9 +49,9 @@ export type GetSimplePriceResponse = z.infer<
 /**
  * Get current price for a specific coin by its CoinGecko ID (lightweight price lookup).
  *
- * Use this to get the price of a specific coin when you know or can find its CoinGecko ID.
- * This is the PRIMARY function for individual coin price queries, single token price lookups,
- * and fetching current price data for named coins (bitcoin, ethereum, specific tokens).
+ * PRIMARY function for current live price lookups of specific coins, tokens, and cryptocurrencies.
+ * Use this when you need the current price, latest price, real-time price, or spot price of a coin.
+ * This is for individual coin price queries, single token prices, and specific cryptocurrency prices.
  *
  * IMPORTANT: Requires CoinGecko IDs (NOT ticker symbols). Many coins have different IDs than their ticker.
  * Always use search() first to find the correct ID when the coin ID is unknown.
@@ -60,9 +60,8 @@ export type GetSimplePriceResponse = z.infer<
  * 1. Use search({ query: 'coin name or symbol' }) to find coin ID
  * 2. Use getSimplePrice({ ids: 'found-coin-id', vs_currencies: 'usd' })
  *
- * For ranked lists or browsing top coins, use getCoinsMarkets instead.
- * For detailed coin fundamentals, use getCoinDetails.
- * For contract-specific tokens, use getSimpleTokenPrice.
+ * NOT for: Historical prices (use getCoinsHistory), ranked lists (use getCoinsMarkets),
+ * batch historical data (use DefiLlama), or contract-specific tokens (use getSimpleTokenPrice).
  *
  * @param params.ids - Coin IDs (comma-separated, e.g., 'bitcoin,ethereum')
  * @param params.vs_currencies - Target currencies (comma-separated, e.g., 'usd,eur')
