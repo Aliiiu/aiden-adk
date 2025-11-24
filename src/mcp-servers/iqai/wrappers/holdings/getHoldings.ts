@@ -1,10 +1,15 @@
 import z from "zod";
 import { callIqAiApi } from "../../../iqai/make-iq-ai-request.js";
 
-export type GetHoldingsInput = {
-	address: string;
-	chainId?: string | number;
-};
+export const GetHoldingsInputSchema = z.object({
+	address: z.string().describe("Wallet address on IQ chain"),
+	chainId: z
+		.union([z.string(), z.number()])
+		.optional()
+		.describe("Chain ID (default: 252 for IQ chain)"),
+});
+
+export type GetHoldingsInput = z.infer<typeof GetHoldingsInputSchema>;
 
 const holdingsSchema = z
 	.object({
@@ -28,7 +33,7 @@ export type GetHoldingsResponse = z.infer<typeof holdingsSchema>;
 export async function getHoldings(
 	params: GetHoldingsInput,
 ): Promise<GetHoldingsResponse> {
-	const { address, chainId = "252" } = params;
+	const { address, chainId = "252" } = GetHoldingsInputSchema.parse(params);
 
 	return callIqAiApi("/api/holdings", { address, chainId }, holdingsSchema);
 }

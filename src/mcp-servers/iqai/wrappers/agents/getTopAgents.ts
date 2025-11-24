@@ -1,10 +1,15 @@
 import z from "zod";
 import { callIqAiApi } from "../../../iqai/make-iq-ai-request.js";
 
-export type GetTopAgentsInput = {
-	sort?: "mcap" | "holders" | "inferences";
-	limit?: number;
-};
+export const GetTopAgentsInputSchema = z.object({
+	sort: z
+		.enum(["mcap", "holders", "inferences"])
+		.optional()
+		.describe("Rank by: 'mcap' (market cap), 'holders', or 'inferences'"),
+	limit: z.number().optional().describe("Number of top agents to return"),
+});
+
+export type GetTopAgentsInput = z.infer<typeof GetTopAgentsInputSchema>;
 
 const topAgentsSchema = z
 	.object({
@@ -49,7 +54,7 @@ export type GetTopAgentsResponse = z.infer<typeof topAgentsSchema>;
 export async function getTopAgents(
 	params: GetTopAgentsInput = {},
 ): Promise<GetTopAgentsResponse> {
-	const { sort = "mcap", limit = 10 } = params;
+	const { sort = "mcap", limit = 10 } = GetTopAgentsInputSchema.parse(params);
 
 	return callIqAiApi("/api/agents/top", { sort, limit }, topAgentsSchema);
 }
