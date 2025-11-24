@@ -21,9 +21,7 @@ import type { GetRangeCoinsOhlcInput } from "./charts/getRangeCoinsOhlc.js";
 import type { GetRangeContractCoinsMarketChartInput } from "./charts/getRangeContractCoinsMarketChart.js";
 import type { GetCoinDetailsInput } from "./coins/getCoinDetails.js";
 import type { GetCoinsHistoryInput } from "./coins/getCoinsHistory.js";
-import type { GetSimpleTokenPriceInput } from "./coins/getSimpleTokenPrice.js";
 import type { GetCoinsContractInput } from "./contracts/getCoinsContract.js";
-import type { GetSimplePriceInput } from "./contracts/getSimplePrice.js";
 import type { GetExchangesByIdInput } from "./exchanges/getExchangesById.js";
 import type { GetExchangesListInput } from "./exchanges/getExchangesList.js";
 import type { GetExchangesTickersInput } from "./exchanges/getExchangesTickers.js";
@@ -36,6 +34,8 @@ import type { GetNftsByIdInput } from "./nfts/getNftsById.js";
 import type { GetNftsListInput } from "./nfts/getNftsList.js";
 import type { GetNftsMarketChartInput } from "./nfts/getNftsMarketChart.js";
 import type { GetNftsMarketsInput } from "./nfts/getNftsMarkets.js";
+import type { GetSimplePriceInput } from "./prices/getSimplePrice.js";
+import type { GetSimpleTokenPriceInput } from "./prices/getSimpleTokenPrice.js";
 import type { GetAssetPlatformsInput } from "./utilities/getAssetPlatforms.js";
 import type { GetUtilitiesExchangesListInput } from "./utilities/getExchangesList.js";
 
@@ -48,10 +48,8 @@ export { getRangeContractCoinsMarketChart } from "./charts/getRangeContractCoins
 // Coins
 export { getCoinDetails } from "./coins/getCoinDetails.js";
 export { getCoinsHistory } from "./coins/getCoinsHistory.js";
-export { getSimpleTokenPrice } from "./coins/getSimpleTokenPrice.js";
 // Contracts/Tokens
 export { getCoinsContract } from "./contracts/getCoinsContract.js";
-export { getSimplePrice } from "./contracts/getSimplePrice.js";
 export { getSimpleSupportedVsCurrencies } from "./contracts/getSimpleSupportedVsCurrencies.js";
 // Exchanges
 export { getExchangesById } from "./exchanges/getExchangesById.js";
@@ -65,7 +63,6 @@ export { getGlobal } from "./markets/getGlobal.js";
 export { getTopGainersLosers } from "./markets/getTopGainersLosers.js";
 export { getTrendingSearch } from "./markets/getTrendingSearch.js";
 export { search } from "./markets/search.js";
-
 // NFTs
 export { getNftsById } from "./nfts/getNftsById.js";
 export { getNftsList } from "./nfts/getNftsList.js";
@@ -90,12 +87,13 @@ export { getSearchOnchainPools } from "./onchain/getSearchOnchainPools.js";
 export { getTimeframePoolsNetworksOnchainOhlcv } from "./onchain/getTimeframePoolsNetworksOnchainOhlcv.js";
 export { getTimeframeTokensNetworksOnchainOhlcv } from "./onchain/getTimeframeTokensNetworksOnchainOhlcv.js";
 export { getTokensNetworksOnchainHoldersChart } from "./onchain/getTokensNetworksOnchainHoldersChart.js";
-
 // Onchain - Tokens
 export { getTokensNetworksOnchainInfo } from "./onchain/getTokensNetworksOnchainInfo.js";
 export { getTokensNetworksOnchainPools } from "./onchain/getTokensNetworksOnchainPools.js";
 export { getTokensNetworksOnchainTopHolders } from "./onchain/getTokensNetworksOnchainTopHolders.js";
 export { getTokensNetworksOnchainTrades } from "./onchain/getTokensNetworksOnchainTrades.js";
+export { getSimplePrice } from "./prices/getSimplePrice.js";
+export { getSimpleTokenPrice } from "./prices/getSimpleTokenPrice.js";
 // Re-export shared utilities for advanced usage
 export { executeTool, getToolset } from "./shared.js";
 // Utilities
@@ -127,7 +125,7 @@ export default {
 	getCoinsHistory: async (params: GetCoinsHistoryInput) =>
 		(await import("./coins/getCoinsHistory.js")).getCoinsHistory(params),
 	getSimpleTokenPrice: async (params: GetSimpleTokenPriceInput) =>
-		(await import("./coins/getSimpleTokenPrice.js")).getSimpleTokenPrice(
+		(await import("./prices/getSimpleTokenPrice.js")).getSimpleTokenPrice(
 			params,
 		),
 
@@ -149,7 +147,7 @@ export default {
 	getCoinsContract: async (params: GetCoinsContractInput) =>
 		(await import("./contracts/getCoinsContract.js")).getCoinsContract(params),
 	getSimplePrice: async (params: GetSimplePriceInput) =>
-		(await import("./contracts/getSimplePrice.js")).getSimplePrice(params),
+		(await import("./prices/getSimplePrice.js")).getSimplePrice(params),
 	getSimpleSupportedVsCurrencies: async () =>
 		(
 			await import("./contracts/getSimpleSupportedVsCurrencies.js")

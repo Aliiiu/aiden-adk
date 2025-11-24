@@ -76,7 +76,7 @@ export const getApiSearchAgent = async () => {
     // Fallback: If no name match, use first result (highest market cap rank)
     const coinId = coin?.id || results.coins[0]?.id;
 
-    // Step 3: Use getSimplePrice (NOT getCoinsMarkets!) with discovered ID
+    // Step 3: Use getSimplePrice with discovered ID to get price
     const priceData = await getSimplePrice({
       ids: coinId,
       vs_currencies: 'usd'
@@ -326,6 +326,17 @@ export const getApiSearchAgent = async () => {
        ❌ WRONG:   jsonata('$[name ~ /compound/i]')        // ~ alone is NOT valid
        \`\`\`
 
+       **Logical operators**: Use \`and\` / \`or\`, NOT \`&&\` / \`||\`
+       \`\`\`typescript
+       ✅ CORRECT: jsonata('$[tvl > 1000 and tvl != null]')
+       ✅ CORRECT: jsonata('$[name ~> /meme/i or category = "meme"]')
+       ✅ CORRECT: jsonata('$[tvl != null and (name ~> /uni/i or name ~> /swap/i)]')
+
+       ❌ WRONG:   jsonata('$[tvl > 1000 && tvl != null]')       // && is NOT valid
+       ❌ WRONG:   jsonata('$[name ~> /meme/i || category = "meme"]')  // || is NOT valid
+       ❌ WRONG:   jsonata('$[tags && tags ~> /meme/i]')          // && is NOT valid
+       \`\`\`
+
        **Array filtering**: Use JSONata for debank/defillama, native JS for coingecko/iqai
        \`\`\`typescript
        // ✅ CORRECT: JSONata for debank/defillama data
@@ -374,9 +385,16 @@ export const getApiSearchAgent = async () => {
        // For descending order: Sort ascending then reverse with $reverse()
        jsonata('$reverse($sort($[tvl != null], function($v) { $v.tvl }))')
 
-       // Built-in sort operators (simpler but less control):
-       jsonata('$^(>tvl)')  // Sort descending by tvl
-       jsonata('$^(<tvl)')  // Sort ascending by tvl
+       // Built-in sort operators: MUST filter nulls first!
+       jsonata('$[tvl != null]^(>tvl)')  // Filter nulls, then sort descending
+       jsonata('$[tvl != null]^(<tvl)')  // Filter nulls, then sort ascending
+
+       // ❌ WRONG: Complex filter + sort without null check
+       jsonata('$[name ~> /meme/i]^(>tvl)')  // ERROR if any tvl is null!
+       jsonata('$[tags ~> /meme/i or name ~> /meme/i]^(>tvl)')  // ERROR!
+
+       // ✅ CORRECT: Always add "and field != null" when sorting
+       jsonata('$[name ~> /meme/i and tvl != null]^(>tvl)')
        \`\`\`
 
        **Array slicing - Get top N items**: ⚠️ NO range syntax like [0..9]!
