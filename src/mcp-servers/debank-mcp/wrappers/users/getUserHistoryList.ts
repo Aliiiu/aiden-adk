@@ -1,7 +1,3 @@
-/**
- * Get user's transaction history on a chain
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 

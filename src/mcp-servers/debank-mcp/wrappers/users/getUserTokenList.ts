@@ -1,7 +1,3 @@
-/**
- * Get list of tokens held by a user on a chain
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 

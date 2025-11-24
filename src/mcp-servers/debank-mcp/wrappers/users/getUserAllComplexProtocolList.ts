@@ -1,7 +1,3 @@
-/**
- * Get user's protocol positions across all chains
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 

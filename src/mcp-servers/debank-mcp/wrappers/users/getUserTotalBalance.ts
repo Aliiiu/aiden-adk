@@ -1,7 +1,3 @@
-/**
- * Get user's total balance across all chains
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
