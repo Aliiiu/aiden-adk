@@ -134,7 +134,9 @@ export const getDiscoverToolsTool = () => {
 					description: func.description,
 					parameters: func.parameters,
 					importExample: `import { ${func.name} } from '${func.module}';`,
-					usageExample: `const data = await ${func.name}({ /* params */ });`,
+					usageExample:
+						func.example ||
+						`const data = await ${func.name}({ /* params */ });`,
 				}));
 
 				return {
