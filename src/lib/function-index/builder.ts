@@ -114,8 +114,10 @@ function extractFunctionsFromFile(
 					if (!descMatch) {
 						descMatch = line.match(/\.describe\([\s\S]*?'([^']*)'[\s\S]*?\)/);
 					}
-					if (!descMatch) continue;
-					const description = descMatch[1];
+
+					const description = descMatch
+						? descMatch[1]
+						: "No description provided";
 
 					// Check if optional
 					const isOptional = line.includes(".optional()");
