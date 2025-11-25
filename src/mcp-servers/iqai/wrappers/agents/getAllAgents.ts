@@ -111,8 +111,8 @@ export async function getAllAgents(
 	const {
 		sort = "marketCap",
 		order = "desc",
-		category = parsed.category,
-		status = parsed.status,
+		category,
+		status,
 		chainId = 252,
 		page = 1,
 		limit = 50,
