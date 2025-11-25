@@ -25,7 +25,6 @@ export type GetTokenHistoryPriceResponse = z.infer<
  * Get historical price of a token on a specific date by contract address.
  *
  * Returns single-day historical price. This is for point-in-time price lookups by contract address.
- * For price ranges ("last N days", "from X to Y"), use CoinGecko getRangeCoinsMarketChart.
  * For user's historical portfolio value, use getUserTokenList with historical wallet analysis.
  *
  * @param input.id - Token contract address or native token identifier

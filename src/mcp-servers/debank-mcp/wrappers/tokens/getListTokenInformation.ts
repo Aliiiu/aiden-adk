@@ -48,7 +48,6 @@ export type GetListTokenInformationResponse = z.infer<
  *
  * Returns metadata and current prices for up to 100 tokens in one call. This is for batch token lookups.
  * For user-specific token balances in a wallet, use getUserTokenList or getUserAllTokenList.
- * For market data across many coins (rankings, volume), use CoinGecko getCoinsMarkets.
  *
  * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
  * @param input.ids - Comma-separated token contract addresses (max: 100)

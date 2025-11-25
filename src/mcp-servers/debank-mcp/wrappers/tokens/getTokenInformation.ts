@@ -42,8 +42,6 @@ export type GetTokenInformationResponse = z.infer<
  *
  * Returns token metadata and current price. This is for general token lookups by contract address.
  * For user-specific token balances in a wallet, use getUserTokenList.
- * For historical prices across date ranges, use CoinGecko getRangeCoinsMarketChart.
- * For market data (market cap, volume, rankings), use CoinGecko getCoinsMarkets.
  *
  * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
  * @param input.id - Token contract address or native token identifier

@@ -32,9 +32,6 @@ export type GetProtocolInformationResponse = z.infer<
  * Get detailed information about a specific DeFi protocol by its identifier.
  *
  * Returns protocol metadata and current TVL. This is for looking up a specific protocol's details.
- * For protocol TVL rankings and changes, use DefiLlama getProtocols.
- * For user-specific positions in a protocol, use getUserComplexProtocolList.
- * For yield pool data with APY, use DefiLlama getLatestPoolData.
  *
  * @param input.id - Protocol identifier (e.g., 'uniswap', 'aave', 'bsc_pancakeswap')
  *
