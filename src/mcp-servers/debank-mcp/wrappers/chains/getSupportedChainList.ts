@@ -26,18 +26,29 @@ export type GetSupportedChainListResponse = z.infer<
 >;
 
 /**
- * Get list of all blockchain chains supported by DeBank with their identifiers and metadata.
+ * Get list of all blockchain chains supported by DeBank - returns complete chain directory.
  *
- * Returns chain directory for discovering available chains and their IDs. This is for finding valid
- * chain_id values to use in other DeBank functions. For detailed info about a specific chain, use getChain.
+ * Returns all supported chains with identifiers and metadata. Use this to:
+ * - Get valid chain_id values for other DeBank functions
+ * - Discover available chains (Ethereum, BSC, Polygon, Arbitrum, etc.)
+ * - Get chain names, logos, and native token info
  *
- * @returns Array of chains: ID, name, logo, native token, wrapped token, pre-exec support
+ * NOTE: This returns ALL supported chains, not user-specific chains. To find which chains
+ * a specific user/wallet has activity on, use getUserTotalBalance() and check which chains
+ * have non-zero balances.
+ *
+ * For detailed info about a specific chain, use getChain().
+ *
+ * @returns Array of all chains: id, name, logo_url, native_token_id, wrapped_token_id
  *
  * @example
  * ```typescript
+ * // Get all supported chains
  * const chains = await getSupportedChainList();
  * // Returns: [{ id: 'eth', name: 'Ethereum', ... }, { id: 'bsc', name: 'BSC', ... }]
- * console.log(chains.map(c => c.id)); // ['eth', 'bsc', 'matic', 'arb', ...]
+ *
+ * // Extract chain IDs for use in other functions
+ * const chainIds = chains.map(c => c.id); // ['eth', 'bsc', 'matic', 'arb', ...]
  * ```
  */
 export async function getSupportedChainList(): Promise<GetSupportedChainListResponse> {
