@@ -41,9 +41,6 @@ export type GetStableCoinChartsResponse = z.infer<
  * Get historical stablecoin circulation time-series data (total supply over time).
  *
  * Returns circulation trends over time. This is for analyzing stablecoin supply growth/contraction.
- * For current stablecoin rankings, use getStableCoin.
- * For chain distribution, use getStableCoinChains.
- * For price data, use getStableCoinPrices.
  *
  * @param input.chain - Optional chain filter for chain-specific circulation data
  * @param input.stablecoin - Optional stablecoin ID filter for specific stablecoin

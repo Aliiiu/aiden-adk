@@ -37,8 +37,6 @@ export type GetStableCoinResponse = z.infer<typeof GetStableCoinResponseSchema>;
  * Get stablecoin overview data with circulating supply and optional prices.
  *
  * Returns stablecoin rankings by circulating supply. This is for analyzing stablecoin market dominance.
- * For general token prices, use DeBank getTokenInformation or CoinGecko endpoints.
- * For user-specific stablecoin holdings, use DeBank getUserTokenList.
  *
  * @param input.includePrices - Include latest USD price for each stablecoin (default: false)
  *

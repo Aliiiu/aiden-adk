@@ -28,9 +28,6 @@ export type GetHistoricalChainTvlResponse = z.infer<
  * Get historical TVL (Total Value Locked) time-series data for a chain or aggregated across all chains.
  *
  * Returns TVL trend data over time. This is for analyzing DeFi ecosystem growth and TVL trends.
- * For current protocol TVL rankings, use getProtocols.
- * For yield pool data with APY, use getLatestPoolData or getHistoricalPoolData.
- * For user-specific wallet balances, use DeBank getUserTotalBalance.
  *
  * @param input.chain - Optional chain identifier (e.g., 'Ethereum', 'BSC'). Omit for all chains aggregated.
  *

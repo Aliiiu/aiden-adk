@@ -30,9 +30,6 @@ export type GetHistoricalPoolDataResponse = z.infer<
  * Get historical yield farming pool data with APY and TVL trends over time for a specific pool.
  *
  * Returns time-series data for a pool's APY and TVL. This is for analyzing yield trends for a specific pool.
- * For current yield pool rankings, use getLatestPoolData.
- * For protocol-level TVL trends, use getHistoricalChainTvl.
- * For user-specific LP positions, use DeBank getUserComplexProtocolList.
  *
  * @param input.pool - Pool identifier from DefiLlama yields API (e.g., pool ID from getLatestPoolData)
  *

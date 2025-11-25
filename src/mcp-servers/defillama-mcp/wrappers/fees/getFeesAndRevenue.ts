@@ -84,9 +84,6 @@ export type GetFeesAndRevenueResponse = z.infer<
  * Get protocol fee and revenue metrics (daily fees, protocol revenue, token holder revenue).
  *
  * Returns fee/revenue aggregates for protocol comparison. This is for analyzing protocol economics and revenue.
- * For DEX trading volumes, use getDexsData.
- * For protocol TVL, use getProtocols.
- * For user-specific transaction fees, use DeBank getUserHistoryList.
  *
  * **IMPORTANT**: Field meanings depend on dataType parameter:
  * - `dailyFees` → total24h/total7d represent fees paid by users

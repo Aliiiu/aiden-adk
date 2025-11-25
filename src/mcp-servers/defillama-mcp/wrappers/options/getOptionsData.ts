@@ -69,8 +69,6 @@ export type GetOptionsDataResponse = z.infer<
  * Get options protocol trading volume metrics (notional volume for options contracts).
  *
  * Returns options trading volumes across protocols. This is for analyzing options trading activity.
- * For DEX spot trading volumes, use getDexsData.
- * For protocol fees/revenue, use getFeesAndRevenue.
  *
  * Returns ALL protocols when no protocol parameter provided. Can filter by specific protocol using protocol param.
  *

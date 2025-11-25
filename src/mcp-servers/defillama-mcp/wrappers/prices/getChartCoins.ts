@@ -46,9 +46,6 @@ export type GetChartCoinsResponse = z.infer<typeof GetChartCoinsResponseSchema>;
  * Get price chart time-series data for coins within a date range with optional aggregation.
  *
  * Returns continuous price series for charting. This is for visualizing price trends over custom date ranges.
- * For date range analysis ("last N days", "average price"), use CoinGecko getRangeCoinsMarketChart.
- * For current prices, use getPricesCurrentCoins.
- * For sparse historical samples, use getBatchHistorical.
  *
  * @param input.coins - Coin identifier in 'chain:address' format
  * @param input.start - Start timestamp (Unix seconds) or ISO date
