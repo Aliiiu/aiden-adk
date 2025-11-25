@@ -46,9 +46,6 @@ export type GetBatchHistoricalResponse = z.infer<
  * Get batch historical price samples for multiple coins (NOT date range queries).
  *
  * Returns sparse historical price samples. This is for batch historical snapshots, NOT continuous date ranges.
- * For date range queries ("last N days", "from X to Y"), use CoinGecko getRangeCoinsMarketChart instead.
- * For current prices, use getPricesCurrentCoins.
- * For continuous time-series chart data, use getChartCoins.
  *
  * @param input.coins - Comma-separated coin identifiers in 'chain:address' format
  * @param input.searchWidth - Search window width to find historical points

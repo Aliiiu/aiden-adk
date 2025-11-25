@@ -53,7 +53,6 @@ export type GetUserTokenListResponse = z.infer<
  *
  * Returns token holdings for a specific user wallet. This is wallet-specific token balances.
  * For general token market data (prices, market cap, not tied to a wallet), use CoinGecko.
- * For protocol TVL or yield pools, use DefiLlama.
  *
  * @param input.id - User's wallet address (e.g., '0x...')
  * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')

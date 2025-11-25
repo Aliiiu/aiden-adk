@@ -74,8 +74,7 @@ export type GetUserComplexProtocolListResponse = z.infer<
  * Get a specific wallet's DeFi positions (lending, borrowing, staking, LP) across protocols on a chain.
  *
  * Returns wallet-specific protocol positions: supplied assets, borrowed debt, rewards, and net values.
- * This is for analyzing a specific user's DeFi positions. For protocol-level TVL rankings or yield data
- * (not user-specific), use DefiLlama getProtocols or getLatestPoolData.
+ * This is for analyzing a specific user's DeFi positions. For protocol-level TVL rankings or yield data (not user-specific), use DefiLlama getProtocols or getLatestPoolData.
  *
  * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
  * @param input.id - User's wallet address (e.g., '0x...')

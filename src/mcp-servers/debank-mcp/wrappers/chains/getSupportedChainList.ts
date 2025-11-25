@@ -33,9 +33,9 @@ export type GetSupportedChainListResponse = z.infer<
  * - Discover available chains (Ethereum, BSC, Polygon, Arbitrum, etc.)
  * - Get chain names, logos, and native token info
  *
- * NOTE: This returns ALL supported chains, not user-specific chains. To find which chains
- * a specific user/wallet has activity on, use getUserTotalBalance() and check which chains
- * have non-zero balances.
+ * NOTE: This returns ALL supported chains, not user-specific chains. To find which
+ * chains a specific user/wallet has activity on, use getUserTotalBalance() and.
+ * check which chains have non-zero balances.
  *
  * For detailed info about a specific chain, use getChain().
  *

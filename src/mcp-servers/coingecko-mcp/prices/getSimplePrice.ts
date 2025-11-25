@@ -63,8 +63,7 @@ export type GetSimplePriceResponse = z.infer<
  * 1. Use search({ query: 'coin name or symbol' }) to find coin ID
  * 2. Use getSimplePrice({ ids: 'found-coin-id', vs_currencies: 'usd' })
  *
- * For ATH/ATL data use getCoinDetails(). For historical prices use getCoinsHistory().
- * For contract tokens use getSimpleTokenPrice().
+ * For ATH/ATL data use getCoinDetails().
  *
  * @param params.ids - Coin IDs (comma-separated, e.g., 'bitcoin,ethereum')
  * @param params.vs_currencies - Target currencies (comma-separated, e.g., 'usd,eur')

@@ -69,8 +69,7 @@ export type GetUserHistoryListResponse = z.infer<
  * Get a specific wallet's transaction history on a chain with sent/received tokens and gas fees.
  *
  * Returns wallet-specific transaction history with send/receive details, gas fees, and timestamps.
- * This is for analyzing a specific user's transaction activity. For general blockchain data or
- * protocol events (not user-specific), use chain explorers or other tools.
+ * This is for analyzing a specific user's transaction activity.
  *
  * @param input.id - User's wallet address (e.g., '0x...')
  * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')

@@ -99,14 +99,11 @@ export type GetCoinsMarketsResponse = z.infer<
  * Returns market data for top coins including price, ATH, ATL, market cap, volume, and price changes.
  * Use this for leaderboards, market overviews, and browsing top cryptocurrencies by rank.
  *
- * LIMITATIONS: Returns only top-ranked coins (paginated, max 250 per page). Lower market cap coins
- * may not appear in results. Does NOT accept specific coin IDs/names as input parameters.
+ * LIMITATIONS: Returns only top-ranked coins (paginated, max 250 per page). Lower market cap coins may not appear in results.
  *
  * WORKFLOW: For specific coin data lookups, use getCoinDetails() instead:
  * 1. Use search({ query: 'coin name' }) to find coin ID
  * 2. Use getCoinDetails({ id: coinId, market_data: true }) to get complete data
- *
- * For historical prices use getCoinsHistory(). For lightweight price-only use getSimplePrice().
  *
  * @param params.vs_currency - Target currency (default: 'usd')
  * @param params.order - Sort order: market_cap_desc, volume_desc, id_asc, id_desc
