@@ -149,10 +149,10 @@ function displayOverallStats(stats: TestStats): void {
 	console.log(`${"━".repeat(80)}\n`);
 	console.log(`  Total functions: ${stats.total}`);
 	console.log(
-		`  Structured parameters: ${stats.withParameters}/${stats.total} (${Math.round((stats.withParameters / stats.total) * 100)}%)`,
+		`  Structured parameters: ${stats.withParameters}/${stats.total} (${stats.total > 0 ? Math.round((stats.withParameters / stats.total) * 100) : 0}%)`,
 	);
 	console.log(
-		`  Examples: ${stats.withExample}/${stats.total} (${Math.round((stats.withExample / stats.total) * 100)}%)`,
+		`  Examples: ${stats.withExample}/${stats.total} (${stats.total > 0 ? Math.round((stats.withExample / stats.total) * 100) : 0}%)`,
 	);
 }
 
@@ -162,12 +162,14 @@ function displayModuleBreakdown(stats: TestStats): void {
 	console.log(`${"━".repeat(80)}\n`);
 
 	for (const [module, moduleStats] of stats.byModule.entries()) {
-		const paramsPercent = Math.round(
-			(moduleStats.withParams / moduleStats.total) * 100,
-		);
-		const examplesPercent = Math.round(
-			(moduleStats.withExample / moduleStats.total) * 100,
-		);
+		const paramsPercent =
+			moduleStats.total > 0
+				? Math.round((moduleStats.withParams / moduleStats.total) * 100)
+				: 0;
+		const examplesPercent =
+			moduleStats.total > 0
+				? Math.round((moduleStats.withExample / moduleStats.total) * 100)
+				: 0;
 		const paramsIcon = paramsPercent === 100 ? "✅" : "⚠️";
 		const examplesIcon = examplesPercent === 100 ? "✅" : "⚠️";
 
