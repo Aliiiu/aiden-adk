@@ -7,6 +7,7 @@ export const GetAddressLogsInputSchema = z.object({
 		.describe(
 			"The string representing the address whose event logs you want to retrieve",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 	fromBlock: z
 		.number()
 		.int()

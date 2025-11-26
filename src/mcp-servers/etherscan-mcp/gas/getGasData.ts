@@ -7,6 +7,7 @@ export const GetGasDataInputSchema = z.object({
 		.describe(
 			"'eth_gasPrice' for current gas price, 'gasestimate' for transaction confirmation estimate, 'gasoracle' for safe/proposed/fast gas prices",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 	gasprice: z
 		.number()
 		.int()
@@ -80,7 +81,7 @@ export type GetGasDataResponse = z.infer<typeof GasDataResponseSchema>;
 export async function getGasData(
 	params: GetGasDataInput,
 ): Promise<GetGasDataResponse> {
-	const { action, gasprice } = GetGasDataInputSchema.parse(params);
+	const { action, gasprice, chainid } = GetGasDataInputSchema.parse(params);
 
 	const module = action === "gasoracle" ? "gastracker" : "proxy";
 
@@ -89,6 +90,7 @@ export async function getGasData(
 			module,
 			action,
 			gasprice,
+			chainid,
 		},
 		GasDataResponseSchema,
 	);

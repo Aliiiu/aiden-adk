@@ -19,6 +19,11 @@ export const GetBlockDataInputSchema = z
 			.describe(
 				"'getblockreward' for block reward, 'getblockcountdown' for countdown, 'getblocknobytime' for block by timestamp, 'eth_blockNumber' for latest block, 'eth_getBlockByNumber' for block info",
 			),
+		chainid: z
+			.string()
+			.optional()
+			.default("1")
+			.describe("The chain ID to query"),
 		closest: z
 			.enum(["before", "after"])
 			.optional()
@@ -188,11 +193,12 @@ export async function getBlockData(
 	params: GetBlockDataInput,
 ): Promise<GetBlockDataResponse> {
 	const validated = GetBlockDataInputSchema.parse(params);
-	const { action, blockno, closest, timestamp, boolean } = validated;
+	const { action, blockno, closest, timestamp, boolean, chainid } = validated;
 
 	const apiParams: Record<string, any> = {
 		module: action.startsWith("eth_") ? "proxy" : "block",
 		action,
+		chainid,
 	};
 
 	if (blockno !== undefined) {

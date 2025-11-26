@@ -7,6 +7,7 @@ export const GetEtherDataInputSchema = z.object({
 		.describe(
 			"'ethsupply' for basic Ether supply, 'ethsupply2' for detailed supply with staking/burnt fees, 'ethprice' for latest ETH price, 'nodecount' for discoverable node count",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 });
 
 export type GetEtherDataInput = z.infer<typeof GetEtherDataInputSchema>;
@@ -90,12 +91,13 @@ export type GetEtherDataResponse = z.infer<typeof EtherDataResponseSchema>;
 export async function getEtherData(
 	params: GetEtherDataInput,
 ): Promise<GetEtherDataResponse> {
-	const { action } = GetEtherDataInputSchema.parse(params);
+	const { action, chainid } = GetEtherDataInputSchema.parse(params);
 
 	return callEtherscanApi(
 		{
 			module: "stats",
 			action,
+			chainid,
 		},
 		EtherDataResponseSchema,
 	);

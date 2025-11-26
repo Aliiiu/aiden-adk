@@ -7,6 +7,7 @@ export const GetTokenDataInputSchema = z.object({
 		.describe(
 			"'tokensupply' for total ERC-20 token supply, 'tokenbalance' for ERC-20 token balance of an address",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 	contractaddress: z
 		.string()
 		.describe("The contract address of the ERC-20 token"),

@@ -9,6 +9,11 @@ export const GetTransactionsInputSchema = z
 			.describe(
 				"The string representing the address you want to retrieve transactions from",
 			),
+		chainid: z
+			.string()
+			.optional()
+			.default("1")
+			.describe("The chain ID to query"),
 		action: z
 			.enum([
 				"txlist",

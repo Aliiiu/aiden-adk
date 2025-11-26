@@ -7,6 +7,7 @@ export const GetMinedBlocksInputSchema = z.object({
 		.describe(
 			"The string representing the address whose validated blocks you want to retrieve",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 	blocktype: z
 		.enum(["blocks", "uncles"])
 		.describe(
@@ -39,7 +40,7 @@ const MinedBlocksResponseSchema = z.array(MinedBlockSchema);
 export type GetMinedBlocksResponse = z.infer<typeof MinedBlocksResponseSchema>;
 
 /**
- * Get a list of blocks that were validated (mined) by an address.
+ * Get a list of blocks that were validated (mined) by a specific address.
  *
  * Returns blocks that were mined by the specified address, including block rewards.
  * Can retrieve either canonical blocks or uncle blocks.
@@ -63,7 +64,7 @@ export type GetMinedBlocksResponse = z.infer<typeof MinedBlocksResponseSchema>;
 export async function getMinedBlocks(
 	params: GetMinedBlocksInput,
 ): Promise<GetMinedBlocksResponse> {
-	const { address, blocktype, page, offset } =
+	const { address, blocktype, page, offset, chainid } =
 		GetMinedBlocksInputSchema.parse(params);
 
 	return callEtherscanApi(
@@ -71,6 +72,7 @@ export async function getMinedBlocks(
 			module: "account",
 			action: "getminedblocks",
 			address,
+			chainid,
 			blocktype,
 			page,
 			offset,

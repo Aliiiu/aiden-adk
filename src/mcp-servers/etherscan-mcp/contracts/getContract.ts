@@ -7,6 +7,7 @@ export const GetContractInputSchema = z.object({
 		.describe(
 			"'getabi' for contract ABI, 'getsourcecode' for source code, 'getcontractcreation' for creator address and tx hash",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 	address: z
 		.string()
 		.describe(

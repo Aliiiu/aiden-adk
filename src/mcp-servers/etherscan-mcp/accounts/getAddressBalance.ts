@@ -7,6 +7,7 @@ export const GetAddressBalanceInputSchema = z.object({
 		.describe(
 			"The string(s) representing the addresses to check for balance, separated by ',' up to 20 addresses per call",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 	tag: z
 		.enum(["latest", "pending", "earliest"])
 		.optional()
@@ -68,7 +69,7 @@ export type GetAddressBalanceResponse = z.infer<
 export async function getAddressBalance(
 	params: GetAddressBalanceInput,
 ): Promise<GetAddressBalanceResponse> {
-	const { address, tag } = GetAddressBalanceInputSchema.parse(params);
+	const { address, tag, chainid } = GetAddressBalanceInputSchema.parse(params);
 
 	const isMultiple = address.includes(",");
 	const action = isMultiple ? "balancemulti" : "balance";
@@ -78,6 +79,7 @@ export async function getAddressBalance(
 			module: "account",
 			action,
 			address,
+			chainid,
 			tag,
 		},
 		AddressBalanceResponseSchema,

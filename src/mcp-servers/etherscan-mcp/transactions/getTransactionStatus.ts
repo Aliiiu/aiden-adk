@@ -7,6 +7,7 @@ export const GetTransactionStatusInputSchema = z.object({
 		.describe(
 			"The string representing the transaction hash to check for execution status",
 		),
+	chainid: z.string().optional().default("1").describe("The chain ID to query"),
 	action: z
 		.enum(["getstatus", "gettxreceiptstatus"])
 		.describe(
@@ -67,13 +68,15 @@ export type GetTransactionStatusResponse = z.infer<
 export async function getTransactionStatus(
 	params: GetTransactionStatusInput,
 ): Promise<GetTransactionStatusResponse> {
-	const { txhash, action } = GetTransactionStatusInputSchema.parse(params);
+	const { txhash, action, chainid } =
+		GetTransactionStatusInputSchema.parse(params);
 
 	return callEtherscanApi(
 		{
 			module: "transaction",
 			action,
 			txhash,
+			chainid,
 		},
 		TransactionStatusResponseSchema,
 	);
