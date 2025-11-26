@@ -1,7 +1,7 @@
 import { type ZodSchema, z } from "zod";
 
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-const BASE_URL = "https://api.etherscan.io/api";
+const BASE_URL = "https://api.etherscan.io/v2/api";
 
 /**
  * Make a request to the Etherscan API
