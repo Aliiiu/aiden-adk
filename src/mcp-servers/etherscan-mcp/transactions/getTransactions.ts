@@ -74,13 +74,86 @@ export const GetTransactionsInputSchema = z
 			.optional()
 			.describe("Token contract address for filtering token transfers"),
 	})
-	.refine(
-		(data) => data.address || data.txhash || (data.startblock && data.endblock),
-		{
-			message:
-				"One of address, txhash, or block range (startblock and endblock) must be provided",
-		},
-	);
+	.superRefine((data, ctx) => {
+		const action = data.action ?? "txlist";
+		const { address, txhash, contractaddress, startblock, endblock } = data;
+		const hasBlockRange = startblock !== undefined && endblock !== undefined;
+		const hasPartialBlockRange =
+			(startblock !== undefined && endblock === undefined) ||
+			(startblock === undefined && endblock !== undefined);
+
+		// Require both startblock and endblock if either is provided
+		if (hasPartialBlockRange) {
+			ctx.addIssue({
+				code: "custom",
+				message: "Provide both 'startblock' and 'endblock' or neither.",
+				path: ["startblock"],
+			});
+		}
+
+		switch (action) {
+			case "txlistinternal": {
+				if (!txhash) {
+					ctx.addIssue({
+						code: "custom",
+						message: "For 'txlistinternal', 'txhash' is required.",
+						path: ["txhash"],
+					});
+				}
+				break;
+			}
+
+			case "txsBeaconWithdrawal": {
+				if (!address) {
+					ctx.addIssue({
+						code: "custom",
+						message: "For 'txsBeaconWithdrawal', 'address' is required.",
+						path: ["address"],
+					});
+				}
+				if (!hasBlockRange) {
+					ctx.addIssue({
+						code: "custom",
+						message:
+							"For 'txsBeaconWithdrawal', both 'startblock' and 'endblock' are required.",
+						path: ["startblock"],
+					});
+				}
+				break;
+			}
+
+			case "tokentx":
+			case "tokennfttx":
+			case "token1155tx": {
+				if (!address) {
+					ctx.addIssue({
+						code: "custom",
+						message: `For '${action}', 'address' is required.`,
+						path: ["address"],
+					});
+				}
+				if (!contractaddress) {
+					ctx.addIssue({
+						code: "custom",
+						message: `For '${action}', 'contractaddress' is required.`,
+						path: ["contractaddress"],
+					});
+				}
+				break;
+			}
+
+			case "txlist":
+			default: {
+				if (!address) {
+					ctx.addIssue({
+						code: "custom",
+						message: "For 'txlist', 'address' is required.",
+						path: ["address"],
+					});
+				}
+			}
+		}
+	});
 
 export type GetTransactionsInput = z.infer<typeof GetTransactionsInputSchema>;
 

@@ -3,38 +3,43 @@ import { getChainsDescription } from "../enums/chains.js";
 import { getTokensDescription } from "../enums/tokens.js";
 import { callEtherscanApi } from "../shared.js";
 
-export const GetTokenDataInputSchema = z.object({
-	action: z
-		.enum(["tokensupply", "tokenbalance"])
-		.describe(
-			"'tokensupply' for total ERC-20 token supply, 'tokenbalance' for ERC-20 token balance of an address",
-		),
-	chainid: z
-		.string()
-		.optional()
-		.default("1")
-		.describe(
-			`The chain ID to query. Available chains: ${getChainsDescription()}`,
-		),
-	contractaddress: z
-		.string()
-		.describe(
-			`The contract address of the ERC-20 token. You can provide a contract address or use a popular token symbol. Popular tokens on Ethereum (chainid=1): ${getTokensDescription()}`,
-		),
-	address: z
-		.string()
-		.optional()
-		.describe(
-			"The address to check for token balance (required for 'tokenbalance')",
-		),
-	tag: z
-		.enum(["latest", "pending", "earliest"])
-		.optional()
-		.default("latest")
-		.describe(
-			"The state of the blockchain: 'latest' (default), 'pending', or 'earliest'",
-		),
-});
+export const GetTokenDataInputSchema = z
+	.object({
+		action: z
+			.enum(["tokensupply", "tokenbalance"])
+			.describe(
+				"'tokensupply' for total ERC-20 token supply, 'tokenbalance' for ERC-20 token balance of an address",
+			),
+		chainid: z
+			.string()
+			.optional()
+			.default("1")
+			.describe(
+				`The chain ID to query. Available chains: ${getChainsDescription()}`,
+			),
+		contractaddress: z
+			.string()
+			.describe(
+				`The contract address of the ERC-20 token. You can provide a contract address or use a popular token symbol. Popular tokens on Ethereum (chainid=1): ${getTokensDescription()}`,
+			),
+		address: z
+			.string()
+			.optional()
+			.describe(
+				"The address to check for token balance (required for 'tokenbalance')",
+			),
+		tag: z
+			.enum(["latest", "pending", "earliest"])
+			.optional()
+			.default("latest")
+			.describe(
+				"The state of the blockchain: 'latest' (default), 'pending', or 'earliest'",
+			),
+	})
+	.refine((data) => !(data.action === "tokenbalance" && !data.address), {
+		message: "Address is required for action 'tokenbalance'",
+		path: ["address"],
+	});
 
 export type GetTokenDataInput = z.infer<typeof GetTokenDataInputSchema>;
 
@@ -82,11 +87,6 @@ export async function getTokenData(
 ): Promise<GetTokenDataResponse> {
 	const validated = GetTokenDataInputSchema.parse(params);
 	const { action, contractaddress, address, tag, chainid } = validated;
-
-	// Validate that address is provided for tokenbalance
-	if (action === "tokenbalance" && !address) {
-		throw new Error("address is required for tokenbalance action");
-	}
 
 	// Etherscan uses different modules per action:
 	// - tokensupply -> stats
