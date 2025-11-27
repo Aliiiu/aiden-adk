@@ -1,21 +1,40 @@
 import z from "zod";
+import { getChainsDescription } from "../enums/chains.js";
 import { callEtherscanApi } from "../shared.js";
 
-export const GetGasDataInputSchema = z.object({
-	action: z
-		.enum(["eth_gasPrice", "gasestimate", "gasoracle"])
-		.describe(
-			"'eth_gasPrice' for current gas price, 'gasestimate' for transaction confirmation estimate, 'gasoracle' for safe/proposed/fast gas prices",
-		),
-	chainid: z.string().optional().default("1").describe("The chain ID to query"),
-	gasprice: z
-		.number()
-		.int()
-		.optional()
-		.describe(
-			"The price paid per unit of gas, in wei (required for 'gasestimate')",
-		),
-});
+export const GetGasDataInputSchema = z
+	.object({
+		action: z
+			.enum(["eth_gasPrice", "gasestimate", "gasoracle"])
+			.describe(
+				"'eth_gasPrice' for current gas price, 'gasestimate' for transaction confirmation estimate, 'gasoracle' for safe/proposed/fast gas prices",
+			),
+		chainid: z
+			.string()
+			.optional()
+			.default("1")
+			.describe(
+				`The chain ID to query. Available chains: ${getChainsDescription()}`,
+			),
+		gasprice: z
+			.string()
+			.optional()
+			.describe(
+				"The price paid per unit of gas, in wei (required for 'gasestimate')",
+			),
+	})
+	.refine(
+		(data) => {
+			if (data.action === "gasestimate") {
+				return typeof data.gasprice === "string";
+			}
+			return true;
+		},
+		{
+			message: "gasprice is required when action is 'gasestimate'",
+			path: ["gasprice"],
+		},
+	);
 
 export type GetGasDataInput = z.infer<typeof GetGasDataInputSchema>;
 
@@ -83,7 +102,11 @@ export async function getGasData(
 ): Promise<GetGasDataResponse> {
 	const { action, gasprice, chainid } = GetGasDataInputSchema.parse(params);
 
-	const module = action === "gasoracle" ? "gastracker" : "proxy";
+	// Map action to correct Etherscan module:
+	// - eth_gasPrice -> proxy
+	// - gasestimate -> gastracker
+	// - gasoracle -> gastracker
+	const module = action === "eth_gasPrice" ? "proxy" : "gastracker";
 
 	return callEtherscanApi(
 		{

@@ -1,4 +1,5 @@
 import z from "zod";
+import { getChainsDescription } from "../enums/chains.js";
 import { callEtherscanApi } from "../shared.js";
 
 export const GetEtherDataInputSchema = z.object({
@@ -7,7 +8,13 @@ export const GetEtherDataInputSchema = z.object({
 		.describe(
 			"'ethsupply' for basic Ether supply, 'ethsupply2' for detailed supply with staking/burnt fees, 'ethprice' for latest ETH price, 'nodecount' for discoverable node count",
 		),
-	chainid: z.string().optional().default("1").describe("The chain ID to query"),
+	chainid: z
+		.string()
+		.optional()
+		.default("1")
+		.describe(
+			`The chain ID to query. Available chains: ${getChainsDescription()}`,
+		),
 });
 
 export type GetEtherDataInput = z.infer<typeof GetEtherDataInputSchema>;
