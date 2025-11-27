@@ -185,7 +185,7 @@ export function createCodeExecutionTool(
 
 /**
  * Create a unified code execution tool with access to all MCP servers
- * (CoinGecko, DeBank, DefiLlama)
+ * (CoinGecko, DeBank, DefiLlama, IQAI, Etherscan)
  */
 export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 	const coingeckoModule = await import(
@@ -198,6 +198,9 @@ export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 		"../../mcp-servers/defillama-mcp/wrappers/index.js"
 	);
 	const iqaiModule = await import("../../mcp-servers/iqai/wrappers/index.js");
+	const etherscanModule = await import(
+		"../../mcp-servers/etherscan-mcp/index.js"
+	);
 
 	return createCodeExecutionTool({
 		availableModules: {
@@ -205,6 +208,7 @@ export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 			debank: createModule(debankModule),
 			defillama: createModule(defillamaModule),
 			iqai: createModule(iqaiModule),
+			etherscan: createModule(etherscanModule),
 		},
 		timeout: 60000,
 	});
