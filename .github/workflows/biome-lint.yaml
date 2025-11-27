@@ -29,18 +29,19 @@ jobs:
         with:
           fetch-depth: 2
           persist-credentials: false
-      - name: Get changed files
-        id: changed-files
-        run: |
-          if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
-            echo "changed_files=$(git diff-tree --no-commit-id --name-only -r HEAD)" >> $GITHUB_OUTPUT
-          else
-            echo "changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})" >> $GITHUB_OUTPUT
-          fi
       - name: Check if wrappers changed
         id: check
         run: |
-          if echo "${{ steps.changed-files.outputs.changed_files }}" | grep -qE 'src/mcp-servers/.*/wrappers/.*\.ts|scripts/test-function-metadata\.ts'; then
+          if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
+            CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          if echo "$CHANGED_FILES" | grep -qE 'src/mcp-servers/.*/wrappers/.*\.ts|scripts/test-function-metadata\.ts'; then
             echo "run_tests=true" >> $GITHUB_OUTPUT
           else
             echo "run_tests=false" >> $GITHUB_OUTPUT
