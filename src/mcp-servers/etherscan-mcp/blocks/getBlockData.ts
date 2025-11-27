@@ -1,4 +1,5 @@
 import z from "zod";
+import { getChainsDescription } from "../enums/chains.js";
 import { callEtherscanApi } from "../shared.js";
 
 export const GetBlockDataInputSchema = z
@@ -23,7 +24,9 @@ export const GetBlockDataInputSchema = z
 			.string()
 			.optional()
 			.default("1")
-			.describe("The chain ID to query"),
+			.describe(
+				`The chain ID to query. Available chains: ${getChainsDescription()}`,
+			),
 		closest: z
 			.enum(["before", "after"])
 			.optional()

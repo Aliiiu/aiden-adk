@@ -1,4 +1,5 @@
 import z from "zod";
+import { getChainsDescription } from "../enums/chains.js";
 import { callEtherscanApi } from "../shared.js";
 
 export const GetContractInputSchema = z.object({
@@ -7,7 +8,13 @@ export const GetContractInputSchema = z.object({
 		.describe(
 			"'getabi' for contract ABI, 'getsourcecode' for source code, 'getcontractcreation' for creator address and tx hash",
 		),
-	chainid: z.string().optional().default("1").describe("The chain ID to query"),
+	chainid: z
+		.string()
+		.optional()
+		.default("1")
+		.describe(
+			`The chain ID to query. Available chains: ${getChainsDescription()}`,
+		),
 	address: z
 		.string()
 		.describe(
@@ -105,13 +112,14 @@ export type GetContractResponse = z.infer<typeof ContractResponseSchema>;
 export async function getContract(
 	params: GetContractInput,
 ): Promise<GetContractResponse> {
-	const { action, address } = GetContractInputSchema.parse(params);
+	const { action, address, chainid } = GetContractInputSchema.parse(params);
 
 	return callEtherscanApi(
 		{
 			module: "contract",
 			action,
 			address,
+			chainid,
 		},
 		ContractResponseSchema,
 	);
