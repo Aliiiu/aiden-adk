@@ -49,21 +49,25 @@ export const GetBlockDataInputSchema = z
 				"For 'eth_getBlockByNumber': true to return full transaction objects, false for transaction hashes only",
 			),
 	})
-	.refine(
-		(data) => {
-			// eth_blockNumber doesn't need blockno
-			if (data.action === "eth_blockNumber") return true;
-			// getblocknobytime needs timestamp
-			if (data.action === "getblocknobytime")
-				return data.timestamp !== undefined;
-			// All others need blockno
-			return data.blockno !== undefined;
-		},
-		{
-			message:
-				"blockno required for most actions, timestamp required for getblocknobytime",
-		},
-	);
+	.superRefine((data, ctx) => {
+		if (data.action === "getblocknobytime" && data.timestamp === undefined) {
+			ctx.addIssue({
+				code: "custom",
+				message: "timestamp is required for action 'getblocknobytime'",
+				path: ["timestamp"],
+			});
+		}
+		if (
+			!["eth_blockNumber", "getblocknobytime"].includes(data.action) &&
+			data.blockno === undefined
+		) {
+			ctx.addIssue({
+				code: "custom",
+				message: `blockno is required for action '${data.action}'`,
+				path: ["blockno"],
+			});
+		}
+	});
 
 export type GetBlockDataInput = z.infer<typeof GetBlockDataInputSchema>;
 
