@@ -110,13 +110,10 @@ function extractFunctionsFromFile(
 					if (!typeMatch) continue;
 					const zodType = typeMatch[1];
 
-					// Extract description - handle multi-line .describe() calls
-					// Use [\s\S]*? to match any character including newlines
-					// Pattern: .describe( ... "description", ... ) - note the comma after the string
-					let descMatch = line.match(/\.describe\([\s\S]*?"([^"]*)"[\s\S]*?\)/);
-					if (!descMatch) {
-						descMatch = line.match(/\.describe\([\s\S]*?'([^']*)'[\s\S]*?\)/);
-					}
+					// Extract description - handle multi-line .describe() calls with either single or double quote style
+					const descMatch = line.match(
+						/\.describe\([\s\S]*?["']([^"']*)["'][\s\S]*?\)/,
+					);
 
 					const description = descMatch
 						? descMatch[1]
