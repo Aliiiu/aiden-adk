@@ -27,24 +27,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 2
           persist-credentials: false
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            src/mcp-servers/**/wrappers/**/*.ts
+            scripts/test-function-metadata.ts
       - name: Check if wrappers changed
         id: check
         run: |
-          if [ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]; then
-            CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
-          else
-            CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          fi
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          if echo "$CHANGED_FILES" | grep -qE 'src/mcp-servers/.*/wrappers/.*\.ts|scripts/test-function-metadata\.ts'; then
+          if [ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]; then
             echo "run_tests=true" >> $GITHUB_OUTPUT
+            echo "✓ Wrapper files changed - will run metadata tests"
+            echo "Changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
           else
             echo "run_tests=false" >> $GITHUB_OUTPUT
+            echo "✗ No wrapper files changed - skipping metadata tests"
           fi
       - name: Setup Node.js
         if: steps.check.outputs.run_tests == 'true'
