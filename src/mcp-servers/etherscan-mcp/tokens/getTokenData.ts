@@ -1,4 +1,6 @@
 import z from "zod";
+import { getChainsDescription } from "../enums/chains.js";
+import { getTokensDescription } from "../enums/tokens.js";
 import { callEtherscanApi } from "../shared.js";
 
 export const GetTokenDataInputSchema = z.object({
@@ -7,10 +9,18 @@ export const GetTokenDataInputSchema = z.object({
 		.describe(
 			"'tokensupply' for total ERC-20 token supply, 'tokenbalance' for ERC-20 token balance of an address",
 		),
-	chainid: z.string().optional().default("1").describe("The chain ID to query"),
+	chainid: z
+		.string()
+		.optional()
+		.default("1")
+		.describe(
+			`The chain ID to query. Available chains: ${getChainsDescription()}`,
+		),
 	contractaddress: z
 		.string()
-		.describe("The contract address of the ERC-20 token"),
+		.describe(
+			`The contract address of the ERC-20 token. You can provide a contract address or use a popular token symbol. Popular tokens on Ethereum (chainid=1): ${getTokensDescription()}`,
+		),
 	address: z
 		.string()
 		.optional()
@@ -71,20 +81,26 @@ export async function getTokenData(
 	params: GetTokenDataInput,
 ): Promise<GetTokenDataResponse> {
 	const validated = GetTokenDataInputSchema.parse(params);
-	const { action, contractaddress, address, tag } = validated;
+	const { action, contractaddress, address, tag, chainid } = validated;
 
 	// Validate that address is provided for tokenbalance
 	if (action === "tokenbalance" && !address) {
 		throw new Error("address is required for tokenbalance action");
 	}
 
+	// Etherscan uses different modules per action:
+	// - tokensupply -> stats
+	// - tokenbalance -> account
+	const module = action === "tokensupply" ? "stats" : "account";
+
 	return callEtherscanApi(
 		{
-			module: "stats",
+			module,
 			action,
 			contractaddress,
 			address,
 			tag,
+			chainid,
 		},
 		TokenDataResponseSchema,
 	);
