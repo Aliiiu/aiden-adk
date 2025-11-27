@@ -12,6 +12,9 @@ import { createChildLogger } from "../utils/logger";
 
 const logger = createChildLogger("Function Index Builder");
 
+export const FALLBACK_PARAMETERS_TEXT =
+	"see JSDoc @param tags in description field";
+
 export interface FunctionMetadata {
 	name: string;
 	module: "coingecko" | "debank" | "defillama" | "iqai" | "etherscan";
@@ -150,7 +153,7 @@ function extractFunctionsFromFile(
 			category,
 			description:
 				description || `${category} function from ${module}`.replace(/-/g, " "),
-			parameters: parameters || "see JSDoc @param tags in description field",
+			parameters: parameters || FALLBACK_PARAMETERS_TEXT,
 			filePath: functionFilePath,
 			example: example || undefined,
 		});

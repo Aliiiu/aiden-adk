@@ -16,7 +16,10 @@
  */
 
 import type { FunctionMetadata } from "../src/lib/function-index/builder.js";
-import { buildFunctionIndex } from "../src/lib/function-index/builder.js";
+import {
+	buildFunctionIndex,
+	FALLBACK_PARAMETERS_TEXT,
+} from "../src/lib/function-index/builder.js";
 
 interface ModuleStats {
 	total: number;
@@ -42,7 +45,7 @@ interface FailedFunction {
 function hasStructuredParams(func: FunctionMetadata): boolean {
 	return (
 		func.parameters !== undefined &&
-		func.parameters !== "see JSDoc @param tags in description field"
+		func.parameters !== FALLBACK_PARAMETERS_TEXT
 	);
 }
 
