@@ -50,7 +50,7 @@ export type GetUserAllTokenListResponse = z.infer<
 /**
  * Get all tokens held by a specific wallet address across all supported chains.
  *
- * Returns complete token portfolio for a wallet across every chain. This is       * wallet-specific holdings.
+ * Returns a complete token portfolio for a wallet across every chain. This is wallet-specific holdings.
  *
  * @param input.id - User's wallet address (e.g., '0x...')
  * @param input.is_all - Include all tokens including dust (default: true)
