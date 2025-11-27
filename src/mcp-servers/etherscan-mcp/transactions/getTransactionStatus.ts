@@ -1,13 +1,24 @@
 import z from "zod";
+import { getChainsDescription } from "../enums/chains.js";
 import { callEtherscanApi } from "../shared.js";
 
 export const GetTransactionStatusInputSchema = z.object({
 	txhash: z
 		.string()
+		.regex(
+			/^0x[a-fA-F0-9]{64}$/,
+			"txhash must be a 66-character 0x-prefixed hash",
+		)
 		.describe(
 			"The string representing the transaction hash to check for execution status",
 		),
-	chainid: z.string().optional().default("1").describe("The chain ID to query"),
+	chainid: z
+		.string()
+		.optional()
+		.default("1")
+		.describe(
+			`The chain ID to query. Available chains: ${getChainsDescription()}`,
+		),
 	action: z
 		.enum(["getstatus", "gettxreceiptstatus"])
 		.describe(

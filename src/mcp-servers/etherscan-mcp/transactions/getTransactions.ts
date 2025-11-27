@@ -1,4 +1,5 @@
 import z from "zod";
+import { getChainsDescription } from "../enums/chains.js";
 import { callEtherscanApi } from "../shared.js";
 
 export const GetTransactionsInputSchema = z
@@ -13,7 +14,9 @@ export const GetTransactionsInputSchema = z
 			.string()
 			.optional()
 			.default("1")
-			.describe("The chain ID to query"),
+			.describe(
+				`The chain ID to query. Available chains: ${getChainsDescription()}`,
+			),
 		action: z
 			.enum([
 				"txlist",
@@ -30,6 +33,10 @@ export const GetTransactionsInputSchema = z
 			),
 		txhash: z
 			.string()
+			.regex(
+				/^0x[a-fA-F0-9]{64}$/,
+				"txhash must be a 66-character 0x-prefixed hash",
+			)
 			.optional()
 			.describe(
 				"The string representing the transaction hash to check for internal transactions",
