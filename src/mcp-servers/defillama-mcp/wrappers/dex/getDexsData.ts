@@ -66,8 +66,6 @@ export type GetDexsDataResponse = z.infer<typeof GetDexsDataResponseSchema>;
  * Get DEX (decentralized exchange) trading volume metrics and rankings across protocols.
  *
  * Returns DEX trading volumes (24h, 7d, 30d) for protocol comparison. This is for analyzing DEX trading activity.
- * For DEX liquidity pools with token pairs, use CoinGecko getSearchOnchainPools.
- * For yield farming pools with APY, use getLatestPoolData.
  * For user-specific trading history, use DeBank getUserHistoryList.
  *
  * @param input.protocol - Optional DEX protocol slug for specific protocol summary (e.g., 'uniswap')

@@ -1,7 +1,3 @@
-/**
- * Decode and explain a transaction
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 

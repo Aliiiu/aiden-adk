@@ -76,7 +76,7 @@ export const getApiSearchAgent = async () => {
     // Fallback: If no name match, use first result (highest market cap rank)
     const coinId = coin?.id || results.coins[0]?.id;
 
-    // Step 3: Use getSimplePrice (NOT getCoinsMarkets!) with discovered ID
+    // Step 3: Use getSimplePrice with discovered ID to get price
     const priceData = await getSimplePrice({
       ids: coinId,
       vs_currencies: 'usd'
@@ -146,8 +146,13 @@ export const getApiSearchAgent = async () => {
     const allProtocols = await getProtocols({});
 
     // Find protocol by name using JSONata
-    // ⚠️ Use ~> operator for regex (NOT =~ or ~)
-    const expr = jsonata('$[name ~> /compound/i]');
+    // ⚠️ CRITICAL: Search multiple fields since protocols may rebrand!
+    // Check: name, module, previousNames array (if exists)
+    const expr = jsonata(\`$[
+      name ~> /compound/i or
+      module ~> /compound/i or
+      previousNames[$ ~> /compound/i]
+    ]\`);
     const protocol = await expr.evaluate(allProtocols);
 
     // Extract slug (canonical identifier) for API queries
@@ -162,6 +167,30 @@ export const getApiSearchAgent = async () => {
 
     // OR extract all chain TVLs with JSONata:
     const allChainTvls = await jsonata('chainTvls.*').evaluate(protocol);
+    \`\`\`
+
+    **5. DefiLlama Options/DEX/Fees Protocol Search**
+    For getOptionsData(), getDexsData(), and getFeesAndRevenue():
+    \`\`\`typescript
+    import { getOptionsData, jsonata } from 'defillama';
+
+    // Get ALL protocols (without protocol parameter)
+    const allData = await getOptionsData({ sortCondition: 'total24h' });
+
+    // ⚠️ CRITICAL: Search multiple fields since protocols may rebrand!
+    // Check: name, module, previousNames array (if exists)
+    const expr = jsonata(\`$[
+      name ~> /protocol-name/i or
+      module ~> /protocol-name/i or
+      previousNames[$ ~> /protocol-name/i]
+    ]\`);
+    const protocol = await expr.evaluate(allData);
+
+    // Use the exact name/module value for specific protocol query
+    const protocolId = protocol?.module || protocol?.name;
+    if (protocolId) {
+      const details = await getOptionsData({ protocol: protocolId });
+    }
     \`\`\`
 
     **Common JSONata Patterns:**
@@ -326,6 +355,17 @@ export const getApiSearchAgent = async () => {
        ❌ WRONG:   jsonata('$[name ~ /compound/i]')        // ~ alone is NOT valid
        \`\`\`
 
+       **Logical operators**: Use \`and\` / \`or\`, NOT \`&&\` / \`||\`
+       \`\`\`typescript
+       ✅ CORRECT: jsonata('$[tvl > 1000 and tvl != null]')
+       ✅ CORRECT: jsonata('$[name ~> /meme/i or category = "meme"]')
+       ✅ CORRECT: jsonata('$[tvl != null and (name ~> /uni/i or name ~> /swap/i)]')
+
+       ❌ WRONG:   jsonata('$[tvl > 1000 && tvl != null]')       // && is NOT valid
+       ❌ WRONG:   jsonata('$[name ~> /meme/i || category = "meme"]')  // || is NOT valid
+       ❌ WRONG:   jsonata('$[tags && tags ~> /meme/i]')          // && is NOT valid
+       \`\`\`
+
        **Array filtering**: Use JSONata for debank/defillama, native JS for coingecko/iqai
        \`\`\`typescript
        // ✅ CORRECT: JSONata for debank/defillama data
@@ -374,9 +414,16 @@ export const getApiSearchAgent = async () => {
        // For descending order: Sort ascending then reverse with $reverse()
        jsonata('$reverse($sort($[tvl != null], function($v) { $v.tvl }))')
 
-       // Built-in sort operators (simpler but less control):
-       jsonata('$^(>tvl)')  // Sort descending by tvl
-       jsonata('$^(<tvl)')  // Sort ascending by tvl
+       // Built-in sort operators: MUST filter nulls first!
+       jsonata('$[tvl != null]^(>tvl)')  // Filter nulls, then sort descending
+       jsonata('$[tvl != null]^(<tvl)')  // Filter nulls, then sort ascending
+
+       // ❌ WRONG: Complex filter + sort without null check
+       jsonata('$[name ~> /meme/i]^(>tvl)')  // ERROR if any tvl is null!
+       jsonata('$[tags ~> /meme/i or name ~> /meme/i]^(>tvl)')  // ERROR!
+
+       // ✅ CORRECT: Always add "and field != null" when sorting
+       jsonata('$[name ~> /meme/i and tvl != null]^(>tvl)')
        \`\`\`
 
        **Array slicing - Get top N items**: ⚠️ NO range syntax like [0..9]!

@@ -1,7 +1,3 @@
-/**
- * Get user's protocol positions across all chains
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
@@ -80,9 +76,7 @@ export type GetUserAllComplexProtocolListResponse = z.infer<
 /**
  * Get a specific wallet's DeFi positions (lending, borrowing, staking, LP) across all chains.
  *
- * Returns wallet-specific protocol positions across all supported chains. This is for analyzing
- * a specific user's complete DeFi portfolio. For protocol-level TVL rankings or yield data
- * (not user-specific), use DefiLlama getProtocols or getLatestPoolData.
+ * Returns wallet-specific protocol positions across all supported chains. This is for analyzing a specific user's complete DeFi portfolio. For protocol-level TVL rankings or yield data (not user-specific), use DefiLlama getProtocols or getLatestPoolData.
  *
  * @param input.id - User's wallet address (e.g., '0x...')
  * @param input.chain_ids - Optional comma-separated chain IDs to filter (e.g., 'eth,bsc')

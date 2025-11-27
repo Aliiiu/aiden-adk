@@ -68,7 +68,7 @@ export class DexService extends BaseService {
 					return order === "asc" ? aVal - bVal : bVal - aVal;
 				});
 
-				const top10 = sorted.slice(0, 10).map((protocol) => ({
+				const formattedProtocols = sorted.map((protocol) => ({
 					displayName: protocol.displayName,
 					breakdown24h: protocol.breakdown24h,
 					dailyVolume: protocol.dailyVolume,
@@ -80,11 +80,9 @@ export class DexService extends BaseService {
 					change_1m: protocol.change_1m,
 				}));
 
-				const title = args.chain
-					? `Top 10 DEXs on ${args.chain}`
-					: "Top 10 DEXs Globally";
+				const title = args.chain ? `DEXs on ${args.chain}` : "DEXs Globally";
 
-				return await this.formatResponse(top10, {
+				return await this.formatResponse(formattedProtocols, {
 					title,
 					currencyFields: ["total24h", "total7d", "total30d", "dailyVolume"],
 					numberFields: ["change_1d", "change_7d", "change_1m"],

@@ -1,11 +1,32 @@
 import z from "zod";
 import { callIqAiApi } from "../../../iqai/make-iq-ai-request.js";
 
-export type GetAgentStatsInput = {
-	address?: string;
-	ticker?: string;
-	extendedStats?: boolean;
-};
+export const GetAgentStatsInputSchema = z
+	.object({
+		address: z
+			.string()
+			.optional()
+			.describe("Agent token contract address on IQ chain (Chain ID 252)"),
+		ticker: z
+			.string()
+			.optional()
+			.describe("Agent ticker symbol, e.g., 'Sophia', 'GPT', 'Eliza'"),
+		extendedStats: z
+			.boolean()
+			.optional()
+			.describe(
+				"Include extended metrics (default: true). Must be false when using ticker lookup.",
+			),
+	})
+	.refine((data) => Boolean(data.address || data.ticker), {
+		message: "Provide either 'address' or 'ticker'.",
+	})
+	.refine((data) => !(data.ticker && data.extendedStats), {
+		message: "`extendedStats` is only supported when using address lookup.",
+		path: ["extendedStats"],
+	});
+
+export type GetAgentStatsInput = z.infer<typeof GetAgentStatsInputSchema>;
 
 const agentStatsSchema = z
 	.object({
@@ -79,21 +100,13 @@ export type GetAgentStatsResponse =
 export async function getAgentStats(
 	params: GetAgentStatsInput,
 ): Promise<GetAgentStatsResponse> {
-	const { address, ticker, extendedStats = true } = params;
-
-	if (!address && !ticker) {
-		throw new Error("Provide either 'address' or 'ticker'.");
-	}
-
-	if (ticker && extendedStats) {
-		throw new Error(
-			"`extendedStats` is only supported when using address lookup.",
-		);
-	}
+	const { address, ticker, extendedStats } =
+		GetAgentStatsInputSchema.parse(params);
+	const resolvedExtendedStats = extendedStats ?? (ticker ? false : true);
 
 	return callIqAiApi(
 		"/api/agents/stats",
-		{ address, ticker, extendedStats },
+		{ address, ticker, extendedStats: resolvedExtendedStats },
 		agentStatsSchema.or(agentStatsSchema.array()),
 	);
 }

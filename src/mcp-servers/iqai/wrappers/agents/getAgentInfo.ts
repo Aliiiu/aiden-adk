@@ -1,10 +1,22 @@
 import z from "zod";
 import { callIqAiApi } from "../../../iqai/make-iq-ai-request.js";
 
-export type GetAgentInfoInput = {
-	address?: string;
-	ticker?: string;
-};
+export const GetAgentInfoInputSchema = z
+	.object({
+		address: z
+			.string()
+			.optional()
+			.describe("Agent token contract address on IQ chain (Chain ID 252)"),
+		ticker: z
+			.string()
+			.optional()
+			.describe("Agent ticker symbol, e.g., 'Sophia', 'GPT', 'Eliza'"),
+	})
+	.refine((data) => Boolean(data.address || data.ticker), {
+		message: "Provide either 'address' or 'ticker'.",
+	});
+
+export type GetAgentInfoInput = z.infer<typeof GetAgentInfoInputSchema>;
 
 const agentInfoSchema = z
 	.object({
@@ -60,11 +72,7 @@ export type GetAgentInfoResponse =
 export async function getAgentInfo(
 	params: GetAgentInfoInput,
 ): Promise<GetAgentInfoResponse> {
-	const { address, ticker } = params;
-
-	if (!address && !ticker) {
-		throw new Error("Provide either 'address' or 'ticker'.");
-	}
+	const { address, ticker } = GetAgentInfoInputSchema.parse(params);
 
 	return callIqAiApi(
 		"/api/agents/info",

@@ -1,7 +1,11 @@
 name: Code Quality
-on: [push]
+on:
+  push:
+    branches:
+      - '**'
+
 jobs:
-  ci:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
@@ -15,3 +19,49 @@ jobs:
           version: latest
       - name: Run Biome
         run: biome ci .
+
+  metadata:
+    name: Function Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            src/mcp-servers/**/wrappers/**/*.ts
+            scripts/test-function-metadata.ts
+      - name: Check if wrappers changed
+        id: check
+        run: |
+          if [ "${{ steps.changed-files.outputs.any_changed }}" == "true" ]; then
+            echo "run_tests=true" >> $GITHUB_OUTPUT
+            echo "✓ Wrapper files changed - will run metadata tests"
+            echo "Changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
+          else
+            echo "run_tests=false" >> $GITHUB_OUTPUT
+            echo "✗ No wrapper files changed - skipping metadata tests"
+          fi
+      - name: Setup Node.js
+        if: steps.check.outputs.run_tests == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install pnpm
+        if: steps.check.outputs.run_tests == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Install dependencies
+        if: steps.check.outputs.run_tests == 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Test function metadata
+        if: steps.check.outputs.run_tests == 'true'
+        run: pnpm run test:metadata
+      - name: Skip tests
+        if: steps.check.outputs.run_tests != 'true'
+        run: echo "No wrapper files changed, skipping metadata tests"

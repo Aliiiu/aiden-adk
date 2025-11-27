@@ -20,8 +20,6 @@ export type GetStableCoinPricesResponse = z.infer<
  * Get historical stablecoin price snapshots (peg tracking over time).
  *
  * Returns historical USD prices for stablecoins. This is for analyzing stablecoin peg stability over time.
- * For current stablecoin prices, use getStableCoin with includePrices.
- * For general token prices, use DeBank getTokenInformation or CoinGecko.
  *
  * @returns Time-series array: [{ date: unix_timestamp, prices: { 'stablecoin_id': usd_price } }, ...]
  *

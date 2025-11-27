@@ -41,6 +41,10 @@ export function createCodeExecutionTool(
 			⚠️ ALL imports must be STATIC at the top of the file!
 			⚠️ JSONata is ONLY for debank/defillama! Use native JS for coingecko/iqai!
 
+			⚠️ CRITICAL: Use discover_tools FIRST to get correct parameter names and examples!
+			Each function has specific parameter naming.
+			The examples in discover_tools show the EXACT correct usage. Follow them precisely.
+
 			✅ CORRECT: JSONata for debank/defillama
 			import { getProtocols, jsonata } from 'defillama';
 			const protocols = await getProtocols({});
@@ -181,7 +185,7 @@ export function createCodeExecutionTool(
 
 /**
  * Create a unified code execution tool with access to all MCP servers
- * (CoinGecko, DeBank, DefiLlama)
+ * (CoinGecko, DeBank, DefiLlama, IQAI, Etherscan)
  */
 export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 	const coingeckoModule = await import(
@@ -194,6 +198,9 @@ export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 		"../../mcp-servers/defillama-mcp/wrappers/index.js"
 	);
 	const iqaiModule = await import("../../mcp-servers/iqai/wrappers/index.js");
+	const etherscanModule = await import(
+		"../../mcp-servers/etherscan-mcp/index.js"
+	);
 
 	return createCodeExecutionTool({
 		availableModules: {
@@ -201,6 +208,7 @@ export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 			debank: createModule(debankModule),
 			defillama: createModule(defillamaModule),
 			iqai: createModule(iqaiModule),
+			etherscan: createModule(etherscanModule),
 		},
 		timeout: 60000,
 	});

@@ -1,7 +1,3 @@
-/**
- * Get top holders of a protocol
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
@@ -46,8 +42,6 @@ export type GetTopHoldersOfProtocolResponse = z.infer<
  * Get the largest wallet holders (by USD value) within a specific DeFi protocol.
  *
  * Returns top users ranked by total value in a protocol. This is for analyzing protocol user distribution.
- * For a specific user's protocol positions, use getUserComplexProtocolList.
- * For token holder distribution, use getTopHoldersOfToken.
  *
  * @param input.id - Protocol identifier (e.g., 'uniswap', 'aave', 'bsc_pancakeswap')
  * @param input.start - Pagination offset (default: 0, max: 1000)

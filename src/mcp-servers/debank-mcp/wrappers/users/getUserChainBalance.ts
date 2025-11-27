@@ -1,7 +1,3 @@
-/**
- * Get user's balance on a specific chain
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
@@ -26,7 +22,6 @@ export type GetUserChainBalanceResponse = z.infer<
  *
  * Returns USD value of all holdings for a wallet on one chain. This is wallet-specific balance.
  * For balances across all chains, use getUserTotalBalance.
- * For general token prices (not wallet-specific), use CoinGecko.
  *
  * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
  * @param input.id - User's wallet address (e.g., '0x...')

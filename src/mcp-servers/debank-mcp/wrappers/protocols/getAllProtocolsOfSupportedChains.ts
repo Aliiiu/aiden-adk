@@ -1,7 +1,3 @@
-/**
- * Get all DeFi protocols across supported chains
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
@@ -44,9 +40,6 @@ export type GetAllProtocolsOfSupportedChainsResponse = z.infer<
  * Get all DeFi protocols with their names, chains, TVL, and metadata for discovery.
  *
  * Returns protocol directory across chains. This is for discovering available protocols and their identifiers.
- * For protocol TVL rankings and changes over time, use DefiLlama getProtocols.
- * For user-specific positions in protocols, use getUserComplexProtocolList or getUserAllComplexProtocolList.
- * For yield farming pool data with APY, use DefiLlama getLatestPoolData.
  *
  * @param input.chain_ids - Optional comma-separated chain IDs to filter (e.g., 'eth,bsc,matic')
  *

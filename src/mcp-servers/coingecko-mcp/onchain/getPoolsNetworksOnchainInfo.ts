@@ -59,17 +59,32 @@ export type GetPoolsNetworksOnchainInfoResponse = z.infer<
  * Returns onchain DEX pool metadata, token pair info, and social links. This is for specific pool lookups by address.
  * For protocol TVL or yield data, use DefiLlama. For discovering pools by token, use getSearchOnchainPools.
  *
- * @param params.network - Network ID (e.g., 'eth', 'bsc', 'polygon')
- * @param params.pool_address - Pool contract address on the specified network
+ * WORKFLOW:
+ * 1. Use getSearchOnchainPools({ query: 'token-name', network: 'network-id' }) to find pools
+ * 2. Extract pool address from search results
+ * 3. Use getPoolsNetworksOnchainInfo with the discovered pool address
+ *
+ * @param params.network - Network ID (e.g., 'eth', 'bsc', 'polygon') - use getOnchainNetworks to get valid IDs
+ * @param params.pool_address - Pool contract address on the specified network (must exist in CoinGecko database)
  *
  * @returns DEX pool details: name, symbol, token addresses, categories, social links
  *
  * @example
  * ```typescript
+ * // CORRECT: Discover pools first, then get details
+ * const pools = await getSearchOnchainPools({ query: 'USDC', network: 'eth' });
+ * const poolAddress = pools.data[0]?.attributes.address;
+ *
  * const poolInfo = await getPoolsNetworksOnchainInfo({
  *   network: 'eth',
- *   pool_address: '0x...'
+ *   pool_address: poolAddress
  * });
+ *
+ * // WRONG: Using arbitrary address without verification (will likely 404)
+ * // const poolInfo = await getPoolsNetworksOnchainInfo({
+ * //   network: 'eth',
+ * //   pool_address: '0x1234...' // Don't do this!
+ * // });
  * ```
  */
 export async function getPoolsNetworksOnchainInfo(

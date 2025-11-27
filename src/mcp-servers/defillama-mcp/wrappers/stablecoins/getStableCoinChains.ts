@@ -18,8 +18,6 @@ export type GetStableCoinChainsResponse = z.infer<
  * Get total stablecoin circulation (market cap) grouped by blockchain chains.
  *
  * Returns stablecoin distribution across chains. This is for analyzing which chains have the most stablecoin liquidity.
- * For individual stablecoin data, use getStableCoin.
- * For historical stablecoin trends, use getStableCoinCharts.
  *
  * @returns Array of chains with total stablecoin circulation: [{ chainName, mcapsum }, ...]
  *

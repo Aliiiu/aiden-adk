@@ -40,8 +40,6 @@ export type GetPercentageCoinsResponse = z.infer<
  * Get percentage price changes for coins over a time period (e.g., 24h, 7d change).
  *
  * Returns price change percentages. This is for calculating price performance over custom periods.
- * For current prices with built-in change metrics, use CoinGecko getCoinsMarkets.
- * For continuous price series to calculate changes, use getChartCoins.
  *
  * @param input.coins - Comma-separated coin identifiers in 'chain:address' format
  * @param input.period - Lookback period (e.g., '1d', '7d', '30d')

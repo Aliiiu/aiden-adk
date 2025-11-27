@@ -1,7 +1,3 @@
-/**
- * Get list of NFTs owned by a user on a chain
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
@@ -43,25 +39,30 @@ export type GetUserNftListResponse = z.infer<
 >;
 
 /**
- * Get all NFTs owned by a specific wallet address on a chain with metadata and attributes.
+ * Get user NFT holdings - all NFTs owned by a wallet address on a specific chain.
  *
- * Returns wallet-specific NFT holdings with content URLs, traits, and collection info.
- * This is for analyzing a specific user's NFT portfolio. For general NFT collection data
- * (not wallet-specific), use NFT marketplaces or other tools.
+ * Returns wallet NFT portfolio with metadata, images, attributes, and collection details.
+ * Use this for user NFT list, wallet NFT holdings, address NFT balance queries.
+ * For general NFT collection data (not wallet-specific), use CoinGecko NFT endpoints.
  *
- * @param input.id - User's wallet address (e.g., '0x...')
- * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')
- * @param input.is_all - Include all NFTs including low-value ones (default: true)
+ * WORKFLOW: To get user NFTs on Ethereum or other chains:
+ * 1. Get chain ID using getSupportedChainList() (e.g., 'eth' for Ethereum)
+ * 2. Call getUserNftList with wallet address and chain_id
  *
- * @returns Array of NFTs with name, description, content URLs, traits, collection info
+ * @param input.id - Wallet address to query (e.g., '0x...')
+ * @param input.chain_id - Chain identifier: 'eth' (Ethereum), 'bsc', 'matic' (Polygon), 'arb' (Arbitrum)
+ * @param input.is_all - Include all NFTs including dust/low-value items (default: true)
+ *
+ * @returns Array of user's NFTs with name, description, images, traits, token IDs, collection info
  *
  * @example
  * ```typescript
+ * // Get all NFTs for a wallet on Ethereum
  * const nfts = await getUserNftList({
  *   id: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb',
  *   chain_id: 'eth'
  * });
- * // Returns: [{ name: 'Bored Ape #123', content: '...', attributes: [...] }]
+ * // Returns: [{ name: 'Bored Ape #123', content: 'ipfs://...', attributes: [...] }]
  * ```
  */
 export async function getUserNftList(

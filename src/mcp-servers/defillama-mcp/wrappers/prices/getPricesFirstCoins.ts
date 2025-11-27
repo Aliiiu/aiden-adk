@@ -34,8 +34,6 @@ export type GetPricesFirstCoinsResponse = z.infer<
  * Get the first recorded price for coins (token launch price).
  *
  * Returns the earliest known price data. This is for finding token launch prices and initial listing dates.
- * For current prices, use getPricesCurrentCoins.
- * For historical prices at specific times, use getHistoricalPricesByContractAddress.
  *
  * @param input.coins - Comma-separated coin identifiers in 'chain:address' format
  *

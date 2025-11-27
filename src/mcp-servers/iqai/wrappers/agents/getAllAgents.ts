@@ -1,20 +1,35 @@
 import z from "zod";
 import { callIqAiApi } from "../../../iqai/make-iq-ai-request.js";
 
-export type GetAllAgentsInput = {
-	sort?: "latest" | "marketCap" | "holders" | "inferences";
-	order?: "asc" | "desc";
-	category?:
-		| "OnChain"
-		| "Productivity"
-		| "Entertainment"
-		| "Informative"
-		| "Creative";
-	status?: "alive" | "latent";
-	chainId?: number;
-	page?: number;
-	limit?: number;
-};
+export const GetAllAgentsInputSchema = z.object({
+	sort: z
+		.enum(["latest", "marketCap", "holders", "inferences"])
+		.optional()
+		.describe("Sort by: 'marketCap', 'holders', 'inferences', 'latest'"),
+	order: z
+		.enum(["asc", "desc"])
+		.optional()
+		.describe("Sort order: 'asc' or 'desc'"),
+	category: z
+		.enum([
+			"OnChain",
+			"Productivity",
+			"Entertainment",
+			"Informative",
+			"Creative",
+		])
+		.optional()
+		.describe("Filter by agent category"),
+	status: z.enum(["alive", "latent"]).optional().describe("Filter by status"),
+	chainId: z
+		.number()
+		.optional()
+		.describe("Chain ID (default: 252 for IQ chain)"),
+	page: z.number().optional().describe("Page number (default: 1)"),
+	limit: z.number().optional().describe("Results per page (default: 50)"),
+});
+
+export type GetAllAgentsInput = z.infer<typeof GetAllAgentsInputSchema>;
 
 const allAgentsSchema = z
 	.object({
@@ -92,6 +107,7 @@ export type GetAllAgentsResponse = z.infer<typeof allAgentsSchema>;
 export async function getAllAgents(
 	params: GetAllAgentsInput = {},
 ): Promise<GetAllAgentsResponse> {
+	const parsed = GetAllAgentsInputSchema.parse(params);
 	const {
 		sort = "marketCap",
 		order = "desc",
@@ -100,7 +116,7 @@ export async function getAllAgents(
 		chainId = 252,
 		page = 1,
 		limit = 50,
-	} = params;
+	} = parsed;
 
 	return callIqAiApi(
 		"/api/agents",

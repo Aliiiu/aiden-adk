@@ -44,8 +44,7 @@ export type GetExchangesByIdResponse = z.infer<
 /**
  * Get detailed exchange data by ID (order books not included).
  *
- * Use this after discovering an exchange via `getExchangesList` to retrieve metadata,
- * tickers count, trust score, and links.
+ * Use this after discovering an exchange via `getExchangesList` to retrieve metadata, tickers count, trust score, and links.
  *
  * @param params.id - Exchange ID (e.g., 'binance', 'coinbase_exchange')
  * @returns Detailed exchange data including volume, tickers, trust score

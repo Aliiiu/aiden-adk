@@ -88,13 +88,11 @@ export class OptionsService extends BaseService {
 				return args.order === "asc" ? aVal - bVal : bVal - aVal;
 			});
 
-			const top10 = sorted.slice(0, 10);
-
 			const title = args.chain
-				? `Top 10 Options Protocols: ${args.chain}`
-				: "Top 10 Options Protocols";
+				? `Options Protocols: ${args.chain}`
+				: "Options Protocols";
 
-			return await this.formatResponse(top10, {
+			return await this.formatResponse(sorted, {
 				title,
 				currencyFields: ["total24h", "total7d", "total30d"],
 				numberFields: ["change_1d", "change_7d", "change_1m"],

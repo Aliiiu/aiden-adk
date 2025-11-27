@@ -1,23 +1,12 @@
-/**
- * Get detailed information about a specific chain
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
-/**
- * Input schema for getting chain information
- */
 export const GetChainInputSchema = z
 	.object({
 		id: z.string().describe("Chain identifier (e.g., 'eth', 'bsc', 'polygon')"),
 	})
 	.strict();
 
-/**
- * Response schema for chain information
- * Contains blockchain metadata and configuration
- */
 export const GetChainResponseSchema = z.object({
 	id: z.string().describe("Chain identifier"),
 	community_id: z

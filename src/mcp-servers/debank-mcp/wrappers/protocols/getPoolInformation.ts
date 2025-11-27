@@ -1,7 +1,3 @@
-/**
- * Get detailed information about a liquidity pool
- */
-
 import { z } from "zod";
 import { executeServiceMethod } from "../../shared.js";
 
@@ -42,9 +38,6 @@ export type GetPoolInformationResponse = z.infer<
  * Get detailed information about a specific liquidity pool by contract address.
  *
  * Returns pool metadata, TVL, and user count. This is for looking up a specific pool's details.
- * For finding pools by token or DEX, use CoinGecko getSearchOnchainPools.
- * For yield farming pools with APY, use DefiLlama getLatestPoolData.
- * For user-specific LP positions, use getUserComplexProtocolList.
  *
  * @param input.id - Pool contract address
  * @param input.chain_id - Chain ID (e.g., 'eth', 'bsc', 'matic', 'arb')

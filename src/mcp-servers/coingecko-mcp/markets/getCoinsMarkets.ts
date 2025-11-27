@@ -96,17 +96,14 @@ export type GetCoinsMarketsResponse = z.infer<
 /**
  * Get paginated list of top cryptocurrencies ranked by market cap, volume, or ID.
  *
- * Returns ALL coins in ranked order (NOT specific coins by name or ID). This is for browsing
- * top cryptocurrencies, market overviews, leaderboards, and rankings.
+ * Returns market data for top coins including price, ATH, ATL, market cap, volume, and price changes.
+ * Use this for leaderboards, market overviews, and browsing top cryptocurrencies by rank.
  *
- * IMPORTANT: This does NOT accept coin IDs or coin names. It returns a paginated list sorted by rank.
- * NOT for specific coin price lookups - use getSimplePrice for that.
+ * LIMITATIONS: Returns only top-ranked coins (paginated, max 250 per page). Lower market cap coins may not appear in results.
  *
- * To get a specific coin's price:
- * 1. First use search() to find the coin ID
- * 2. Then use getSimplePrice({ ids: 'coin-id', vs_currencies: 'usd' })
- *
- * For contract-specific tokens on a chain, use getSimpleTokenPrice or onchain price endpoints.
+ * WORKFLOW: For specific coin data lookups, use getCoinDetails() instead:
+ * 1. Use search({ query: 'coin name' }) to find coin ID
+ * 2. Use getCoinDetails({ id: coinId, market_data: true }) to get complete data
  *
  * @param params.vs_currency - Target currency (default: 'usd')
  * @param params.order - Sort order: market_cap_desc, volume_desc, id_asc, id_desc
@@ -118,18 +115,27 @@ export type GetCoinsMarketsResponse = z.infer<
  * @param params.precision - Decimal places for currency (default: 2)
  * @param params.category - Filter by category (e.g., 'decentralized-finance-defi')
  *
- * @returns Paginated array of coins sorted by rank with prices, volumes, market caps, etc.
+ * @returns Paginated array of coins with comprehensive data:
+ * - current_price: Current price in target currency
+ * - ath: All-time high price
+ * - ath_change_percentage: Percentage change from ATH
+ * - ath_date: Date when ATH was reached
+ * - atl: All-time low price
+ * - atl_change_percentage: Percentage change from ATL
+ * - atl_date: Date when ATL was reached
+ * - market_cap, total_volume, circulating_supply, max_supply
+ * - price_change_24h, price_change_percentage_24h
+ * - high_24h, low_24h
  *
  * @example
  * ```typescript
  * // Get top 10 coins by market cap
- * const markets = await getCoinsMarkets({
+ * const top10 = await getCoinsMarkets({
  *   vs_currency: 'usd',
  *   order: 'market_cap_desc',
- *   per_page: 10,
- *   price_change_percentage: '24h,7d'
+ *   per_page: 10
  * });
- * // Returns: [{ id: 'bitcoin', symbol: 'btc', current_price: 50000, ... }, ...]
+ * // Returns: [{ id: 'bitcoin', symbol: 'btc', current_price: 50000, ath: 69000, ... }, ...]
  * ```
  */
 export async function getCoinsMarkets(
