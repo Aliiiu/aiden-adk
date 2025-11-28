@@ -4,7 +4,8 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"start": "npx tsx ./src/index.ts",
+		"start": "tsx ./src/index.ts",
+		"telegram": "tsx ./src/telegram/bot.ts",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"test:metadata": "tsx scripts/test-function-metadata.ts",
 		"prepare": "husky",
@@ -35,10 +36,12 @@
 		"dedent": "^1.7.0",
 		"dotenv": "^17.2.3",
 		"endent": "^2.1.0",
+		"fastify": "^5.6.2",
 		"fastmcp": "^3.16.0",
 		"js-tiktoken": "^1.0.21",
 		"jsonata": "^2.1.0",
 		"lunr": "^2.3.9",
+		"telegraf": "^4.16.3",
 		"vm2": "^3.10.0",
 		"winston": "^3.18.3",
 		"zod": "^4.1.11"
