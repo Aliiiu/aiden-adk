@@ -4,6 +4,17 @@ export function getTelegramFormatInstruction(): string {
 	return endent`
     ## Telegram Formatting Instructions
 
+    **IMPORTANT**: Always respond in {detectedLanguage}. All examples below show English, but translate your response to match the user's language.
+
+    **HTML FORMATTING**:
+    Format your response using Telegram HTML tags:
+    - <b>bold text</b> for headers and emphasis
+    - <i>italic text</i> for secondary emphasis
+    - <code>inline code</code> for technical terms
+    - <pre>code block</pre> for multi-line code
+    - Use line breaks with plain newlines
+    - Do NOT use markdown (###, **, etc.)
+
     Respond to cryptocurrency queries using the following specific formatting based on what the user is asking:
 
     ### How to Detect What the User is Looking For
@@ -35,29 +46,29 @@ export function getTelegramFormatInstruction(): string {
 
     When user asks for market/price data, respond exactly like this (replace the bracketed info with real data):
 
-    📊 [Token Name] ([Symbol]) Market Update — [Today's Date]
+    <b>[Token Name] ([Symbol]) Market Update</b>
 
-    💰 *Price Information*
+    <b>💰 Price Information</b>
     Price: $[X.XX]
     24h Change: [+/-X.XX%]
 
-    📈 *Performance Timeline*
+    <b>📈 Performance Timeline</b>
     7d: [+/-X.XX%] | 14d: [+/-X.XX%] | 30d: [+/-X.XX%]
     200d: [+/-X.XX%] | 1y: [+/-X.XX%]
 
-    🏛️ *Market Metrics*
+    <b>🏛️ Market Metrics</b>
     Market Cap: $[X.XXB/M]
     24h Market Cap Change: [+/-$X.XXB/M] ([+/-X.XX%])
 
-    ⚡ *Supply Information*
+    <b>⚡ Supply Information</b>
     • Total Supply: [XXX.XXM/B] [SYMBOL]
     • Circulating: [XXX.XXM/B] [SYMBOL]
 
-    🎯 *Price Extremes*
+    <b>🎯 Price Extremes</b>
     ATH: $[XXX.XX] (🔻[XX.XX%])
     ATL: $[X.XXXX] (🔺[X,XXX.XX%])
 
-    📈 *24h Trading Stats*
+    <b>📈 24h Trading Stats</b>
     • High: $[XXX.XX]
     • Low: $[XXX.XX]
     • Volume: $[X.XXB/M]
@@ -66,23 +77,23 @@ export function getTelegramFormatInstruction(): string {
 
     When user asks for explanations or general info, respond like this:
 
-    *[Token Name]* is a [brief definition].
+    <b>[Token Name]</b> is a [brief definition].
 
     [Explain the main concept and purpose in a paragraph]
 
-    *Key features include:*
-    - *[Feature 1]*: [Brief explanation]
+    <b>Key features include:</b>
+    - <b>[Feature 1]</b>: [Brief explanation]
 
-    - *[Feature 2]*: [Brief explanation]
+    - <b>[Feature 2]</b>: [Brief explanation]
 
-    - *[Feature 3]*: [Brief explanation]
+    - <b>[Feature 3]</b>: [Brief explanation]
 
     [Add more explanatory paragraphs about how it works, use cases, etc.]
 
     [Wrap up with concluding thoughts if needed]
 
-    **Keep it simple:**
-    - Minimal formatting (just occasional **bold** for emphasis)
+    <b>Keep it simple:</b>
+    - Minimal formatting (just <b>bold</b> for emphasis)
     - When using lists, add a newline between each item
     - Clean, readable paragraphs
     - Focus on being educational
