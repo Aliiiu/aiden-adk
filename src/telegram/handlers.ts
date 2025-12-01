@@ -1,7 +1,7 @@
 import type { Context } from "telegraf";
 import { getAgentRunner } from "./agent-singleton.js";
 
-const MESSAGE_FOOTER = "\n\n🧠 Powered by [AIDEN](https://aiden.id)";
+const MESSAGE_FOOTER = '\n\n🧠 Powered by <a href="https://aiden.id">AIDEN</a>';
 const MAX_MESSAGE_LENGTH = 4000;
 
 export async function processQuery(
@@ -43,13 +43,18 @@ export async function processQuery(
 }
 
 async function sendLongMessage(ctx: Context, text: string): Promise<void> {
+	const options = {
+		parse_mode: "HTML" as const,
+		disable_web_page_preview: true,
+	};
+
 	if (text.length > MAX_MESSAGE_LENGTH) {
 		const chunks =
 			text.match(new RegExp(`.{1,${MAX_MESSAGE_LENGTH}}`, "g")) || [];
 		for (const chunk of chunks) {
-			await ctx.reply(chunk, { parse_mode: "Markdown" });
+			await ctx.reply(chunk, options);
 		}
 	} else {
-		await ctx.reply(text, { parse_mode: "Markdown" });
+		await ctx.reply(text, options);
 	}
 }
