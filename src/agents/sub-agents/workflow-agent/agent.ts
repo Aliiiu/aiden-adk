@@ -15,9 +15,14 @@ export const getWorkflowAgent = async () => {
 
 	const instructionProvider: InstructionProvider = async (context) => {
 		const isTelegramRequest = context.state.isTelegramRequest ?? false;
+		const currentDate = new Date().toISOString().split("T")[0];
 
 		const baseInstruction = endent`
       You are AIDEN, an intelligent cryptocurrency and blockchain assistant.
+
+      ## Current Date
+      Today's date is: ${currentDate}
+      Always use this date when displaying market updates or time-sensitive information.
 
       ## Language Requirement
       **CRITICAL**: The user's language is {detectedLanguage}. ALL your responses MUST be in {detectedLanguage}.
