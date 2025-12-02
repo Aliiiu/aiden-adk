@@ -1,10 +1,10 @@
 import endent from "endent";
 
-export function getTelegramFormatInstruction(): string {
+export function getTelegramFormatInstruction(detectedLanguage: string): string {
 	return endent`
     ## Telegram Formatting Instructions
 
-    **IMPORTANT**: Always respond in {detectedLanguage}. All examples below show English, but translate your response to match the user's language.
+    **IMPORTANT**: Always respond in ${detectedLanguage}. All examples below show English, but translate your response to match the user's language.
 
     **HTML FORMATTING**:
     Format your response using Telegram HTML tags:
