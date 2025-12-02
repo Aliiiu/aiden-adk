@@ -4,21 +4,18 @@ import { getAgentRunner } from "./agent-singleton.js";
 const MESSAGE_FOOTER = '\n\n🧠 Powered by <a href="https://aiden.id">AIDEN</a>';
 const MAX_MESSAGE_LENGTH = 4000;
 
-export async function processQuery(
-	ctx: Context,
-	query: string,
-	context: string | null = null,
-): Promise<void> {
+export async function processQuery(ctx: Context, query: string): Promise<void> {
 	try {
 		await ctx.sendChatAction("typing");
 
 		const runner = await getAgentRunner();
 
-		const fullPrompt = context
-			? `Context: "${context}"\n\nQuestion: ${query}`
-			: query;
+		const response = await runner.ask(query);
 
-		const response = await runner.ask(fullPrompt);
+		const languageDetectorResponse = response.find(
+			(r) => r.agent === "language_detector",
+		);
+		console.log("🌐 Detected language:", languageDetectorResponse?.response);
 
 		const workflowAgentResponse = response.find(
 			(r) => r.agent === "workflow_agent",
