@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import { Telegraf } from "telegraf";
+import type { Update } from "telegraf/types";
 import { env } from "../../env.js";
 import { getAgentRunner } from "../agent-singleton.js";
 import { registerCommands } from "../commands.js";
@@ -24,7 +25,7 @@ export async function startWebhook(): Promise<void> {
 	}));
 
 	app.post("/telegram/webhook", async (request, reply) => {
-		await bot.handleUpdate(request.body as any);
+		await bot.handleUpdate(request.body as Update);
 		return reply.send({ ok: true });
 	});
 
