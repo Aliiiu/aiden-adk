@@ -19,6 +19,7 @@ export const envSchema = z.object({
 	TELEGRAM_BOT_TOKEN: z.string().optional(),
 	TELEGRAM_MODE: z.enum(["polling", "webhook"]).default("polling"),
 	TELEGRAM_WEBHOOK_PORT: z.coerce.number().default(8080),
+	DATABASE_URL: z.string().optional(),
 });
 
 /**
