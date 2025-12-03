@@ -1,7 +1,7 @@
 import { Telegraf } from "telegraf";
 import { env } from "../../env.js";
 import { getAgentRunner } from "../agent-singleton.js";
-import { registerCommands } from "../commands.js";
+import { registerCommands } from "../commands/index.js";
 import { registerMessageHandlers } from "../messages.js";
 
 export async function startPolling(): Promise<void> {

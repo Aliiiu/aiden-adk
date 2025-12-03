@@ -3,7 +3,7 @@ import { Telegraf } from "telegraf";
 import type { Update } from "telegraf/types";
 import { env } from "../../env.js";
 import { getAgentRunner } from "../agent-singleton.js";
-import { registerCommands } from "../commands.js";
+import { registerCommands } from "../commands/index.js";
 import { registerMessageHandlers } from "../messages.js";
 
 export async function startWebhook(): Promise<void> {
