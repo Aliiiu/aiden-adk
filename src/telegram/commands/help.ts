@@ -8,7 +8,6 @@ const buildHelpMessage = (ctx: Context): string => {
 };
 
 async function replyWithHelp(ctx: Context): Promise<void> {
-	console.log({ ctx: ctx.chat });
 	const helpMessage = buildHelpMessage(ctx);
 	await ctx.reply(helpMessage, { parse_mode: "HTML" });
 }
