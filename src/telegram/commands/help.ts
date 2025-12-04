@@ -2,12 +2,13 @@ import type { Context } from "telegraf";
 import { getHelpMessage } from "./utils.js";
 
 const buildHelpMessage = (ctx: Context): string => {
-	const isGroup = ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
+	const isPrivate = ctx.chat?.type === "private";
 	const botUsername = ctx.botInfo.username;
-	return getHelpMessage(isGroup, botUsername);
+	return getHelpMessage(isPrivate, botUsername);
 };
 
 async function replyWithHelp(ctx: Context): Promise<void> {
+	console.log({ ctx: ctx.chat });
 	const helpMessage = buildHelpMessage(ctx);
 	await ctx.reply(helpMessage, { parse_mode: "HTML" });
 }

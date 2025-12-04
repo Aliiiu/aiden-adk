@@ -61,9 +61,8 @@ export async function handlePrice(ctx: Context): Promise<void> {
 	);
 
 	if (!givenTicker && !id) {
-		const isGroup =
-			ctx.chat?.type === "group" || ctx.chat?.type === "supergroup";
-		const prefix = isGroup ? `@${ctx.botInfo.username} ` : "";
+		const isPrivate = ctx.chat?.type === "private";
+		const prefix = isPrivate ? "" : `@${ctx.botInfo.username} `;
 
 		await ctx.reply(
 			`No token has been set yet.\n\nTo track a token for price monitoring, use:\n${prefix}/link https://www.coingecko.com/en/coins/bitcoin\n${prefix}/link https://iq.wiki/wiki/ethereum\n\nThen you can use ${prefix}/price without arguments.\n\nOr use: ${prefix}/price BTC`,

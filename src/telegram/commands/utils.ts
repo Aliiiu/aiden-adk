@@ -6,23 +6,67 @@ export interface TokenLink {
 	url: string[];
 }
 
-export const getHelpMessage = (isGroup: boolean, botUsername?: string) => {
-	const prefix = isGroup ? `@${botUsername} ` : "";
-	return dedent`<b>AIDEN - AI Assistant for Crypto & Blockchain</b>
+export const getHelpMessage = (isPrivate: boolean, botUsername?: string) => {
+	if (isPrivate) {
+		return dedent`<b>Welcome to AIDEN!</b> 🤖✨
 
-	<b>Commands:</b>
-	${prefix}/start - Show this help message
-	${prefix}/help - Show this help message
-	${prefix}/auth [api_key] - Set your API key (optional)
-	${prefix}/auth - Check current API key
-	${prefix}/price [ticker] - Get crypto price
-	${prefix}/summary - Summarize conversation
-	${prefix}/link [url] - Track token (CoinGecko/IQ.Wiki)
-	${prefix}/unlink [source] - Remove tracked token
-	${prefix}/list - Show tracked tokens
+	To get started, here's a quick guide on how you can interact with me:
 
-	<b>Usage:</b>
-	${isGroup ? `Mention me with @${botUsername} or reply to my messages to ask questions.` : "Just send me a message to ask anything about crypto, blockchain, or DeFi!"}`;
+	<b>1. Asking Questions & Making Queries</b> ❓
+	    - You can ask me questions directly like <code>What is the price of IQ?</code>, <code>Who is the founder of Bitcoin?</code> etc.
+
+	<b>2. Authentication</b> 🔐
+	    - Optionally, you can provide an AIDEN API key to get personalized chat from your custom knowledge base.
+	    - To authenticate, use the command <code>/auth YOUR_API_KEY</code>
+	    - To get your API key, visit https://aiden.id, login > Click on your profile picture > Click on "Api Keys" section > Click on "Create New API Key" button > Copy the API key from there
+	    - If you want to know which API key you have, use the command <code>/auth</code> without any arguments.
+
+	<b>3. Setting a Token</b> 🪙
+	    - To set a token for tracking price and market data, use the command <code>/link [URL]</code>.
+	    - Examples:
+	        - <code>/link https://iq.wiki/wiki/bitcoin</code>
+	        - <code>/link https://www.coingecko.com/en/coins/bitcoin</code>
+	    - This command allows you to monitor specific token data such as current price, market cap, and supply details.
+	    - To remove a linked token, use the command <code>/unlink</code>.
+	    - Example:
+	        - <code>/unlink coingecko</code> — This removes the specific link to the token data.
+
+	<b>4. Checking Token Prices</b> 📈
+	    - Once a token is set, use <code>/price</code> to get the latest market data.
+	    - You can also check the price of a specific token by using the ticker command, e.g., <code>/price btc</code> to get data on Bitcoin.
+	    - This will display information like current price, price change, market cap, and supply metrics.
+
+	<b>5. Getting a Summary of Messages</b> 📝
+	    - Use the command <code>/summary</code> to get a summary of messages from the last 24 hours.`;
+	}
+	return dedent`<b>Welcome to AIDEN!</b> 🤖✨
+
+		To get started, here's a quick guide on how you can interact with me:
+
+		<b>1. Asking Questions & Making Queries</b> ❓
+		    - You can ask me questions by tagging me with @${botUsername}
+		    - For instance, <code>@${botUsername} what is the price of IQ?</code>, <code>@${botUsername} who is the founder of Bitcoin?</code>
+
+		<b>2. Authentication</b> 🔐 (Admins Only)
+		    - Optionally, if you are this group's admin, you can provide an AIDEN API key for personalized chat.
+		    - To authenticate, use the command <code>@${botUsername} /auth YOUR_API_KEY</code>
+		    - If you want to know which API key you have, use the command <code>@${botUsername} /auth</code> without any arguments.
+
+		<b>3. Setting a Token</b> 🪙 (Admins Only)
+		    - Command: <code>@${botUsername} /link [URL]</code>. Sets the token for tracking.
+		    - Examples:
+		        - <code>@${botUsername} /link https://iq.wiki/wiki/ethereum</code> (IQ.Wiki)
+		        - <code>@${botUsername} /link https://www.coingecko.com/en/coins/ethereum</code> (CoinGecko)
+		    - To remove the token, use the command <code>/unlink</code>.
+		    - Example:
+		        - <code>/unlink coingecko</code> — This command removes the specific link to the token data.
+
+		<b>4. Checking Token Prices</b> 📈
+		    - Use <code>@${botUsername} /price</code> to view the latest market data of the set token.
+		    - Use <code>@${botUsername} /price [token_ticker]</code> e.g <code>@${botUsername} /price btc</code>, to get data on Bitcoin.
+
+		<b>5. Getting a Summary of Messages</b> 📝
+		    - Use the command <code>/summary</code> to get a summary of messages from the last 24 hours.`;
 };
 
 export function shortenApiKey(key: string): string {
