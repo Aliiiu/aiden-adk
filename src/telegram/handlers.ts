@@ -20,10 +20,8 @@ export async function processQuery(ctx: Context, query: string): Promise<void> {
 			(r) => r.agent === "language_detector",
 		);
 		const detectedLanguage = languageDetectorResponse?.response || "English";
-		console.log("🌐 Detected language:", detectedLanguage);
 
 		const languageCode = mapLanguageToCode(String(detectedLanguage));
-		console.log("🔤 Language code:", languageCode);
 
 		const workflowAgentResponse = response.find(
 			(r) => r.agent === "workflow_agent",
@@ -42,17 +40,7 @@ export async function processQuery(ctx: Context, query: string): Promise<void> {
 					const platformChannelId = String(ctx.chat.id);
 					const userAddress = `telegram_${ctx.from.id}`;
 
-					console.log("[handleMessage] platformChannelId:", platformChannelId);
-					console.log("[handleMessage] ctx.chat.id:", ctx.chat.id);
-					console.log("[handleMessage] ctx.from.id:", ctx.from.id);
-
 					const bot = await telegramDb.getOrCreateBot(platformChannelId);
-					console.log("[handleMessage] Bot retrieved:", {
-						botId: bot.id,
-						platformChannelId: bot.platformChannelId,
-						teamId: bot.teamId,
-						ownerApiKey: bot.ownerApiKey ? "SET" : "NOT SET",
-					});
 
 					await telegramDb.createMessage({
 						chatId: null,
@@ -70,7 +58,6 @@ export async function processQuery(ctx: Context, query: string): Promise<void> {
 						},
 						answerSources: [],
 					});
-					console.log("✅ Message saved to database");
 				} catch (dbError) {
 					console.error("❌ Database error:", dbError);
 				}

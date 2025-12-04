@@ -40,16 +40,8 @@ const compactFormatter = new Intl.NumberFormat("en-US", {
 });
 
 const TICKER_TO_ID_MAP: Record<string, string> = {
-	btc: "bitcoin",
-	eth: "ethereum",
-	sol: "solana",
-	bnb: "binancecoin",
-	ada: "cardano",
-	xrp: "ripple",
-	doge: "dogecoin",
-	matic: "matic-network",
-	dot: "polkadot",
-	avax: "avalanche-2",
+	iq: "everipedia",
+	frax: "frax-share",
 };
 
 export async function handlePrice(ctx: Context): Promise<void> {
@@ -82,23 +74,14 @@ export async function handlePrice(ctx: Context): Promise<void> {
 	const priceData = await fetchAndFormatTokenData(givenTicker, id);
 	const duration = Date.now() - startTime;
 
-	console.log("Database URL:", env.DATABASE_URL);
 	if (env.DATABASE_URL) {
 		try {
 			const platformChannelId = String(ctx.chat?.id);
-			console.log({ platformChannelId });
 			const bot = await telegramDb.getOrCreateBot(platformChannelId);
-			console.log({ bot });
 
 			const userAddress = `telegram_${ctx.from?.id}`;
 
 			if (bot.teamId) {
-				console.log("[price] Persisting message", {
-					botId: bot.id,
-					teamId: bot.teamId,
-					userAddress,
-				});
-
 				await telegramDb.createMessage({
 					chatId: null,
 					botId: bot.id,
@@ -123,11 +106,6 @@ export async function handlePrice(ctx: Context): Promise<void> {
 								},
 							]
 						: [],
-				});
-
-				console.log("[price] Message persisted", {
-					botId: bot.id,
-					durationMs: duration,
 				});
 			}
 		} catch (error) {
@@ -165,6 +143,7 @@ async function getTokenDetails(
 		}
 
 		const links = (await telegramDb.getTeamLinks(bot.teamId)) as TokenLink[];
+
 		const trackedToken = getPreferredToken(links);
 
 		if (!trackedToken) {
@@ -173,7 +152,8 @@ async function getTokenDetails(
 
 		const tokenName = extractTokenName(trackedToken.url[0]);
 		return { id: tokenName, tokenName };
-	} catch {
+	} catch (error) {
+		console.error("[getTokenDetails] Error:", error);
 		return { id: null, tokenName: null };
 	}
 }
@@ -254,9 +234,41 @@ async function fetchAndFormatTokenData(
 			throw new Error(`API request failed: ${response.statusText}`);
 		}
 
-		const data = coingeckoResponseSchema.parse(await response.json());
+		const rawData = await response.json();
+
+		const data = coingeckoResponseSchema.parse(rawData);
 
 		if (!data || data.length === 0) {
+			// If we used ids parameter and got no results, retry with symbols parameter
+			if (!useTickerParam) {
+				const retrySearchParams = new URLSearchParams({
+					vs_currency: "usd",
+					symbols: identifier,
+					price_change_percentage: "1h,24h,7d",
+				});
+
+				const retryCoingeckoApiUrl = `https://pro-api.coingecko.com/api/v3/coins/markets?${retrySearchParams.toString()}`;
+				const retryGatewayUrl = new URL(env.IQ_GATEWAY_URL);
+				retryGatewayUrl.searchParams.append("url", retryCoingeckoApiUrl);
+				retryGatewayUrl.searchParams.append("cacheDuration", "60");
+
+				const retryResponse = await fetch(retryGatewayUrl.toString(), {
+					headers: { "x-api-key": env.IQ_GATEWAY_KEY },
+				});
+
+				if (retryResponse.ok) {
+					const retryData = coingeckoResponseSchema.parse(
+						await retryResponse.json(),
+					);
+					if (retryData && retryData.length > 0) {
+						return formatApiResponse(retryData[0]);
+					}
+				}
+			}
+
+			if (!givenTicker) {
+				return "🔍 Unable to fetch price data from the linked token.\n\n💡 Try using the ticker symbol directly instead:\nExample: /price XRP or /price BTC\n\nOr update your link with /link command.";
+			}
 			return "🔍 Token not found!\n\n❓ The token identifier you entered doesn't exist. Please check the spelling and try again.\n\nExample: /price BTC or /price ETH";
 		}
 
