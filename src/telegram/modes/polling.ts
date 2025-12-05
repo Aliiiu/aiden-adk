@@ -1,23 +1,6 @@
-import { Telegraf } from "telegraf";
-import { env } from "../../env.js";
-import { registerCommands } from "../commands/index.js";
-import { registerMessageHandlers } from "../messages.js";
-import { getAgentRunner } from "../telegram-agent-runner.js";
+import type { Telegraf } from "telegraf";
 
-export async function startPolling(): Promise<void> {
-	if (!env.TELEGRAM_BOT_TOKEN) {
-		throw new Error("TELEGRAM_BOT_TOKEN is required");
-	}
-
-	const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
-
-	console.log("📝 Registering commands...");
-	registerCommands(bot);
-	console.log("📝 Registering message handlers...");
-	registerMessageHandlers(bot);
-
-	await getAgentRunner();
-
+export async function startPolling(bot: Telegraf): Promise<void> {
 	console.log("🚀 Launching bot...");
 	await bot.launch();
 	console.log("🚀 Telegram bot started in POLLING mode");
