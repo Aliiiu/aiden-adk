@@ -18,8 +18,9 @@ export const envSchema = z.object({
 	LANGFUSE_BASEURL: z.string().optional(),
 	TELEGRAM_BOT_TOKEN: z.string().optional(),
 	TELEGRAM_MODE: z.enum(["polling", "webhook"]).default("polling"),
-	TELEGRAM_WEBHOOK_PORT: z.coerce.number().default(8080),
 	DATABASE_URL: z.string().optional(),
+	API_ENABLED: z.coerce.boolean().default(false),
+	API_PORT: z.coerce.number().default(3000),
 });
 
 /**
