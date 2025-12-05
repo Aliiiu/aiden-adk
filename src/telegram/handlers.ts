@@ -1,7 +1,7 @@
 import type { Context } from "telegraf";
 import { env } from "../env.js";
-import { getAgentRunner } from "./agent-singleton.js";
 import { telegramDb } from "./db-service.js";
+import { getAgentRunner } from "./telegram-agent-runner.js";
 import { mapLanguageToCode } from "./utils/language-mapper.js";
 
 const MESSAGE_FOOTER = '\n\n🧠 Powered by <a href="https://aiden.id">AIDEN</a>';

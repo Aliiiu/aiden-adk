@@ -2,9 +2,9 @@ import Fastify from "fastify";
 import { Telegraf } from "telegraf";
 import type { Update } from "telegraf/types";
 import { env } from "../../env.js";
-import { getAgentRunner } from "../agent-singleton.js";
 import { registerCommands } from "../commands/index.js";
 import { registerMessageHandlers } from "../messages.js";
+import { getAgentRunner } from "../telegram-agent-runner.js";
 
 export async function startWebhook(): Promise<void> {
 	if (!env.TELEGRAM_BOT_TOKEN) {
