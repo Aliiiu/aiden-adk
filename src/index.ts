@@ -1,7 +1,12 @@
-import { initializeTelemetry, shutdownTelemetry } from "@iqai/adk";
+import { initializeTelemetry } from "@iqai/adk";
 import { config } from "dotenv";
-import { getRootAgent } from "./agents/agent.js";
+import { Telegraf } from "telegraf";
+import { startApiServer } from "./api/server.js";
 import { env } from "./env.js";
+import { registerCommands } from "./telegram/commands/index.js";
+import { registerMessageHandlers } from "./telegram/messages.js";
+import { startPolling } from "./telegram/modes/polling.js";
+import { getAgentRunner } from "./telegram/telegram-agent-runner.js";
 
 config();
 
@@ -29,29 +34,67 @@ function initializeLangfuse(): void {
 	});
 }
 
+async function setupTelegramBot(): Promise<Telegraf | null> {
+	if (!env.TELEGRAM_BOT_TOKEN) {
+		return null;
+	}
+
+	const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
+	registerCommands(bot);
+	registerMessageHandlers(bot);
+	await getAgentRunner();
+
+	return bot;
+}
+
 async function main() {
-	// Initialize Langfuse telemetry
 	initializeLangfuse();
 
-	try {
-		console.log("🚀 Starting AIDEN...\n");
+	console.log("🚀 Starting AIDEN...\n");
 
-		const query = "What is the price of bitcoin?";
-		console.log(`💬 Query: ${query}`);
+	const telegramBot = await setupTelegramBot();
 
-		const { runner } = await getRootAgent();
-		const response = await runner.ask(query);
-
-		const workflowAgentResponse = response.find(
-			(r) => r.agent === "workflow_agent",
-		)?.response;
-
-		console.log(`🤖 AIDEN:`, workflowAgentResponse);
-	} catch (error) {
-		console.error("❌ Error running AIDEN:", error);
+	if (!telegramBot && !env.API_ENABLED) {
+		console.error(
+			"❌ No services enabled. Set TELEGRAM_BOT_TOKEN or API_ENABLED=true",
+		);
 		process.exit(1);
-	} finally {
-		shutdownTelemetry();
+	}
+
+	const promises: Promise<void>[] = [];
+
+	// If Telegram is in polling mode, start it separately
+	if (telegramBot && env.TELEGRAM_MODE === "polling") {
+		console.log("📱 Starting Telegram bot in POLLING mode...");
+		promises.push(startPolling(telegramBot));
+	}
+
+	// Start API server if enabled OR if Telegram is in webhook mode
+	if (env.API_ENABLED || (telegramBot && env.TELEGRAM_MODE === "webhook")) {
+		// Only pass telegramBot if in webhook mode
+		const botForWebhook =
+			telegramBot && env.TELEGRAM_MODE === "webhook" ? telegramBot : undefined;
+
+		if (botForWebhook) {
+			console.log("📱 Starting Telegram bot in WEBHOOK mode...");
+		}
+
+		if (env.API_ENABLED) {
+			console.log("🌐 Starting API server...");
+		}
+
+		promises.push(
+			startApiServer({
+				telegramBot: botForWebhook,
+			}),
+		);
+	}
+
+	try {
+		await Promise.all(promises);
+	} catch (error) {
+		console.error("❌ Error starting services:", error);
+		process.exit(1);
 	}
 }
 
