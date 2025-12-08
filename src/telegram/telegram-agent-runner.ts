@@ -1,8 +1,9 @@
+import { randomUUID } from "node:crypto";
 import { AgentBuilder } from "@iqai/adk";
-import { randomUUID } from "crypto";
 import { getLanguageDetectorAgent } from "../agents/sub-agents/language-detector-agent/agent.js";
 import { getWorkflowAgent } from "../agents/sub-agents/workflow-agent/agent.js";
 
+// TODO: Investigate how we can make this into one agent instead
 type AgentRunner = Awaited<ReturnType<typeof createTelegramAgent>>["runner"];
 
 async function createTelegramAgent() {

@@ -1,5 +1,5 @@
 import { Telegraf } from "telegraf";
-import { env } from "../../env.js";
+import { env } from "../../env";
 import { registerCommands } from "../commands/index.js";
 import { registerMessageHandlers } from "../messages.js";
 import { getAgentRunner } from "../telegram-agent-runner.js";
@@ -17,6 +17,22 @@ export async function setupTelegramWebhook(): Promise<Telegraf> {
 	await getAgentRunner();
 
 	console.log("📱 Telegram webhook bot initialized");
-
 	return bot;
+}
+
+export async function startWebhook(bot: Telegraf): Promise<void> {
+	if (!env.TELEGRAM_WEBHOOK_URL) {
+		throw new Error("TELEGRAM_WEBHOOK_URL is required for webhook mode");
+	}
+
+	console.log("🌐 Starting webhook...");
+
+	await bot.launch({
+		webhook: {
+			domain: env.TELEGRAM_WEBHOOK_URL,
+			port: env.TELEGRAM_PORT || 3000,
+		},
+	});
+
+	console.log("🌐 Telegram bot started in WEBHOOK mode");
 }

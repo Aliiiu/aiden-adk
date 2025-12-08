@@ -21,6 +21,8 @@ export const envSchema = z.object({
 	DATABASE_URL: z.string().optional(),
 	API_ENABLED: z.coerce.boolean().default(false),
 	API_PORT: z.coerce.number().default(3000),
+	TELEGRAM_WEBHOOK_URL: z.string().optional(),
+	TELEGRAM_PORT: z.number().optional(),
 });
 
 /**

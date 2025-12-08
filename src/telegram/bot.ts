@@ -1,16 +1,19 @@
 import { env } from "../env.js";
 import { startPolling } from "./modes/polling.js";
-import { startWebhook } from "./modes/webhook.js";
+import { setupTelegramWebhook, startWebhook } from "./modes/webhook";
 
+// TODO: Fix this
 async function main(): Promise<void> {
 	const mode = env.TELEGRAM_MODE;
+
+	const bot = await setupTelegramWebhook();
 
 	console.log(`Starting Telegram bot in ${mode.toUpperCase()} mode...`);
 
 	if (mode === "webhook") {
-		await startWebhook();
+		await startWebhook(bot);
 	} else {
-		await startPolling();
+		await startPolling(bot);
 	}
 }
 
