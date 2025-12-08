@@ -31,22 +31,20 @@ export async function queryHandler(
 	reply: FastifyReply,
 ): Promise<QueryResponse> {
 	const startTime = Date.now();
+	const { query, userId, metadata, sessionId } = request.body;
+
+	if (!query || typeof query !== "string") {
+		return reply.code(400).send({
+			success: false,
+			error: {
+				code: "INVALID_QUERY",
+				message: "Query is required and must be a string",
+			},
+		});
+	}
 
 	try {
-		const { query, userId, metadata, sessionId } = request.body;
-
-		if (!query || typeof query !== "string") {
-			return reply.code(400).send({
-				success: false,
-				error: {
-					code: "INVALID_QUERY",
-					message: "Query is required and must be a string",
-				},
-			});
-		}
-
 		const runner = await getApiAgentRunner();
-
 		const response = await runner.ask(query);
 
 		const languageDetectorResponse = response.find(
@@ -77,31 +75,47 @@ export async function queryHandler(
 		const duration = Date.now() - startTime;
 
 		let messageId: number | undefined;
-		if (env.DATABASE_URL) {
-			try {
-				const userAddress = userId ? `api_${userId}` : "api_anonymous";
 
-				const bot = await apiDb.getOrCreateBot("api_endpoint", "http");
+		if (!env.DATABASE_URL) {
+			return reply.code(500).send({
+				success: false,
+				error: {
+					code: "DB_NOT_CONFIGURED",
+					message: "Database is not configured on the server",
+				},
+			});
+		}
 
-				const message = await apiDb.createMessage({
-					chatId: sessionId || null,
-					botId: bot.id,
-					userAddress,
-					query,
-					answer,
-					language: languageCode,
-					duration,
-					metadata: {
-						source: "http-api",
-						...metadata,
-					},
-					answerSources: [],
-				});
+		try {
+			const userAddress = userId ? `api_${userId}` : "api_anonymous";
+			const bot = await apiDb.getOrCreateBot("api_endpoint", "http");
 
-				messageId = message.id;
-			} catch (dbError) {
-				console.error("❌ Database error:", dbError);
-			}
+			const message = await apiDb.createMessage({
+				chatId: sessionId || null,
+				botId: bot.id,
+				userAddress,
+				query,
+				answer,
+				language: languageCode,
+				duration,
+				metadata: {
+					source: "http-api",
+					...metadata,
+				},
+				answerSources: [],
+			});
+
+			messageId = message.id;
+		} catch (dbError) {
+			console.error("❌ Database error:", dbError);
+
+			return reply.code(500).send({
+				success: false,
+				error: {
+					code: "DATABASE_ERROR",
+					message: "Failed to store the message in the database",
+				},
+			});
 		}
 
 		return reply.code(200).send({
