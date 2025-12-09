@@ -1,7 +1,8 @@
+import { randomBytes } from "node:crypto";
 import { prisma } from "../src/lib/db";
 
 async function createTeam() {
-const apiKey = `iq_${randomBytes(16).toString("hex")}`;
+	const apiKey = `iq_${randomBytes(16).toString("hex")}`;
 
 	const team = await prisma.team.create({
 		data: {
