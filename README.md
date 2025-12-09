@@ -67,8 +67,8 @@ PostgreSQL >= 14.0
 1. **Clone the repository**
 
 ```bash
-git clone <repository-url>
-cd aiden-adk
+git clone https://github.com/IQAIcom/aiden
+cd aiden
 pnpm install
 ```
 
@@ -197,13 +197,13 @@ X-API-Key: your-api-key
 
 ```json
 {
-	"success": true,
-	"data": {
-		"answer": "The current price of Bitcoin is $43,250 USD...",
-		"detectedLanguage": "English",
-		"duration": 1250,
-		"messageId": 12345
-	}
+ "success": true,
+ "data": {
+  "answer": "The current price of Bitcoin is $43,250 USD...",
+  "detectedLanguage": "English",
+  "duration": 1250,
+  "messageId": 12345
+ }
 }
 ```
 
