@@ -195,11 +195,11 @@ export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
 		iqaiModule,
 		etherscanModule,
 	] = await Promise.all([
-		import("../../mcp-servers/coingecko-mcp/index.js"),
-		import("../../mcp-servers/debank-mcp/wrappers/index.js"),
-		import("../../mcp-servers/defillama-mcp/wrappers/index.js"),
-		import("../../mcp-servers/iqai/wrappers/index.js"),
-		import("../../mcp-servers/etherscan-mcp/index.js"),
+		import("../../mcp-servers/coingecko-mcp/index"),
+		import("../../mcp-servers/debank-mcp/wrappers/index"),
+		import("../../mcp-servers/defillama-mcp/wrappers/index"),
+		import("../../mcp-servers/iqai/wrappers/index"),
+		import("../../mcp-servers/etherscan-mcp/index"),
 	]);
 
 	return createCodeExecutionTool({
