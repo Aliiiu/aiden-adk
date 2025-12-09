@@ -2,7 +2,6 @@ import { env } from "../env";
 import { startPolling } from "./modes/polling";
 import { setupTelegramWebhook, startWebhook } from "./modes/webhook";
 
-// TODO: Fix this
 async function main(): Promise<void> {
 	const mode = env.TELEGRAM_MODE;
 
