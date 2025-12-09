@@ -1,4 +1,5 @@
 import type { Context, Telegraf } from "telegraf";
+import { handleAi } from "./ai";
 import { handleAuth } from "./auth";
 import { handleHelp, handleStart } from "./help";
 import { handleLink, handleList, handleUnlink } from "./links";
@@ -14,4 +15,5 @@ export function registerCommands(bot: Telegraf<Context>): void {
 	bot.command("list", handleList);
 	bot.command("price", handlePrice);
 	bot.command("summary", handleSummary);
+	bot.command("ai", handleAi);
 }

@@ -4,7 +4,8 @@ import { telegramDb } from "./db-service";
 import { getAgentRunner } from "./telegram-agent-runner";
 import { mapLanguageToCode } from "./utils/language-mapper";
 
-const MESSAGE_FOOTER = '\n\n🧠 Powered by <a href="https://aiden.id">AIDEN</a>';
+export const MESSAGE_FOOTER =
+	'\n\n🧠 Powered by <a href="https://aiden.id">AIDEN</a>';
 const MAX_MESSAGE_LENGTH = 4000;
 
 export async function processQuery(ctx: Context, query: string): Promise<void> {
