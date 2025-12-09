@@ -1,4 +1,4 @@
-import { initializeTelemetry } from "@iqai/adk";
+import { initializeTelemetry, shutdownTelemetry } from "@iqai/adk";
 import { config } from "dotenv";
 import { Telegraf } from "telegraf";
 import { startApiServer } from "./api/server";
@@ -95,6 +95,8 @@ async function main() {
 	} catch (error) {
 		console.error("❌ Error starting services:", error);
 		process.exit(1);
+	} finally {
+		shutdownTelemetry();
 	}
 }
 
