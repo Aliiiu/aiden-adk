@@ -1,7 +1,7 @@
 import { prisma } from "../src/lib/db";
 
 async function createTeam() {
-	const apiKey = `iq_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+const apiKey = `iq_${randomBytes(16).toString("hex")}`;
 
 	const team = await prisma.team.create({
 		data: {
