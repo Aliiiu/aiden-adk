@@ -26,10 +26,7 @@ export interface CreateMessageParams {
 }
 
 export class TelegramDbService {
-	async getOrCreateBot(
-		platformChannelId: string,
-		platform: string = "telegram",
-	) {
+	async getOrCreateBot(platformChannelId: string, platform = "telegram") {
 		return await prisma.bot.upsert({
 			where: { platformChannelId },
 			update: { updatedAt: new Date() },
@@ -98,7 +95,7 @@ export class TelegramDbService {
 		});
 	}
 
-	async getChatHistory(chatId: string, limit: number = 10) {
+	async getChatHistory(chatId: string, limit = 10) {
 		return await prisma.message.findMany({
 			where: { chatId },
 			orderBy: { createdAt: "desc" },

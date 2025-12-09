@@ -10,7 +10,7 @@ const BASE_URL = "https://api.etherscan.io/v2/api";
 export async function callEtherscanApi<T>(
 	params: Record<string, unknown>,
 	schema: ZodType<T>,
-	cacheDurationSeconds: number = 3600, // 1 hour default cache
+	cacheDurationSeconds = 3600, // 1 hour default cache
 ): Promise<T> {
 	const queryParams = {
 		...params,

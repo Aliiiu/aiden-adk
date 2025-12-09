@@ -40,11 +40,11 @@ export async function startApiServer(
 	await app.listen({ port, host: "0.0.0.0" });
 
 	console.log(`🚀 API server listening on port ${port}`);
-	console.log(`📡 Query endpoint: POST /api/query`);
-	console.log(`💚 Health check: GET /health`);
+	console.log("📡 Query endpoint: POST /api/query");
+	console.log("💚 Health check: GET /health");
 
 	if (options.telegramBot) {
-		console.log(`📱 Telegram webhook endpoint: POST /telegram/webhook`);
+		console.log("📱 Telegram webhook endpoint: POST /telegram/webhook");
 		console.log(
 			"\n💡 To complete Telegram setup, set your webhook URL using Telegram Bot API:",
 		);

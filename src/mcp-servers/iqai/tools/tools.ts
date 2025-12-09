@@ -46,7 +46,7 @@ export const getAllAgentsTool = createTool({
 
 			const pagination = response.pagination;
 			let result = `Total: ${pagination?.totalCount || response.agents.length} | Page: ${pagination?.currentPage || 1}/${pagination?.totalPages || 1}\n`;
-			result += `Explorer: https://app.iqai.com/\n\n`;
+			result += "Explorer: https://app.iqai.com/\n\n";
 
 			const headers = [
 				"#",
@@ -249,7 +249,7 @@ export const getAgentStatsTool = createTool({
 			let result = formatData(headers, rows);
 
 			if (response.performanceTimeline) {
-				result += `\n\nPerformance Timeline:`;
+				result += "\n\nPerformance Timeline:";
 				result += `\n7d: ${response.performanceTimeline["7d"]?.toFixed(2)}% | 30d: ${response.performanceTimeline["30d"]?.toFixed(2)}% | 1y: ${response.performanceTimeline["1y"]?.toFixed(2)}%`;
 			}
 
@@ -316,7 +316,7 @@ export const getHoldingsTool = createTool({
 
 			const headers = ["#", "agent", "amount", "priceUSD", "valueUSD"];
 			const rows = response.holdings.map((h, i) => {
-				const amt = parseFloat(h.tokenAmount);
+				const amt = Number.parseFloat(h.tokenAmount);
 				const val = amt * h.currentPriceInUsd;
 				return [
 					i + 1,
@@ -328,7 +328,8 @@ export const getHoldingsTool = createTool({
 			});
 
 			const totalValue = response.holdings.reduce(
-				(sum, h) => sum + parseFloat(h.tokenAmount) * h.currentPriceInUsd,
+				(sum, h) =>
+					sum + Number.parseFloat(h.tokenAmount) * h.currentPriceInUsd,
 				0,
 			);
 
