@@ -24,7 +24,7 @@ export async function handleAuth(ctx: Context): Promise<void> {
 		return;
 	}
 
-	const apiKey = messageText.split("/auth")[1]?.trim();
+	const apiKey = messageText.split("/auth")[1].trim();
 	const platformChannelId = String(ctx.chat?.id);
 
 	console.log("[auth] Command received");
