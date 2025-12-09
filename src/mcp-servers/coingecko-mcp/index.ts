@@ -1,189 +1,142 @@
-/**
- * CoinGecko MCP Server TypeScript Wrappers
- *
- * This module provides TypeScript wrappers for CoinGecko MCP tools
- * organized by category for filesystem-based discovery.
- *
- * Directory structure:
- * - markets/    - Market data, trending, search, global stats
- * - coins/      - Detailed coin information and prices
- * - categories/ - Coin categories and groupings
- * - utilities/  - Asset platforms, exchanges, new coins, docs search
- * - contracts/  - Contract addresses and token prices
- * - charts/     - Historical market data and OHLC
- * - nfts/       - NFT collection data
- * - exchanges/  - Exchange data and tickers
- * - onchain/    - Onchain/DEX data, pools, tokens
- */
-
-import type { GetRangeCoinsMarketChartInput } from "./charts/getRangeCoinsMarketChart";
-import type { GetRangeCoinsOhlcInput } from "./charts/getRangeCoinsOhlc";
-import type { GetRangeContractCoinsMarketChartInput } from "./charts/getRangeContractCoinsMarketChart";
-import type { GetCoinDetailsInput } from "./coins/getCoinDetails";
-import type { GetCoinsHistoryInput } from "./coins/getCoinsHistory";
-import type { GetCoinsContractInput } from "./contracts/getCoinsContract";
-import type { GetExchangesByIdInput } from "./exchanges/getExchangesById";
-import type { GetExchangesListInput } from "./exchanges/getExchangesList";
-import type { GetExchangesTickersInput } from "./exchanges/getExchangesTickers";
-import type { GetRangeExchangesVolumeChartInput } from "./exchanges/getRangeExchangesVolumeChart";
-import type { GetCoinsListInput } from "./markets/getCoinsList";
-import type { GetCoinsMarketsInput } from "./markets/getCoinsMarkets";
-import type { GetTopGainersLosersInput } from "./markets/getTopGainersLosers";
-import type { SearchInput } from "./markets/search";
-import type { GetNftsByIdInput } from "./nfts/getNftsById";
-import type { GetNftsListInput } from "./nfts/getNftsList";
-import type { GetNftsMarketChartInput } from "./nfts/getNftsMarketChart";
-import type { GetNftsMarketsInput } from "./nfts/getNftsMarkets";
-import type { GetSimplePriceInput } from "./prices/getSimplePrice";
-import type { GetSimpleTokenPriceInput } from "./prices/getSimpleTokenPrice";
-import type { GetAssetPlatformsInput } from "./utilities/getAssetPlatforms";
-import type { GetUtilitiesExchangesListInput } from "./utilities/getExchangesList";
+// Markets
 
 // Categories
-export { getCoinCategories } from "./categories/getCoinCategories";
+import { getCoinCategories } from "./categories/getCoinCategories";
 // Charts/OHLC
-export { getRangeCoinsMarketChart } from "./charts/getRangeCoinsMarketChart";
-export { getRangeCoinsOhlc } from "./charts/getRangeCoinsOhlc";
-export { getRangeContractCoinsMarketChart } from "./charts/getRangeContractCoinsMarketChart";
+import { getRangeCoinsMarketChart } from "./charts/getRangeCoinsMarketChart";
+import { getRangeCoinsOhlc } from "./charts/getRangeCoinsOhlc";
+import { getRangeContractCoinsMarketChart } from "./charts/getRangeContractCoinsMarketChart";
 // Coins
-export { getCoinDetails } from "./coins/getCoinDetails";
-export { getCoinsHistory } from "./coins/getCoinsHistory";
+import { getCoinDetails } from "./coins/getCoinDetails";
+import { getCoinsHistory } from "./coins/getCoinsHistory";
 // Contracts/Tokens
-export { getCoinsContract } from "./contracts/getCoinsContract";
-export { getSimpleSupportedVsCurrencies } from "./contracts/getSimpleSupportedVsCurrencies";
+import { getCoinsContract } from "./contracts/getCoinsContract";
+import { getSimpleSupportedVsCurrencies } from "./contracts/getSimpleSupportedVsCurrencies";
 // Exchanges
-export { getExchangesById } from "./exchanges/getExchangesById";
-export { getExchangesList as getExchangesListDetailed } from "./exchanges/getExchangesList";
-export { getExchangesTickers } from "./exchanges/getExchangesTickers";
-export { getRangeExchangesVolumeChart } from "./exchanges/getRangeExchangesVolumeChart";
-// Markets
-export { getCoinsList } from "./markets/getCoinsList";
-export { getCoinsMarkets } from "./markets/getCoinsMarkets";
-export { getGlobal } from "./markets/getGlobal";
-export { getTopGainersLosers } from "./markets/getTopGainersLosers";
-export { getTrendingSearch } from "./markets/getTrendingSearch";
-export { search } from "./markets/search";
+import { getExchangesById } from "./exchanges/getExchangesById";
+import { getExchangesList as getExchangesListDetailed } from "./exchanges/getExchangesList";
+import { getExchangesTickers } from "./exchanges/getExchangesTickers";
+import { getRangeExchangesVolumeChart } from "./exchanges/getRangeExchangesVolumeChart";
+import { getCoinsList } from "./markets/getCoinsList";
+import { getCoinsMarkets } from "./markets/getCoinsMarkets";
+import { getGlobal } from "./markets/getGlobal";
+import { getTopGainersLosers } from "./markets/getTopGainersLosers";
+import { getTrendingSearch } from "./markets/getTrendingSearch";
+import { search } from "./markets/search";
 // NFTs
-export { getNftsById } from "./nfts/getNftsById";
-export { getNftsList } from "./nfts/getNftsList";
-export { getNftsMarketChart } from "./nfts/getNftsMarketChart";
-export { getNftsMarkets } from "./nfts/getNftsMarkets";
-export { getAddressesNetworksSimpleOnchainTokenPrice } from "./onchain/getAddressesNetworksSimpleOnchainTokenPrice";
-export { getAddressesPoolsNetworksOnchainMulti } from "./onchain/getAddressesPoolsNetworksOnchainMulti";
-export { getAddressesTokensNetworksOnchainMulti } from "./onchain/getAddressesTokensNetworksOnchainMulti";
-export { getNetworkNetworksOnchainNewPools } from "./onchain/getNetworkNetworksOnchainNewPools";
-export { getNetworksOnchainDexes } from "./onchain/getNetworksOnchainDexes";
-export { getNetworksOnchainNewPools } from "./onchain/getNetworksOnchainNewPools";
-export { getOnchainCategories } from "./onchain/getOnchainCategories";
-// Onchain - Networks & General
-export { getOnchainNetworks } from "./onchain/getOnchainNetworks";
-export { getPoolsNetworksOnchainInfo } from "./onchain/getPoolsNetworksOnchainInfo";
-export { getPoolsNetworksOnchainTrades } from "./onchain/getPoolsNetworksOnchainTrades";
-export { getPoolsOnchainCategories } from "./onchain/getPoolsOnchainCategories";
-export { getPoolsOnchainMegafilter } from "./onchain/getPoolsOnchainMegafilter";
-// Onchain - Pools
-export { getPoolsOnchainTrendingSearch } from "./onchain/getPoolsOnchainTrendingSearch";
-export { getSearchOnchainPools } from "./onchain/getSearchOnchainPools";
-export { getTimeframePoolsNetworksOnchainOhlcv } from "./onchain/getTimeframePoolsNetworksOnchainOhlcv";
-export { getTimeframeTokensNetworksOnchainOhlcv } from "./onchain/getTimeframeTokensNetworksOnchainOhlcv";
-export { getTokensNetworksOnchainHoldersChart } from "./onchain/getTokensNetworksOnchainHoldersChart";
-// Onchain - Tokens
-export { getTokensNetworksOnchainInfo } from "./onchain/getTokensNetworksOnchainInfo";
-export { getTokensNetworksOnchainPools } from "./onchain/getTokensNetworksOnchainPools";
-export { getTokensNetworksOnchainTopHolders } from "./onchain/getTokensNetworksOnchainTopHolders";
-export { getTokensNetworksOnchainTrades } from "./onchain/getTokensNetworksOnchainTrades";
-export { getSimplePrice } from "./prices/getSimplePrice";
-export { getSimpleTokenPrice } from "./prices/getSimpleTokenPrice";
-// Re-export shared utilities for advanced usage
-export { executeTool, getToolset } from "./shared";
-// Utilities
-export { getAssetPlatforms } from "./utilities/getAssetPlatforms";
-export { getExchangesList } from "./utilities/getExchangesList";
-export { getNewCoinsList } from "./utilities/getNewCoinsList";
-export { searchDocs } from "./utilities/searchDocs";
+import { getNftsById } from "./nfts/getNftsById";
+import { getNftsList } from "./nfts/getNftsList";
+import { getNftsMarketChart } from "./nfts/getNftsMarketChart";
+import { getNftsMarkets } from "./nfts/getNftsMarkets";
 
-// Default export with all functions grouped
+// Onchain - General
+import { getAddressesNetworksSimpleOnchainTokenPrice } from "./onchain/getAddressesNetworksSimpleOnchainTokenPrice";
+import { getAddressesPoolsNetworksOnchainMulti } from "./onchain/getAddressesPoolsNetworksOnchainMulti";
+import { getAddressesTokensNetworksOnchainMulti } from "./onchain/getAddressesTokensNetworksOnchainMulti";
+import { getNetworkNetworksOnchainNewPools } from "./onchain/getNetworkNetworksOnchainNewPools";
+import { getNetworksOnchainDexes } from "./onchain/getNetworksOnchainDexes";
+import { getNetworksOnchainNewPools } from "./onchain/getNetworksOnchainNewPools";
+import { getOnchainCategories } from "./onchain/getOnchainCategories";
+
+// Onchain - Networks & General
+import { getOnchainNetworks } from "./onchain/getOnchainNetworks";
+import { getPoolsNetworksOnchainInfo } from "./onchain/getPoolsNetworksOnchainInfo";
+import { getPoolsNetworksOnchainTrades } from "./onchain/getPoolsNetworksOnchainTrades";
+import { getPoolsOnchainCategories } from "./onchain/getPoolsOnchainCategories";
+import { getPoolsOnchainMegafilter } from "./onchain/getPoolsOnchainMegafilter";
+
+// Onchain - Pools
+import { getPoolsOnchainTrendingSearch } from "./onchain/getPoolsOnchainTrendingSearch";
+import { getSearchOnchainPools } from "./onchain/getSearchOnchainPools";
+import { getTimeframePoolsNetworksOnchainOhlcv } from "./onchain/getTimeframePoolsNetworksOnchainOhlcv";
+import { getTimeframeTokensNetworksOnchainOhlcv } from "./onchain/getTimeframeTokensNetworksOnchainOhlcv";
+import { getTokensNetworksOnchainHoldersChart } from "./onchain/getTokensNetworksOnchainHoldersChart";
+
+// Onchain - Tokens
+import { getTokensNetworksOnchainInfo } from "./onchain/getTokensNetworksOnchainInfo";
+import { getTokensNetworksOnchainPools } from "./onchain/getTokensNetworksOnchainPools";
+import { getTokensNetworksOnchainTopHolders } from "./onchain/getTokensNetworksOnchainTopHolders";
+import { getTokensNetworksOnchainTrades } from "./onchain/getTokensNetworksOnchainTrades";
+
+import { getSimplePrice } from "./prices/getSimplePrice";
+import { getSimpleTokenPrice } from "./prices/getSimpleTokenPrice";
+// Shared
+import { executeTool, getToolset } from "./shared";
+// Utilities
+import { getAssetPlatforms } from "./utilities/getAssetPlatforms";
+import { getExchangesList as getUtilitiesExchangesList } from "./utilities/getExchangesList";
+import { getNewCoinsList } from "./utilities/getNewCoinsList";
+import { searchDocs } from "./utilities/searchDocs";
+
 export default {
 	// Markets
-	getCoinsMarkets: async (params: GetCoinsMarketsInput) =>
-		(await import("./markets/getCoinsMarkets")).getCoinsMarkets(params),
-	getTopGainersLosers: async (params: GetTopGainersLosersInput) =>
-		(await import("./markets/getTopGainersLosers")).getTopGainersLosers(params),
-	getTrendingSearch: async () =>
-		(await import("./markets/getTrendingSearch")).getTrendingSearch(),
-	search: async (params: SearchInput) =>
-		(await import("./markets/search")).search(params),
-	getGlobal: async () => (await import("./markets/getGlobal")).getGlobal(),
-	getCoinsList: async (params?: GetCoinsListInput) =>
-		(await import("./markets/getCoinsList")).getCoinsList(params),
+	getCoinsMarkets,
+	getTopGainersLosers,
+	getTrendingSearch,
+	search,
+	getGlobal,
+	getCoinsList,
 
 	// Coins
-	getCoinDetails: async (params: GetCoinDetailsInput) =>
-		(await import("./coins/getCoinDetails")).getCoinDetails(params),
-	getCoinsHistory: async (params: GetCoinsHistoryInput) =>
-		(await import("./coins/getCoinsHistory")).getCoinsHistory(params),
-	getSimpleTokenPrice: async (params: GetSimpleTokenPriceInput) =>
-		(await import("./prices/getSimpleTokenPrice")).getSimpleTokenPrice(params),
+	getCoinDetails,
+	getCoinsHistory,
+	getSimpleTokenPrice,
 
 	// Categories
-	getCoinCategories: async () =>
-		(await import("./categories/getCoinCategories")).getCoinCategories(),
+	getCoinCategories,
 
 	// Utilities
-	getAssetPlatforms: async (params?: GetAssetPlatformsInput) =>
-		(await import("./utilities/getAssetPlatforms")).getAssetPlatforms(params),
-	getExchangesList: async (params?: GetUtilitiesExchangesListInput) =>
-		(await import("./utilities/getExchangesList")).getExchangesList(params),
-	getNewCoinsList: async () =>
-		(await import("./utilities/getNewCoinsList")).getNewCoinsList(),
+	getAssetPlatforms,
+	getExchangesList: getUtilitiesExchangesList,
+	getNewCoinsList,
+	searchDocs,
 
 	// Contracts/Tokens
-	getCoinsContract: async (params: GetCoinsContractInput) =>
-		(await import("./contracts/getCoinsContract")).getCoinsContract(params),
-	getSimplePrice: async (params: GetSimplePriceInput) =>
-		(await import("./prices/getSimplePrice")).getSimplePrice(params),
-	getSimpleSupportedVsCurrencies: async () =>
-		(
-			await import("./contracts/getSimpleSupportedVsCurrencies")
-		).getSimpleSupportedVsCurrencies(),
+	getCoinsContract,
+	getSimplePrice,
+	getSimpleSupportedVsCurrencies,
 
 	// Charts/OHLC
-	getRangeCoinsMarketChart: async (params: GetRangeCoinsMarketChartInput) =>
-		(
-			await import("./charts/getRangeCoinsMarketChart")
-		).getRangeCoinsMarketChart(params),
-	getRangeCoinsOhlc: async (params: GetRangeCoinsOhlcInput) =>
-		(await import("./charts/getRangeCoinsOhlc")).getRangeCoinsOhlc(params),
-	getRangeContractCoinsMarketChart: async (
-		params: GetRangeContractCoinsMarketChartInput,
-	) =>
-		(
-			await import("./charts/getRangeContractCoinsMarketChart")
-		).getRangeContractCoinsMarketChart(params),
+	getRangeCoinsMarketChart,
+	getRangeCoinsOhlc,
+	getRangeContractCoinsMarketChart,
 
 	// NFTs
-	getNftsById: async (params: GetNftsByIdInput) =>
-		(await import("./nfts/getNftsById")).getNftsById(params),
-	getNftsList: async (params?: GetNftsListInput) =>
-		(await import("./nfts/getNftsList")).getNftsList(params),
-	getNftsMarketChart: async (params: GetNftsMarketChartInput) =>
-		(await import("./nfts/getNftsMarketChart")).getNftsMarketChart(params),
-	getNftsMarkets: async (params: GetNftsMarketsInput) =>
-		(await import("./nfts/getNftsMarkets")).getNftsMarkets(params),
+	getNftsById,
+	getNftsList,
+	getNftsMarketChart,
+	getNftsMarkets,
 
 	// Exchanges
-	getExchangesById: async (params: GetExchangesByIdInput) =>
-		(await import("./exchanges/getExchangesById")).getExchangesById(params),
-	getExchangesListDetailed: async (params?: GetExchangesListInput) =>
-		(await import("./exchanges/getExchangesList")).getExchangesList(params),
-	getExchangesTickers: async (params: GetExchangesTickersInput) =>
-		(await import("./exchanges/getExchangesTickers")).getExchangesTickers(
-			params,
-		),
-	getRangeExchangesVolumeChart: async (
-		params: GetRangeExchangesVolumeChartInput,
-	) =>
-		(
-			await import("./exchanges/getRangeExchangesVolumeChart")
-		).getRangeExchangesVolumeChart(params),
+	getExchangesById,
+	getExchangesListDetailed,
+	getExchangesTickers,
+	getRangeExchangesVolumeChart,
+
+	// Default export (Onchain section)
+	getAddressesNetworksSimpleOnchainTokenPrice,
+	getAddressesPoolsNetworksOnchainMulti,
+	getAddressesTokensNetworksOnchainMulti,
+	getNetworkNetworksOnchainNewPools,
+	getNetworksOnchainDexes,
+	getNetworksOnchainNewPools,
+	getOnchainCategories,
+	getOnchainNetworks,
+	getPoolsNetworksOnchainInfo,
+	getPoolsNetworksOnchainTrades,
+	getPoolsOnchainCategories,
+	getPoolsOnchainMegafilter,
+	getPoolsOnchainTrendingSearch,
+	getSearchOnchainPools,
+	getTimeframePoolsNetworksOnchainOhlcv,
+	getTimeframeTokensNetworksOnchainOhlcv,
+	getTokensNetworksOnchainHoldersChart,
+	getTokensNetworksOnchainInfo,
+	getTokensNetworksOnchainPools,
+	getTokensNetworksOnchainTopHolders,
+	getTokensNetworksOnchainTrades,
+
+	// Shared
+	executeTool,
+	getToolset,
 };

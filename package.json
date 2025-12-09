@@ -12,7 +12,9 @@
 		"lint": "lint-staged --allow-empty",
 		"format": "biome format . --write",
 		"lint:fix": "biome check . --apply",
-		"biome:fix": "pnpm biome check --write ."
+		"biome:fix": "pnpm biome check --write .",
+		"preinstall": "npx only-allow pnpm",
+		"postinstall": "prisma generate"
 	},
 	"keywords": [],
 	"author": "",
