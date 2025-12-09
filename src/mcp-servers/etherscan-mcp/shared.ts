@@ -1,6 +1,6 @@
 import axios from "axios";
 import { type ZodType, z } from "zod";
-import { env } from "../../env.js";
+import { env } from "../../env";
 
 const BASE_URL = "https://api.etherscan.io/v2/api";
 

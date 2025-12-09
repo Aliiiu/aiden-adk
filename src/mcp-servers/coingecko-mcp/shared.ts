@@ -1,5 +1,5 @@
 import { McpToolset } from "@iqai/adk";
-import { createChildLogger } from "../../lib/utils/index.js";
+import { createChildLogger } from "../../lib/utils/index";
 
 const logger = createChildLogger("CoinGecko MCP Shared");
 

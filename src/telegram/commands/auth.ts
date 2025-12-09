@@ -1,7 +1,7 @@
 import type { Context } from "telegraf";
-import { env } from "../../env.js";
-import { telegramDb } from "../db-service.js";
-import { getMessageText, shortenApiKey } from "./utils.js";
+import { env } from "../../env";
+import { telegramDb } from "../db-service";
+import { getMessageText, shortenApiKey } from "./utils";
 
 export async function handleAuth(ctx: Context): Promise<void> {
 	if (!env.DATABASE_URL) {

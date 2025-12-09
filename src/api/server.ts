@@ -1,9 +1,9 @@
 import Fastify from "fastify";
 import type { Telegraf } from "telegraf";
-import { env } from "../env.js";
-import { authMiddleware } from "./middleware/auth.js";
-import { queryHandler } from "./routes/query.js";
-import { createTelegramWebhookHandler } from "./routes/telegram-webhook.js";
+import { env } from "../env";
+import { authMiddleware } from "./middleware/auth";
+import { queryHandler } from "./routes/query";
+import { createTelegramWebhookHandler } from "./routes/telegram-webhook";
 
 interface ApiServerOptions {
 	telegramBot?: Telegraf;

@@ -7,7 +7,7 @@
 
 import * as ts from "typescript";
 import { VM } from "vm2";
-import { createChildLogger } from "../utils/index.js";
+import { createChildLogger } from "../utils/index";
 
 const logger = createChildLogger("Code Execution Sandbox");
 

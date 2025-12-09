@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetCoinsMarketsInputSchema = z.object({
 	vs_currency: z

@@ -1,12 +1,12 @@
 import type { InstructionProvider } from "@iqai/adk";
 import { LlmAgent } from "@iqai/adk";
 import endent from "endent";
-import { env } from "../../../env.js";
-import { openrouter } from "../../../lib/integrations/openrouter.js";
-import { getTelegramFormatInstruction } from "./format-instructions.js";
-import { getApiSearchAgent } from "./sub-agents/api-search-agent/agent.js";
-import { getDocumentSearchAgent } from "./sub-agents/doc-search-agent/agent.js";
-import { getInternetSearchAgent } from "./sub-agents/internet-search-agent/agent.js";
+import { env } from "../../../env";
+import { openrouter } from "../../../lib/integrations/openrouter";
+import { getTelegramFormatInstruction } from "./format-instructions";
+import { getApiSearchAgent } from "./sub-agents/api-search-agent/agent";
+import { getDocumentSearchAgent } from "./sub-agents/doc-search-agent/agent";
+import { getInternetSearchAgent } from "./sub-agents/internet-search-agent/agent";
 
 export const getWorkflowAgent = async () => {
 	const docSearchAgent = getDocumentSearchAgent();

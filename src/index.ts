@@ -1,12 +1,12 @@
 import { initializeTelemetry } from "@iqai/adk";
 import { config } from "dotenv";
 import { Telegraf } from "telegraf";
-import { startApiServer } from "./api/server.js";
-import { env } from "./env.js";
-import { registerCommands } from "./telegram/commands/index.js";
-import { registerMessageHandlers } from "./telegram/messages.js";
-import { startPolling } from "./telegram/modes/polling.js";
-import { getAgentRunner } from "./telegram/telegram-agent-runner.js";
+import { startApiServer } from "./api/server";
+import { env } from "./env";
+import { registerCommands } from "./telegram/commands/index";
+import { registerMessageHandlers } from "./telegram/messages";
+import { startPolling } from "./telegram/modes/polling";
+import { getAgentRunner } from "./telegram/telegram-agent-runner";
 
 config();
 

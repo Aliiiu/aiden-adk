@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeServiceMethod } from "../../shared.js";
+import { executeServiceMethod } from "../../shared";
 
 const StablecoinChainSchema = z.object({
 	chainName: z.string().describe("Chain name"),

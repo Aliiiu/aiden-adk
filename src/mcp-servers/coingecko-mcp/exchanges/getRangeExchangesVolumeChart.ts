@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetRangeExchangesVolumeChartInputSchema = z.object({
 	id: z.string().describe("Exchange ID"),

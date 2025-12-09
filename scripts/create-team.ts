@@ -1,4 +1,4 @@
-import { prisma } from "../src/lib/db.js";
+import { prisma } from "../src/lib/db";
 
 async function createTeam() {
 	const apiKey = `iq_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;

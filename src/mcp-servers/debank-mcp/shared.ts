@@ -2,15 +2,15 @@
  * Shared utilities for DeBank MCP wrappers
  */
 
-import { createChildLogger } from "../../lib/utils/index.js";
-// import { resolveEntities } from "./entity-resolver.js"; // Disabled - now handled explicitly by agent
+import { createChildLogger } from "../../lib/utils/index";
+// import { resolveEntities } from "./entity-resolver"; // Disabled - now handled explicitly by agent
 import {
 	chainService,
 	protocolService,
 	tokenService,
 	transactionService,
 	userService,
-} from "./services/index.js";
+} from "./services/index";
 
 const logger = createChildLogger("DeBank MCP Shared");
 

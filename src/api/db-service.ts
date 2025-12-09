@@ -1,3 +1,3 @@
-import { TelegramDbService } from "../telegram/db-service.js";
+import { TelegramDbService } from "../telegram/db-service";
 
 export const apiDb = new TelegramDbService();

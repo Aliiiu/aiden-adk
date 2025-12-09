@@ -1,8 +1,8 @@
 import { Telegraf } from "telegraf";
 import { env } from "../../env";
-import { registerCommands } from "../commands/index.js";
-import { registerMessageHandlers } from "../messages.js";
-import { getAgentRunner } from "../telegram-agent-runner.js";
+import { registerCommands } from "../commands/index";
+import { registerMessageHandlers } from "../messages";
+import { getAgentRunner } from "../telegram-agent-runner";
 
 export async function setupTelegramWebhook(): Promise<Telegraf> {
 	if (!env.TELEGRAM_BOT_TOKEN) {

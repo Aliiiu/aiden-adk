@@ -15,11 +15,11 @@
  *   1 - One or more functions missing params or examples
  */
 
-import type { FunctionMetadata } from "../src/lib/function-index/builder.js";
+import type { FunctionMetadata } from "../src/lib/function-index/builder";
 import {
 	buildFunctionIndex,
 	FALLBACK_PARAMETERS_TEXT,
-} from "../src/lib/function-index/builder.js";
+} from "../src/lib/function-index/builder";
 
 interface ModuleStats {
 	total: number;

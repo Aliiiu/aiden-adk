@@ -2,12 +2,12 @@ import { type BaseTool, createTool, type ToolContext } from "@iqai/adk";
 import dedent from "dedent";
 import type lunr from "lunr";
 import { z } from "zod";
-import { createMCPCodeExecutionTool } from "../../../../../lib/code-execution/index.js";
+import { createMCPCodeExecutionTool } from "../../../../../lib/code-execution/index";
 import {
 	buildFunctionIndex,
 	type FunctionMetadata,
 	searchFunctions,
-} from "../../../../../lib/function-index/index.js";
+} from "../../../../../lib/function-index/index";
 import { createChildLogger } from "../../../../../lib/utils/logger";
 
 const logger = createChildLogger("API Search Tools");

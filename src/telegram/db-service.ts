@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "../lib/db.js";
+import { prisma } from "../lib/db";
 
 export interface CreateChatParams {
 	userAddress: string;

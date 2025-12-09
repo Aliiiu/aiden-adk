@@ -1,5 +1,5 @@
 import z from "zod";
-import { callIqAiApi } from "../../../iqai/make-iq-ai-request.js";
+import { callIqAiApi } from "../../../iqai/make-iq-ai-request";
 
 export const GetAgentStatsInputSchema = z
 	.object({
@@ -102,7 +102,7 @@ export async function getAgentStats(
 ): Promise<GetAgentStatsResponse> {
 	const { address, ticker, extendedStats } =
 		GetAgentStatsInputSchema.parse(params);
-	const resolvedExtendedStats = extendedStats ?? (ticker ? false : true);
+	const resolvedExtendedStats = extendedStats ?? !ticker;
 
 	return callIqAiApi(
 		"/api/agents/stats",

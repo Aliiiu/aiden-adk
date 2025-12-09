@@ -1,9 +1,9 @@
 import endent from "endent";
-import { createChildLogger } from "../../lib/utils/index.js";
-import { chainIds } from "./enums/chains.js";
-import { createResolver } from "./resolvers/base-resolver.js";
-import { sanitizeChainId } from "./utils/sanitizers.js";
-import { needsResolution } from "./utils/validators.js";
+import { createChildLogger } from "../../lib/utils/index";
+import { chainIds } from "./enums/chains";
+import { createResolver } from "./resolvers/base-resolver";
+import { sanitizeChainId } from "./utils/sanitizers";
+import { needsResolution } from "./utils/validators";
 
 const logger = createChildLogger("DeBank Entity Resolver");
 

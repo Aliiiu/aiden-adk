@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeServiceMethod } from "../../shared.js";
+import { executeServiceMethod } from "../../shared";
 
 export const GetTopHoldersOfTokenInputSchema = z.object({
 	id: z.string().describe("Token contract address or native token ID"),

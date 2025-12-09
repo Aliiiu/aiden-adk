@@ -1,12 +1,12 @@
 import type { Context } from "telegraf";
-import { env } from "../../env.js";
-import { telegramDb } from "../db-service.js";
+import { env } from "../../env";
+import { telegramDb } from "../db-service";
 import {
 	checkIsAdmin,
 	getMessageText,
 	type TokenLink,
 	validateURL,
-} from "./utils.js";
+} from "./utils";
 
 export async function handleLink(ctx: Context): Promise<void> {
 	if (!env.DATABASE_URL) {

@@ -1,6 +1,6 @@
 import z from "zod";
-import { getChainsDescription } from "../enums/chains.js";
-import { callEtherscanApi } from "../shared.js";
+import { getChainsDescription } from "../enums/chains";
+import { callEtherscanApi } from "../shared";
 
 export const GetTransactionsInputSchema = z
 	.object({
@@ -141,8 +141,6 @@ export const GetTransactionsInputSchema = z
 				}
 				break;
 			}
-
-			case "txlist":
 			default: {
 				if (!address) {
 					ctx.addIssue({

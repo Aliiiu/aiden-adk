@@ -6,7 +6,7 @@ import {
 	getAllAgentsTool,
 	getHoldingsTool,
 	getTopAgentsTool,
-} from "./tools.js";
+} from "./tools";
 
 type InferSchemaType = Parameters<FastMCP["addTool"]>[0]["parameters"];
 type FastMCPTool = Parameters<FastMCP["addTool"]>[0];

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeServiceMethod } from "../../shared.js";
+import { executeServiceMethod } from "../../shared";
 
 export const GetUserAllTokenListInputSchema = z.object({
 	id: z.string().describe("User wallet address"),

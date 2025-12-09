@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeServiceMethod } from "../../shared.js";
+import { executeServiceMethod } from "../../shared";
 
 export const GetUserChainBalanceInputSchema = z.object({
 	chain_id: z.string().describe("Chain ID (e.g., 'eth', 'bsc', 'matic')"),

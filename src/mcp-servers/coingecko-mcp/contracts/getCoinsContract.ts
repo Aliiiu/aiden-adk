@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetCoinsContractInputSchema = z.object({
 	id: z.string().describe("Asset platform ID (e.g., 'ethereum')"),

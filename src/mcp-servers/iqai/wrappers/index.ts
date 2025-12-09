@@ -6,35 +6,35 @@
  * sandbox code can transform and combine data easily.
  */
 
-import type { GetAgentInfoInput } from "./agents/getAgentInfo.js";
-import type { GetAgentStatsInput } from "./agents/getAgentStats.js";
-import type { GetAllAgentsInput } from "./agents/getAllAgents.js";
-import type { GetTopAgentsInput } from "./agents/getTopAgents.js";
-import type { GetHoldingsInput } from "./holdings/getHoldings.js";
-import type { GetAgentLogsInput } from "./iqai-logs/getAgentLogs.js";
+import type { GetAgentInfoInput } from "./agents/getAgentInfo";
+import type { GetAgentStatsInput } from "./agents/getAgentStats";
+import type { GetAllAgentsInput } from "./agents/getAllAgents";
+import type { GetTopAgentsInput } from "./agents/getTopAgents";
+import type { GetHoldingsInput } from "./holdings/getHoldings";
+import type { GetAgentLogsInput } from "./iqai-logs/getAgentLogs";
 
-export { getAgentInfo } from "./agents/getAgentInfo.js";
-export { getAgentStats } from "./agents/getAgentStats.js";
+export { getAgentInfo } from "./agents/getAgentInfo";
+export { getAgentStats } from "./agents/getAgentStats";
 // Agents
-export { getAllAgents } from "./agents/getAllAgents.js";
-export { getTopAgents } from "./agents/getTopAgents.js";
+export { getAllAgents } from "./agents/getAllAgents";
+export { getTopAgents } from "./agents/getTopAgents";
 // Holdings
-export { getHoldings } from "./holdings/getHoldings.js";
+export { getHoldings } from "./holdings/getHoldings";
 // Logs
-export { getAgentLogs } from "./iqai-logs/getAgentLogs.js";
+export { getAgentLogs } from "./iqai-logs/getAgentLogs";
 
 // Default export with lazy loading helpers
 export default {
 	getAllAgents: async (params: GetAllAgentsInput) =>
-		(await import("./agents/getAllAgents.js")).getAllAgents(params),
+		(await import("./agents/getAllAgents")).getAllAgents(params),
 	getTopAgents: async (params: GetTopAgentsInput) =>
-		(await import("./agents/getTopAgents.js")).getTopAgents(params),
+		(await import("./agents/getTopAgents")).getTopAgents(params),
 	getAgentInfo: async (params: GetAgentInfoInput) =>
-		(await import("./agents/getAgentInfo.js")).getAgentInfo(params),
+		(await import("./agents/getAgentInfo")).getAgentInfo(params),
 	getAgentStats: async (params: GetAgentStatsInput) =>
-		(await import("./agents/getAgentStats.js")).getAgentStats(params),
+		(await import("./agents/getAgentStats")).getAgentStats(params),
 	getAgentLogs: async (params: GetAgentLogsInput) =>
-		(await import("./iqai-logs/getAgentLogs.js")).getAgentLogs(params),
+		(await import("./iqai-logs/getAgentLogs")).getAgentLogs(params),
 	getHoldings: async (params: GetHoldingsInput) =>
-		(await import("./holdings/getHoldings.js")).getHoldings(params),
+		(await import("./holdings/getHoldings")).getHoldings(params),
 };

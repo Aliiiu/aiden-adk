@@ -1,5 +1,5 @@
-import { env } from "../env.js";
-import { startPolling } from "./modes/polling.js";
+import { env } from "../env";
+import { startPolling } from "./modes/polling";
 import { setupTelegramWebhook, startWebhook } from "./modes/webhook";
 
 // TODO: Fix this

@@ -1,6 +1,6 @@
 import type { Context, Telegraf } from "telegraf";
 import { message } from "telegraf/filters";
-import { processQuery } from "./handlers.js";
+import { processQuery } from "./handlers";
 
 export function registerMessageHandlers(bot: Telegraf<Context>): void {
 	console.log("🔧 Installing message handler...");

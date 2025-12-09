@@ -1,9 +1,9 @@
 import type { Context, Telegraf } from "telegraf";
-import { handleAuth } from "./auth.js";
-import { handleHelp, handleStart } from "./help.js";
-import { handleLink, handleList, handleUnlink } from "./links.js";
-import { handlePrice } from "./price.js";
-import { handleSummary } from "./summary.js";
+import { handleAuth } from "./auth";
+import { handleHelp, handleStart } from "./help";
+import { handleLink, handleList, handleUnlink } from "./links";
+import { handlePrice } from "./price";
+import { handleSummary } from "./summary";
 
 export function registerCommands(bot: Telegraf<Context>): void {
 	bot.command("start", handleStart);

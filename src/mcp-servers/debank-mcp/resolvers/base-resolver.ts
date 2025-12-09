@@ -1,8 +1,8 @@
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
 import endent from "endent";
-import { createChildLogger } from "../../../lib/utils/index.js";
-import { isNotFoundResponse } from "../utils/validators.js";
+import { createChildLogger } from "../../../lib/utils/index";
+import { isNotFoundResponse } from "../utils/validators";
 
 const logger = createChildLogger("DeBank Entity Resolver");
 const gemini25Flash = "gemini-2.5-flash";

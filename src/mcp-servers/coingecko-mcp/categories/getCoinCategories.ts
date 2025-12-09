@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 const CoinCategorySchema = z.object({
 	category_id: z.string().describe("Unique category identifier"),

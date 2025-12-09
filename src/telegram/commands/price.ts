@@ -1,10 +1,10 @@
 import dedent from "dedent";
 import type { Context } from "telegraf";
 import { z } from "zod";
-import { env } from "../../env.js";
-import { telegramDb } from "../db-service.js";
-import { mapLanguageToCode } from "../utils/language-mapper.js";
-import { getMessageText } from "./utils.js";
+import { env } from "../../env";
+import { telegramDb } from "../db-service";
+import { mapLanguageToCode } from "../utils/language-mapper";
+import { getMessageText } from "./utils";
 
 interface TokenLink {
 	id: string;

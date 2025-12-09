@@ -1,8 +1,8 @@
 import type { Context } from "telegraf";
-import { env } from "../env.js";
-import { telegramDb } from "./db-service.js";
-import { getAgentRunner } from "./telegram-agent-runner.js";
-import { mapLanguageToCode } from "./utils/language-mapper.js";
+import { env } from "../env";
+import { telegramDb } from "./db-service";
+import { getAgentRunner } from "./telegram-agent-runner";
+import { mapLanguageToCode } from "./utils/language-mapper";
 
 const MESSAGE_FOOTER = '\n\n🧠 Powered by <a href="https://aiden.id">AIDEN</a>';
 const MAX_MESSAGE_LENGTH = 4000;

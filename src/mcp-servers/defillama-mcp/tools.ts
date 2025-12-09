@@ -1,6 +1,6 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import { z } from "zod";
-import { createChildLogger } from "../../lib/utils/index.js";
+import { createChildLogger } from "../../lib/utils/index";
 import {
 	needsResolution,
 	resolveBridge,
@@ -8,7 +8,7 @@ import {
 	resolveOption,
 	resolveProtocol,
 	resolveStablecoin,
-} from "./entity-resolver.js";
+} from "./entity-resolver";
 import {
 	blockchainService,
 	dexService,
@@ -18,7 +18,7 @@ import {
 	protocolService,
 	stablecoinService,
 	yieldService,
-} from "./services/index.js";
+} from "./services/index";
 
 const logger = createChildLogger("DefiLlama MCP Tools");
 

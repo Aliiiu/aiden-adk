@@ -1,5 +1,5 @@
 import z from "zod";
-import { callEtherscanApi } from "../shared.js";
+import { callEtherscanApi } from "../shared";
 
 export const GetAddressBalanceInputSchema = z.object({
 	address: z

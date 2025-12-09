@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "../../lib/db.js";
+import { prisma } from "../../lib/db";
 
 declare module "fastify" {
 	interface FastifyRequest {

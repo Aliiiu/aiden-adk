@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeServiceMethod } from "../../shared.js";
+import { executeServiceMethod } from "../../shared";
 
 const StablecoinPricePointSchema = z.object({
 	date: z.number().describe("Unix timestamp"),

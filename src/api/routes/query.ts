@@ -1,8 +1,8 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { env } from "../../env.js";
-import { mapLanguageToCode } from "../../telegram/utils/language-mapper.js";
-import { getApiAgentRunner } from "../agent-runner.js";
-import { apiDb } from "../db-service.js";
+import { env } from "../../env";
+import { mapLanguageToCode } from "../../telegram/utils/language-mapper";
+import { getApiAgentRunner } from "../agent-runner";
+import { apiDb } from "../db-service";
 
 interface QueryRequest {
 	query: string;

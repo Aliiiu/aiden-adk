@@ -1,5 +1,5 @@
 import type { Context } from "telegraf";
-import { getHelpMessage } from "./utils.js";
+import { getHelpMessage } from "./utils";
 
 const buildHelpMessage = (ctx: Context): string => {
 	const isPrivate = ctx.chat?.type === "private";
