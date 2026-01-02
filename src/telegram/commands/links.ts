@@ -65,8 +65,6 @@ export async function handleLink(ctx: Context): Promise<void> {
 }
 
 export async function handleUnlink(ctx: Context): Promise<void> {
-	// Admin check is guaranteed by middleware validation
-	// Message text is guaranteed by middleware validation
 	const messageText = getMessageText(ctx)!;
 	const parts = messageText.split("/unlink")[1]?.trim().split(" ");
 
@@ -81,6 +79,11 @@ export async function handleUnlink(ctx: Context): Promise<void> {
 	const indices = parts[1]
 		? parts[1].split(",").map((index) => Number.parseInt(index.trim(), 10))
 		: [];
+
+	if (indices.some(Number.isNaN)) {
+		await ctx.reply("❌ Invalid index provided. Please use numbers only.");
+		return;
+	}
 
 	try {
 		const platformChannelId = String(ctx.chat?.id);
