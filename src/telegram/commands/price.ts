@@ -286,7 +286,7 @@ function formatApiResponse(data: CoinGeckoData): string {
 	} = priceData;
 
 	const formatMarketCap = () => {
-		const hasRank = market_cap_rank && market_cap_rank !== -1;
+		const hasRank = market_cap_rank !== null && market_cap_rank !== undefined;
 		const hasCap = market_cap && market_cap > 0;
 
 		if (!hasRank && !hasCap) {
