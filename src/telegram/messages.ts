@@ -17,18 +17,36 @@ async function handleTextMessage(ctx: Context): Promise<void> {
 	console.log("📨 Received message:", text);
 
 	const isPrivate = ctx.chat?.type === "private";
-	const botUsername = ctx.botInfo.username;
-	const isMentioned = text.includes(`@${botUsername}`);
 
-	if (!isPrivate && !isMentioned) {
-		console.log("⏭️ Ignoring message (not private, mentioned, or reply)");
+	// In private chats, accept all messages
+	if (isPrivate) {
+		console.log(`🔄 Processing private chat query: "${text}"`);
+		await processQuery(ctx, text);
 		return;
 	}
 
-	const cleanText = text.replace(`@${botUsername}`, "").trim();
+	// In group/supergroup chats, check validation criteria
+	const botUsername = ctx.botInfo.username;
+	const isMentioned = text.includes(`@${botUsername}`);
+	const isReplyToBot =
+		ctx.message.reply_to_message?.from?.id === ctx.botInfo.id;
+	const allowedCommands = ["/ai", "/price", "/summary"];
+	const startsWithAllowedCommand = allowedCommands.some((cmd) =>
+		text.startsWith(cmd),
+	);
 
-	if (cleanText) {
-		console.log(`🔄 Processing query: "${cleanText}"`);
-		await processQuery(ctx, cleanText);
+	if (isMentioned || startsWithAllowedCommand || isReplyToBot) {
+		const cleanText = text.replace(`@${botUsername}`, "").trim();
+
+		if (cleanText) {
+			console.log(
+				`🔄 Processing group chat query: "${cleanText}" (mentioned: ${isMentioned}, command: ${startsWithAllowedCommand}, reply: ${isReplyToBot})`,
+			);
+			await processQuery(ctx, cleanText);
+		}
+	} else {
+		console.log(
+			"⏭️ Ignoring group message (not mentioned, not allowed command, not reply to bot)",
+		);
 	}
 }
