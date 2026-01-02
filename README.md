@@ -173,9 +173,7 @@ INSERT INTO "Team" (name, "apiKeys")
 VALUES ('Default Team', ARRAY['your-secret-key']);
 ```
 
-**Note:** The `/api/query` endpoint requires `DATABASE_URL` to be configured.
-For testing the agent without a database, use the web interface (`adk web`)
-instead, which works without database configuration.
+**Note:** `DATABASE_URL` is a required environment variable. The application will not start without it. For testing the agent without database persistence, use the web interface (`adk web`).
 
 ### Endpoints
 
@@ -396,7 +394,7 @@ curl -X POST http://localhost:3000/api/query \
 | `TELEGRAM_MODE`                | No       | `polling`             | `polling` or `webhook`                                                                      |
 | `API_ENABLED`                  | No       | `false`               | Enable HTTP API server                                                                      |
 | `API_PORT`                     | No       | `3000`                | HTTP server port                                                                            |
-| `DATABASE_URL`                 | No\*     | -                     | PostgreSQL connection string (\*required for `/api/query` endpoint; optional for `adk web`) |
+| `DATABASE_URL`                 | Yes      | -                     | PostgreSQL connection string (validated at startup)                                         |
 
 ### Supported Languages
 

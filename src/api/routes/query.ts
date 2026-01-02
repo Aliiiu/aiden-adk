@@ -1,5 +1,4 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { env } from "../../env";
 import { mapLanguageToCode } from "../../telegram/utils/language-mapper";
 import { getApiAgentRunner } from "../agent-runner";
 import { apiDb } from "../db-service";
@@ -75,16 +74,6 @@ export async function queryHandler(
 		const duration = Date.now() - startTime;
 
 		let messageId: number | undefined;
-
-		if (!env.DATABASE_URL) {
-			return reply.code(500).send({
-				success: false,
-				error: {
-					code: "DB_NOT_CONFIGURED",
-					message: "Database is not configured on the server",
-				},
-			});
-		}
 
 		try {
 			const userAddress = userId ? `api_${userId}` : "api_anonymous";
