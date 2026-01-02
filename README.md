@@ -173,7 +173,9 @@ INSERT INTO "Team" (name, "apiKeys")
 VALUES ('Default Team', ARRAY['your-secret-key']);
 ```
 
-**Note:** The `/api/query` endpoint requires `DATABASE_URL` to be configured. For testing the agent without a database, use the web interface (`adk web`) instead, which works without database configuration.
+**Note:** The `/api/query` endpoint requires `DATABASE_URL` to be configured.
+For testing the agent without a database, use the web interface (`adk web`)
+instead, which works without database configuration.
 
 ### Endpoints
 
@@ -376,25 +378,25 @@ curl -X POST http://localhost:3000/api/query \
 
 ### Environment Variables
 
-| Variable                       | Required | Default               | Description                                                                    |
-| ------------------------------ | -------- | --------------------- | ------------------------------------------------------------------------------ |
-| `ADK_DEBUG`                    | No       | `false`               | Enable ADK debug logging                                                       |
-| `OPENROUTER_API_KEY`           | Yes      | -                     | OpenRouter API key for LLM access                                              |
-| `COINGECKO_PRO_API_KEY`        | Yes      | -                     | CoinGecko API key                                                              |
-| `COINGECKO_ENVIRONMENT`        | No       | `demo`                | `pro` or `demo` environment toggle                                             |
-| `LLM_MODEL`                    | No       | `openai/gpt-4.1-mini` | OpenRouter model to use                                                        |
-| `IQ_GATEWAY_URL`               | Yes      | -                     | IQ.wiki GraphQL endpoint                                                       |
-| `IQ_GATEWAY_KEY`               | Yes      | -                     | IQ.wiki API key                                                                |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Yes      | -                     | Google Gemini API key                                                          |
-| `LOG_LEVEL`                    | No       | -                     | Logging level (debug, info, warn, error)                                       |
-| `LANGFUSE_PUBLIC_KEY`          | No       | -                     | Langfuse public key (telemetry)                                                |
-| `LANGFUSE_SECRET_KEY`          | No       | -                     | Langfuse secret key (telemetry)                                                |
-| `LANGFUSE_BASEURL`             | No       | -                     | Langfuse base URL (telemetry)                                                  |
-| `TELEGRAM_BOT_TOKEN`           | No       | -                     | Telegram bot token                                                             |
-| `TELEGRAM_MODE`                | No       | `polling`             | `polling` or `webhook`                                                         |
-| `API_ENABLED`                  | No       | `false`               | Enable HTTP API server                                                         |
-| `API_PORT`                     | No       | `3000`                | HTTP server port                                                               |
-| `DATABASE_URL`                 | No*      | -                     | PostgreSQL connection string (*required for `/api/query` endpoint; optional for `adk web`) |
+| Variable                       | Required | Default               | Description                                                                                 |
+| ------------------------------ | -------- | --------------------- | ------------------------------------------------------------------------------------------- |
+| `ADK_DEBUG`                    | No       | `false`               | Enable ADK debug logging                                                                    |
+| `OPENROUTER_API_KEY`           | Yes      | -                     | OpenRouter API key for LLM access                                                           |
+| `COINGECKO_PRO_API_KEY`        | Yes      | -                     | CoinGecko API key                                                                           |
+| `COINGECKO_ENVIRONMENT`        | No       | `demo`                | `pro` or `demo` environment toggle                                                          |
+| `LLM_MODEL`                    | No       | `openai/gpt-4.1-mini` | OpenRouter model to use                                                                     |
+| `IQ_GATEWAY_URL`               | Yes      | -                     | IQ.wiki GraphQL endpoint                                                                    |
+| `IQ_GATEWAY_KEY`               | Yes      | -                     | IQ.wiki API key                                                                             |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Yes      | -                     | Google Gemini API key                                                                       |
+| `LOG_LEVEL`                    | No       | -                     | Logging level (debug, info, warn, error)                                                    |
+| `LANGFUSE_PUBLIC_KEY`          | No       | -                     | Langfuse public key (telemetry)                                                             |
+| `LANGFUSE_SECRET_KEY`          | No       | -                     | Langfuse secret key (telemetry)                                                             |
+| `LANGFUSE_BASEURL`             | No       | -                     | Langfuse base URL (telemetry)                                                               |
+| `TELEGRAM_BOT_TOKEN`           | No       | -                     | Telegram bot token                                                                          |
+| `TELEGRAM_MODE`                | No       | `polling`             | `polling` or `webhook`                                                                      |
+| `API_ENABLED`                  | No       | `false`               | Enable HTTP API server                                                                      |
+| `API_PORT`                     | No       | `3000`                | HTTP server port                                                                            |
+| `DATABASE_URL`                 | No\*     | -                     | PostgreSQL connection string (\*required for `/api/query` endpoint; optional for `adk web`) |
 
 ### Supported Languages
 
@@ -452,7 +454,7 @@ Contributions are welcome! Please:
 
 ## 📄 License
 
-[Add your license here]
+This is a private repository. All rights reserved by IQ AI.
 
 ## 🆘 Support
 
