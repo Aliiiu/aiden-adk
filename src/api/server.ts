@@ -1,6 +1,7 @@
 import Fastify from "fastify";
 import type { Telegraf } from "telegraf";
 import { env } from "../env";
+import { initializeSharedAgentBuilder } from "../lib/agent-builder-cache";
 import { authMiddleware } from "./middleware/auth";
 import { queryHandler } from "./routes/query";
 import { createTelegramWebhookHandler } from "./routes/telegram-webhook";
@@ -12,6 +13,9 @@ interface ApiServerOptions {
 export async function startApiServer(
 	options: ApiServerOptions = {},
 ): Promise<void> {
+	// Initialize the shared agent builder once at startup
+	await initializeSharedAgentBuilder();
+
 	const app = Fastify({
 		logger: env.LOG_LEVEL ? { level: env.LOG_LEVEL } : false,
 	});

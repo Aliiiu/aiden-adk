@@ -1,13 +1,17 @@
 import { randomUUID } from "node:crypto";
-import { AgentBuilder } from "@iqai/adk";
-import { getLanguageDetectorAgent } from "../agents/sub-agents/language-detector-agent/agent";
-import { getWorkflowAgent } from "../agents/sub-agents/workflow-agent/agent";
+import { getSharedAgentBuilder } from "../lib/agent-builder-cache";
 
-type AgentRunner = Awaited<ReturnType<typeof createApiAgent>>["runner"];
+type AgentRunner = Awaited<
+	ReturnType<
+		ReturnType<
+			Awaited<ReturnType<typeof getSharedAgentBuilder>>["withQuickSession"]
+		>["build"]
+	>
+>["runner"];
 
-async function createApiAgent() {
-	const languageDetectorAgent = getLanguageDetectorAgent();
-	const workflowAgent = await getWorkflowAgent();
+export async function getApiAgentRunner(): Promise<AgentRunner> {
+	console.log("🔄 Creating new API agent session...");
+	const builder = await getSharedAgentBuilder();
 
 	const initialState = {
 		query: null,
@@ -18,18 +22,12 @@ async function createApiAgent() {
 		isTwitterRequest: false,
 	};
 
-	return AgentBuilder.create("root_agent")
-		.asSequential([languageDetectorAgent, workflowAgent])
+	const { runner } = await builder
 		.withQuickSession({
 			state: initialState,
 			sessionId: randomUUID(),
 			appName: "api-server",
 		})
 		.build();
-}
-
-export async function getApiAgentRunner(): Promise<AgentRunner> {
-	console.log("🔄 Creating new API agent session...");
-	const { runner } = await createApiAgent();
 	return runner;
 }

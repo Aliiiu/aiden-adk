@@ -1,14 +1,17 @@
 import { randomUUID } from "node:crypto";
-import { AgentBuilder } from "@iqai/adk";
-import { getLanguageDetectorAgent } from "../agents/sub-agents/language-detector-agent/agent";
-import { getWorkflowAgent } from "../agents/sub-agents/workflow-agent/agent";
+import { getSharedAgentBuilder } from "../lib/agent-builder-cache";
 
-// TODO: Investigate how we can make this into one agent instead
-type AgentRunner = Awaited<ReturnType<typeof createTelegramAgent>>["runner"];
+type AgentRunner = Awaited<
+	ReturnType<
+		ReturnType<
+			Awaited<ReturnType<typeof getSharedAgentBuilder>>["withQuickSession"]
+		>["build"]
+	>
+>["runner"];
 
-async function createTelegramAgent() {
-	const languageDetectorAgent = getLanguageDetectorAgent();
-	const workflowAgent = await getWorkflowAgent();
+export async function getAgentRunner(): Promise<AgentRunner> {
+	console.log("🔄 Creating new Telegram agent session...");
+	const builder = await getSharedAgentBuilder();
 
 	const initialState = {
 		query: null,
@@ -19,18 +22,13 @@ async function createTelegramAgent() {
 		isTwitterRequest: false,
 	};
 
-	return AgentBuilder.create("root_agent")
-		.asSequential([languageDetectorAgent, workflowAgent])
+	const { runner } = await builder
 		.withQuickSession({
 			state: initialState,
 			sessionId: randomUUID(),
 			appName: "telegram-bot",
 		})
 		.build();
-}
 
-export async function getAgentRunner(): Promise<AgentRunner> {
-	console.log("🔄 Creating new agent session...");
-	const { runner } = await createTelegramAgent();
 	return runner;
 }
