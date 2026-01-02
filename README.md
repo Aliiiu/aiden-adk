@@ -9,7 +9,8 @@
 **A multi-platform crypto intelligence agent powered by the `@iqai/adk`
 framework.**
 
-_Telegram Bot • HTTP API • English/Korean/Chinese Support • Real-time Crypto Data_
+_Telegram Bot • HTTP API • English/Korean/Chinese Support • Real-time Crypto
+Data_
 
 ---
 
@@ -168,12 +169,12 @@ All `/api/*` endpoints require an API key in the `X-API-Key` header. API keys
 are managed in the database:
 
 ```sql
-INSERT INTO "Team" (id, "apiKeys", "createdAt", "updatedAt")
-VALUES (1, ARRAY['your-secret-key'], NOW(), NOW());
+INSERT INTO "Team" (name, "apiKeys")
+VALUES ('Default Team', ARRAY['your-secret-key']);
 ```
 
-Running without `DATABASE_URL` is supported for testing; queries will respond but
-message persistence and `messageId` values will be skipped.
+Running without `DATABASE_URL` is supported for testing; queries will respond
+but message persistence and `messageId` values will be skipped.
 
 ### Endpoints
 
@@ -197,13 +198,13 @@ X-API-Key: your-api-key
 
 ```json
 {
- "success": true,
- "data": {
-  "answer": "The current price of Bitcoin is $43,250 USD...",
-  "detectedLanguage": "English",
-  "duration": 1250,
-  "messageId": 12345
- }
+	"success": true,
+	"data": {
+		"answer": "The current price of Bitcoin is $43,250 USD...",
+		"detectedLanguage": "English",
+		"duration": 1250,
+		"messageId": 12345
+	}
 }
 ```
 
@@ -376,25 +377,25 @@ curl -X POST http://localhost:3000/api/query \
 
 ### Environment Variables
 
-| Variable | Required | Default | Description |
-| --- | --- | --- | --- |
-| `ADK_DEBUG` | No | `false` | Enable ADK debug logging |
-| `OPENROUTER_API_KEY` | Yes | - | OpenRouter API key for LLM access |
-| `COINGECKO_PRO_API_KEY` | Yes | - | CoinGecko API key |
-| `COINGECKO_ENVIRONMENT` | No | `demo` | `pro` or `demo` environment toggle |
-| `LLM_MODEL` | No | `openai/gpt-4.1-mini` | OpenRouter model to use |
-| `IQ_GATEWAY_URL` | Yes | - | IQ.wiki GraphQL endpoint |
-| `IQ_GATEWAY_KEY` | Yes | - | IQ.wiki API key |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Yes | - | Google Gemini API key |
-| `LOG_LEVEL` | No | - | Logging level (debug, info, warn, error) |
-| `LANGFUSE_PUBLIC_KEY` | No | - | Langfuse public key (telemetry) |
-| `LANGFUSE_SECRET_KEY` | No | - | Langfuse secret key (telemetry) |
-| `LANGFUSE_BASEURL` | No | - | Langfuse base URL (telemetry) |
-| `TELEGRAM_BOT_TOKEN` | No | - | Telegram bot token |
-| `TELEGRAM_MODE` | No | `polling` | `polling` or `webhook` |
-| `API_ENABLED` | No | `false` | Enable HTTP API server |
-| `API_PORT` | No | `3000` | HTTP server port |
-| `DATABASE_URL` | No | - | PostgreSQL connection string (enable persistence; can run without for testing) |
+| Variable                       | Required | Default               | Description                                                                    |
+| ------------------------------ | -------- | --------------------- | ------------------------------------------------------------------------------ |
+| `ADK_DEBUG`                    | No       | `false`               | Enable ADK debug logging                                                       |
+| `OPENROUTER_API_KEY`           | Yes      | -                     | OpenRouter API key for LLM access                                              |
+| `COINGECKO_PRO_API_KEY`        | Yes      | -                     | CoinGecko API key                                                              |
+| `COINGECKO_ENVIRONMENT`        | No       | `demo`                | `pro` or `demo` environment toggle                                             |
+| `LLM_MODEL`                    | No       | `openai/gpt-4.1-mini` | OpenRouter model to use                                                        |
+| `IQ_GATEWAY_URL`               | Yes      | -                     | IQ.wiki GraphQL endpoint                                                       |
+| `IQ_GATEWAY_KEY`               | Yes      | -                     | IQ.wiki API key                                                                |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Yes      | -                     | Google Gemini API key                                                          |
+| `LOG_LEVEL`                    | No       | -                     | Logging level (debug, info, warn, error)                                       |
+| `LANGFUSE_PUBLIC_KEY`          | No       | -                     | Langfuse public key (telemetry)                                                |
+| `LANGFUSE_SECRET_KEY`          | No       | -                     | Langfuse secret key (telemetry)                                                |
+| `LANGFUSE_BASEURL`             | No       | -                     | Langfuse base URL (telemetry)                                                  |
+| `TELEGRAM_BOT_TOKEN`           | No       | -                     | Telegram bot token                                                             |
+| `TELEGRAM_MODE`                | No       | `polling`             | `polling` or `webhook`                                                         |
+| `API_ENABLED`                  | No       | `false`               | Enable HTTP API server                                                         |
+| `API_PORT`                     | No       | `3000`                | HTTP server port                                                               |
+| `DATABASE_URL`                 | No       | -                     | PostgreSQL connection string (enable persistence; can run without for testing) |
 
 ### Supported Languages
 
