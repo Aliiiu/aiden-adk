@@ -1,29 +1,9 @@
 import type { Context } from "telegraf";
-import { env } from "../../env";
 import { telegramDb } from "../db-service";
-import { checkIsAdmin, getMessageText, shortenApiKey } from "./utils";
+import { getMessageText, shortenApiKey } from "./utils";
 
 export async function handleAuth(ctx: Context): Promise<void> {
-	const isAdmin = await checkIsAdmin(ctx);
-
-	if (!isAdmin) {
-		await ctx.reply("❌ Only admins can manage authentication in groups.");
-		return;
-	}
-
-	if (!env.DATABASE_URL) {
-		await ctx.reply(
-			"⚠️ Database not configured. API key management is not available.",
-		);
-		return;
-	}
-
-	const messageText = getMessageText(ctx);
-
-	if (!messageText) {
-		return;
-	}
-
+	const messageText = getMessageText(ctx)!;
 	const apiKey = messageText.split("/auth")[1].trim();
 	const platformChannelId = String(ctx.chat?.id);
 

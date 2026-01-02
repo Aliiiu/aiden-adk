@@ -6,26 +6,8 @@ export async function handleAi(ctx: Context): Promise<void> {
 	// Show typing action
 	await ctx.sendChatAction("typing");
 
-	const message = getMessageText(ctx);
-
-	if (!message || typeof message !== "string") {
-		console.log("⏭️ Ignoring non-text message");
-		return;
-	}
-
-	const isPrivate = ctx.chat?.type === "private";
-	if (isPrivate) {
-		console.log("⛔ /ai command used in private chat — not supported.");
-		return;
-	}
-
+	const message = getMessageText(ctx)!;
 	const trimmed = message.trim();
-
-	if (!trimmed.startsWith("/ai")) {
-		console.log("⏭️ Message does not contain /ai command");
-		return;
-	}
-
 	const userMessage = trimmed.slice(3).trim();
 
 	if (!userMessage) {

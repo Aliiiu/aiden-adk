@@ -1,33 +1,9 @@
 import type { Context } from "telegraf";
-import { env } from "../../env";
 import { telegramDb } from "../db-service";
-import {
-	checkIsAdmin,
-	getMessageText,
-	type TokenLink,
-	validateURL,
-} from "./utils";
+import { getMessageText, type TokenLink, validateURL } from "./utils";
 
 export async function handleLink(ctx: Context): Promise<void> {
-	if (!env.DATABASE_URL) {
-		await ctx.reply(
-			"⚠️ Database not configured. Link tracking is not available.",
-		);
-		return;
-	}
-
-	const isAdmin = await checkIsAdmin(ctx);
-	if (!isAdmin) {
-		await ctx.reply("❌ Only admins can link tokens in groups.");
-		return;
-	}
-
-	const messageText = getMessageText(ctx);
-
-	if (!messageText) {
-		return;
-	}
-
+	const messageText = getMessageText(ctx)!;
 	const url = messageText.replace("/link", "").trim();
 
 	if (!url) {
@@ -89,25 +65,9 @@ export async function handleLink(ctx: Context): Promise<void> {
 }
 
 export async function handleUnlink(ctx: Context): Promise<void> {
-	if (!env.DATABASE_URL) {
-		await ctx.reply(
-			"⚠️ Database not configured. Link tracking is not available.",
-		);
-		return;
-	}
-
-	const isAdmin = await checkIsAdmin(ctx);
-	if (!isAdmin) {
-		await ctx.reply("❌ Only admins can unlink tokens in groups.");
-		return;
-	}
-
-	const messageText = getMessageText(ctx);
-
-	if (!messageText) {
-		return;
-	}
-
+	// Admin check is guaranteed by middleware validation
+	// Message text is guaranteed by middleware validation
+	const messageText = getMessageText(ctx)!;
 	const parts = messageText.split("/unlink")[1]?.trim().split(" ");
 
 	if (!parts || parts.length === 0 || !parts[0]) {
@@ -184,13 +144,6 @@ export async function handleUnlink(ctx: Context): Promise<void> {
 }
 
 export async function handleList(ctx: Context): Promise<void> {
-	if (!env.DATABASE_URL) {
-		await ctx.reply(
-			"⚠️ Database not configured. Link tracking is not available.",
-		);
-		return;
-	}
-
 	try {
 		const platformChannelId = String(ctx.chat?.id);
 		const bot = await telegramDb.getOrCreateBot(platformChannelId);

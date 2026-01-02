@@ -46,12 +46,7 @@ const TICKER_TO_ID_MAP: Record<string, string> = {
 
 export async function handlePrice(ctx: Context): Promise<void> {
 	const startTime = Date.now();
-	const messageText = getMessageText(ctx);
-
-	if (!messageText) {
-		return;
-	}
-
+	const messageText = getMessageText(ctx)!;
 	const query = messageText.trim();
 	const givenTicker = query.split("/price")[1]?.trim().replace("$", "") || null;
 
