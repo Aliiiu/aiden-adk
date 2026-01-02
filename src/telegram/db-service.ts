@@ -25,7 +25,7 @@ export interface CreateMessageParams {
 	}>;
 }
 
-export class TelegramDbService {
+export class DbService {
 	async getOrCreateBot(platformChannelId: string, platform = "telegram") {
 		return await prisma.bot.upsert({
 			where: { platformChannelId },
@@ -198,4 +198,4 @@ export class TelegramDbService {
 	}
 }
 
-export const telegramDb = new TelegramDbService();
+export const telegramDb = new DbService();
