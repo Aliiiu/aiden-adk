@@ -5,7 +5,7 @@ import { setupTelegramWebhook, startWebhook } from "./modes/webhook";
 async function main(): Promise<void> {
 	const mode = env.TELEGRAM_MODE;
 
-	const bot = await setupTelegramWebhook();
+	const bot = setupTelegramWebhook();
 
 	console.log(`Starting Telegram bot in ${mode.toUpperCase()} mode...`);
 

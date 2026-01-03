@@ -1,21 +1,10 @@
 import { Telegraf } from "telegraf";
 import { env } from "../../env";
 import { initializeSharedAgentBuilder } from "../../lib/agent-builder-cache";
-import { registerCommands } from "../commands/index";
-import { registerMessageHandlers } from "../messages";
+import { createTelegramBot } from "../bot-factory";
 
-export async function setupTelegramWebhook(): Promise<Telegraf> {
-	if (!env.TELEGRAM_BOT_TOKEN) {
-		throw new Error("TELEGRAM_BOT_TOKEN is required");
-	}
-
-	const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
-
-	registerCommands(bot);
-	registerMessageHandlers(bot);
-
-	console.log("📱 Telegram webhook bot initialized");
-	return bot;
+export function setupTelegramWebhook(): Telegraf {
+	return createTelegramBot();
 }
 
 export async function startWebhook(bot: Telegraf): Promise<void> {

@@ -3,10 +3,8 @@ import { config } from "dotenv";
 import { Telegraf } from "telegraf";
 import { startApiServer } from "./api/server";
 import { env } from "./env";
-import { registerCommands } from "./telegram/commands/index";
-import { registerMessageHandlers } from "./telegram/messages";
+import { createTelegramBot } from "./telegram/bot-factory";
 import { startPolling } from "./telegram/modes/polling";
-import { getAgentRunner } from "./telegram/telegram-agent-runner";
 
 config();
 
@@ -34,17 +32,12 @@ function initializeLangfuse(): void {
 	});
 }
 
-async function setupTelegramBot(): Promise<Telegraf | null> {
+function setupTelegramBot(): Telegraf | null {
 	if (!env.TELEGRAM_BOT_TOKEN) {
 		return null;
 	}
 
-	const bot = new Telegraf(env.TELEGRAM_BOT_TOKEN);
-	registerCommands(bot);
-	registerMessageHandlers(bot);
-	await getAgentRunner();
-
-	return bot;
+	return createTelegramBot();
 }
 
 async function main() {
@@ -52,7 +45,7 @@ async function main() {
 
 	console.log("🚀 Starting AIDEN...\n");
 
-	const telegramBot = await setupTelegramBot();
+	const telegramBot = setupTelegramBot();
 
 	if (!telegramBot && !env.API_ENABLED) {
 		console.error(
