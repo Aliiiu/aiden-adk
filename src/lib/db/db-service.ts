@@ -11,7 +11,7 @@ export interface CreateChatParams {
 
 export interface CreateMessageParams {
 	chatId: string | null;
-	botId: string;
+	botId?: string;
 	userAddress: string;
 	query: string;
 	answer: string;

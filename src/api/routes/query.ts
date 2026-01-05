@@ -82,11 +82,9 @@ export async function queryHandler(
 
 		try {
 			const userAddress = userId ? `api_${userId}` : "api_anonymous";
-			const bot = await dbService.getOrCreateBot("api_endpoint", "http");
 
 			const message = await dbService.createMessage({
 				chatId: sessionId || null,
-				botId: bot.id,
 				userAddress,
 				query,
 				answer,
