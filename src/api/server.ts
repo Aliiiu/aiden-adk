@@ -17,7 +17,19 @@ export async function startApiServer(
 	await initializeSharedAgentBuilder();
 
 	const app = Fastify({
-		logger: env.LOG_LEVEL ? { level: env.LOG_LEVEL } : false,
+		logger: env.LOG_LEVEL
+			? {
+					level: env.LOG_LEVEL,
+					transport: {
+						target: "pino-pretty",
+						options: {
+							colorize: true,
+							translateTime: "HH:MM:ss",
+							ignore: "pid,hostname",
+						},
+					},
+				}
+			: false,
 	});
 
 	app.get("/health", async () => ({
@@ -44,8 +56,7 @@ export async function startApiServer(
 	await app.listen({ port, host: "0.0.0.0" });
 
 	console.log(`🚀 API server listening on port ${port}`);
-	console.log("📡 Query endpoint: POST /api/query");
-	console.log("💚 Health check: GET /health");
+	console.log("");
 
 	if (options.telegramBot) {
 		console.log("📱 Telegram webhook endpoint: POST /telegram/webhook");

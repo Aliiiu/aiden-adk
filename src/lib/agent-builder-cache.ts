@@ -1,66 +1,34 @@
-import { AgentBuilder, SequentialAgent } from "@iqai/adk";
+import { AgentBuilder } from "@iqai/adk";
 import { getLanguageDetectorAgent } from "../agents/sub-agents/language-detector-agent/agent";
 import { getWorkflowAgent } from "../agents/sub-agents/workflow-agent/agent";
 
 /**
- * Cached root agent built only once at initialization.
+ * Creates a fresh AgentBuilder with .asSequential() to preserve multi-agent typing.
  *
- * The agent hierarchy (including expensive MCP tool loading) is built once,
- * then reused across all requests with different sessions for isolation.
+ * CRITICAL: We create a NEW agent hierarchy each time, but MCP tools are cached automatically.
+ * - According to ADK docs: "McpToolset caches tools automatically, no manual caching needed"
+ * - .asSequential() returns AgentBuilder<string, true> preserving multi-agent typing
+ * - Each call creates fresh agent instances to avoid "already has parent" error
+ * - Multi-agent typing ensures runner.ask() returns MultiAgentResponse[]
  *
- * This pattern follows ADK best practices:
- * - BaseAgent instances (like SequentialAgent) are stateless and can be safely reused
- * - Sessions hold conversation state and are created per-request
- * - MCP tools are cached within sub-agents (automatic in McpToolset)
+ * Trade-offs:
+ * - ✅ MCP tools are automatically cached by the ADK (no performance penalty)
+ * - ✅ Preserves multi-agent response typing (M=true)
+ * - ✅ Creates isolated sessions per request
+ * - ✅ No "already has parent" error (fresh agents each time)
+ * - ⚠️ Creates new agent instances per request (lightweight operation)
  */
-let cachedRootAgent: SequentialAgent | null = null;
-
-/**
- * Creates the root agent system once, including all sub-agents and tools.
- */
-async function buildRootAgent(): Promise<SequentialAgent> {
-	console.log("🚀 Building root agent system (one-time setup)...");
+export async function getSharedAgentBuilder() {
 	const languageDetectorAgent = getLanguageDetectorAgent();
 	const workflowAgent = await getWorkflowAgent();
 
-	const rootAgent = new SequentialAgent({
-		name: "root_agent",
-		description: "",
-		subAgents: [languageDetectorAgent, workflowAgent],
-	});
-
-	return rootAgent;
-}
-
-async function getSharedRootAgent(): Promise<SequentialAgent> {
-	if (!cachedRootAgent) {
-		cachedRootAgent = await buildRootAgent();
-	}
-	return cachedRootAgent;
-}
-
-/**
- * Creates an AgentBuilder with the cached root agent.
- *
- * IMPORTANT: This returns a builder that uses AgentBuilder.withAgent(),
- * which allows the same agent instance to be reused with different sessions.
- *
- * Each call to .withQuickSession().build() on the returned builder creates
- * a NEW isolated session while reusing the cached agent hierarchy.
- *
- * Benefits:
- * - Agent hierarchy built once (cheap reuse)
- * - MCP tools loaded once (expensive, cached in McpToolset)
- * - Each .build() creates isolated session (prevents state pollution)
- */
-export async function getSharedAgentBuilder() {
-	const rootAgent = await getSharedRootAgent();
-
-	// AgentBuilder.withAgent() allows reusing the same agent with new sessions
-	return AgentBuilder.withAgent(rootAgent);
+	return AgentBuilder.create("root_agent").asSequential([
+		languageDetectorAgent,
+		workflowAgent,
+	]);
 }
 
 export async function initializeSharedAgentBuilder() {
-	await getSharedRootAgent();
+	await getWorkflowAgent();
 	console.log("✅ Shared agent system initialized and ready");
 }
