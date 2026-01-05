@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { dbService } from "../../lib/db/db-service";
 import { mapLanguageToCode } from "../../telegram/utils/language-mapper";
 import { getApiAgentRunner } from "../agent-runner";
-import { apiDb } from "../db-service";
 
 interface QueryRequest {
 	query: string;
@@ -82,9 +82,9 @@ export async function queryHandler(
 
 		try {
 			const userAddress = userId ? `api_${userId}` : "api_anonymous";
-			const bot = await apiDb.getOrCreateBot("api_endpoint", "http");
+			const bot = await dbService.getOrCreateBot("api_endpoint", "http");
 
-			const message = await apiDb.createMessage({
+			const message = await dbService.createMessage({
 				chatId: sessionId || null,
 				botId: bot.id,
 				userAddress,
