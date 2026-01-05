@@ -181,18 +181,24 @@ export class DbService {
 	}
 
 	async updateTeamLinks(teamId: number, links: unknown[]) {
+		const currentTeam = await prisma.team.findUnique({
+			where: { id: teamId },
+			select: { logs: true },
+		});
+
+		const currentLogs = (currentTeam?.logs as unknown[]) || [];
+		const newLogEntry = {
+			timestamp: new Date().toISOString(),
+			actionType: "UPDATED",
+			resourceType: ["links"],
+			details: { source: "telegram" },
+		};
+
 		return await prisma.team.update({
 			where: { id: teamId },
 			data: {
 				links: links as Prisma.InputJsonValue[],
-				logs: {
-					push: {
-						timestamp: new Date().toISOString(),
-						actionType: "UPDATED",
-						resourceType: ["links"],
-						details: { source: "telegram" },
-					} as Prisma.InputJsonValue,
-				},
+				logs: [...currentLogs, newLogEntry] as Prisma.InputJsonValue,
 			},
 		});
 	}

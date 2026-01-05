@@ -11,7 +11,7 @@ async function createTeam() {
 			customInstructions: null,
 			links: [],
 			settings: [],
-			logs: undefined,
+			logs: [],
 		},
 	});
 
