@@ -25,6 +25,11 @@ interface QueryResponse {
 	};
 }
 
+interface AgentResponse {
+	agent: string;
+	response: unknown;
+}
+
 export async function queryHandler(
 	request: FastifyRequest<{ Body: QueryRequest }>,
 	reply: FastifyReply,
@@ -44,7 +49,7 @@ export async function queryHandler(
 
 	try {
 		const runner = await getApiAgentRunner();
-		const response = await runner.ask(query);
+		const response = (await runner.ask(query)) as AgentResponse[];
 
 		const languageDetectorResponse = response.find(
 			(r) => r.agent === "language_detector",

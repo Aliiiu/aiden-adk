@@ -8,6 +8,11 @@ export const MESSAGE_FOOTER =
 	'\n\n🧠 Powered by <a href="https://aiden.id">AIDEN</a>';
 const MAX_MESSAGE_LENGTH = 4000;
 
+interface AgentResponse {
+	agent: string;
+	response: unknown;
+}
+
 export async function processQuery(ctx: Context, query: string): Promise<void> {
 	const startTime = Date.now();
 
@@ -15,7 +20,7 @@ export async function processQuery(ctx: Context, query: string): Promise<void> {
 		await ctx.sendChatAction("typing");
 
 		const runner = await getAgentRunner();
-		const response = await runner.ask(query);
+		const response = (await runner.ask(query)) as AgentResponse[];
 
 		const languageDetectorResponse = response.find(
 			(r) => r.agent === "language_detector",
