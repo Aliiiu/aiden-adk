@@ -193,84 +193,134 @@ async function fetchAndFormatTokenData(
 	id: string | null,
 ): Promise<string> {
 	try {
-		let identifier = id || givenTicker;
-		let useTickerParam = !!givenTicker && !id;
-
-		if (!identifier) {
-			throw new Error("No token identifier provided");
-		}
-
-		if (givenTicker && TICKER_TO_ID_MAP[givenTicker.toLowerCase()]) {
-			identifier = TICKER_TO_ID_MAP[givenTicker.toLowerCase()];
-			useTickerParam = false;
-		}
-
-		const paramName = useTickerParam ? "symbols" : "ids";
-		const searchParams = new URLSearchParams({
-			vs_currency: "usd",
-			[paramName]: identifier,
-			price_change_percentage: "1h,24h,7d",
-		});
-
-		const coingeckoApiUrl = `https://pro-api.coingecko.com/api/v3/coins/markets?${searchParams.toString()}`;
-
-		const gatewayUrl = new URL(env.IQ_GATEWAY_URL);
-		gatewayUrl.searchParams.append("url", coingeckoApiUrl);
-		gatewayUrl.searchParams.append("cacheDuration", "60");
-
-		const response = await fetch(gatewayUrl.toString(), {
-			headers: {
-				"x-api-key": env.IQ_GATEWAY_KEY,
-			},
-		});
-
-		if (!response.ok) {
-			throw new Error(`API request failed: ${response.statusText}`);
-		}
-
-		const rawData = await response.json();
-
-		const data = coingeckoResponseSchema.parse(rawData);
-
-		if (!data || data.length === 0) {
-			// If we used ids parameter and got no results, retry with symbols parameter
-			if (!useTickerParam) {
-				const retrySearchParams = new URLSearchParams({
-					vs_currency: "usd",
-					symbols: identifier,
-					price_change_percentage: "1h,24h,7d",
-				});
-
-				const retryCoingeckoApiUrl = `https://pro-api.coingecko.com/api/v3/coins/markets?${retrySearchParams.toString()}`;
-				const retryGatewayUrl = new URL(env.IQ_GATEWAY_URL);
-				retryGatewayUrl.searchParams.append("url", retryCoingeckoApiUrl);
-				retryGatewayUrl.searchParams.append("cacheDuration", "60");
-
-				const retryResponse = await fetch(retryGatewayUrl.toString(), {
-					headers: { "x-api-key": env.IQ_GATEWAY_KEY },
-				});
-
-				if (retryResponse.ok) {
-					const retryData = coingeckoResponseSchema.parse(
-						await retryResponse.json(),
-					);
-					if (retryData && retryData.length > 0) {
-						return formatApiResponse(retryData[0]);
-					}
-				}
-			}
-
-			if (!givenTicker) {
-				return "🔍 Unable to fetch price data from the linked token.\n\n💡 Try using the ticker symbol directly instead:\nExample: /price XRP or /price BTC\n\nOr update your link with /link command.";
-			}
-			return "🔍 Token not found!\n\n❓ The token identifier you entered doesn't exist. Please check the spelling and try again.\n\nExample: /price BTC or /price ETH";
-		}
-
-		return formatApiResponse(data[0]);
+		const { identifier, useTickerParam } = resolveTokenIdentifier(
+			givenTicker,
+			id,
+		);
+		const data = await fetchCoinGeckoMarketsWithRetry(
+			identifier,
+			useTickerParam,
+		);
+		return formatMarketResponse(data, givenTicker);
 	} catch (error) {
 		console.error("API Error:", error);
 		return `😕 Unable to fetch price data. Please try again later.\n\nError: ${error instanceof Error ? error.message : "Unknown error"}`;
 	}
+}
+
+type TokenResolution = {
+	identifier: string;
+	useTickerParam: boolean;
+};
+
+function resolveTokenIdentifier(
+	givenTicker: string | null,
+	id: string | null,
+): TokenResolution {
+	let identifier = id || givenTicker;
+	let useTickerParam = !!givenTicker && !id;
+
+	if (!identifier) {
+		throw new Error("No token identifier provided");
+	}
+
+	if (givenTicker) {
+		const mappedId = TICKER_TO_ID_MAP[givenTicker.toLowerCase()];
+		if (mappedId) {
+			identifier = mappedId;
+			useTickerParam = false;
+		}
+	}
+
+	return { identifier, useTickerParam };
+}
+
+function buildCoinGeckoApiUrl(
+	identifier: string,
+	useTickerParam: boolean,
+): string {
+	const paramName = useTickerParam ? "symbols" : "ids";
+	const searchParams = new URLSearchParams({
+		vs_currency: "usd",
+		[paramName]: identifier,
+		price_change_percentage: "1h,24h,7d",
+	});
+
+	return `https://pro-api.coingecko.com/api/v3/coins/markets?${searchParams.toString()}`;
+}
+
+function buildGatewayUrl(apiUrl: string): string {
+	const gatewayUrl = new URL(env.IQ_GATEWAY_URL);
+	gatewayUrl.searchParams.append("url", apiUrl);
+	gatewayUrl.searchParams.append("cacheDuration", "60");
+	return gatewayUrl.toString();
+}
+
+async function fetchCoinGeckoMarkets(apiUrl: string): Promise<CoinGeckoData[]> {
+	const response = await fetch(buildGatewayUrl(apiUrl), {
+		headers: {
+			"x-api-key": env.IQ_GATEWAY_KEY,
+		},
+	});
+
+	if (!response.ok) {
+		throw new Error(`API request failed: ${response.statusText}`);
+	}
+
+	const rawData = await response.json();
+	return coingeckoResponseSchema.parse(rawData);
+}
+
+async function fetchCoinGeckoMarketsWithRetry(
+	identifier: string,
+	useTickerParam: boolean,
+): Promise<CoinGeckoData[]> {
+	const data = await fetchCoinGeckoMarkets(
+		buildCoinGeckoApiUrl(identifier, useTickerParam),
+	);
+
+	if (data.length > 0 || useTickerParam) {
+		return data;
+	}
+
+	return fetchCoinGeckoMarketsRetry(identifier);
+}
+
+async function fetchCoinGeckoMarketsRetry(
+	identifier: string,
+): Promise<CoinGeckoData[]> {
+	const apiUrl = buildCoinGeckoApiUrl(identifier, true);
+	const response = await fetch(buildGatewayUrl(apiUrl), {
+		headers: {
+			"x-api-key": env.IQ_GATEWAY_KEY,
+		},
+	});
+
+	if (!response.ok) {
+		return [];
+	}
+
+	const rawData = await response.json();
+	return coingeckoResponseSchema.parse(rawData);
+}
+
+function formatMarketResponse(
+	data: CoinGeckoData[],
+	givenTicker: string | null,
+): string {
+	if (!data || data.length === 0) {
+		return formatMissingTokenMessage(givenTicker);
+	}
+
+	return formatApiResponse(data[0]);
+}
+
+function formatMissingTokenMessage(givenTicker: string | null): string {
+	if (!givenTicker) {
+		return "🔍 Unable to fetch price data from the linked token.\n\n💡 Try using the ticker symbol directly instead:\nExample: /price XRP or /price BTC\n\nOr update your link with /link command.";
+	}
+
+	return "🔍 Token not found!\n\n❓ The token identifier you entered doesn't exist. Please check the spelling and try again.\n\nExample: /price BTC or /price ETH";
 }
 
 function formatApiResponse(data: CoinGeckoData): string {
