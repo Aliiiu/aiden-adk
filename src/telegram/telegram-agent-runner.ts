@@ -10,7 +10,6 @@ type AgentRunner = Awaited<
 >["runner"];
 
 export async function getAgentRunner(): Promise<AgentRunner> {
-	console.log("🔄 Creating new Telegram agent session...");
 	const builder = await getSharedAgentBuilder();
 
 	const initialState = {

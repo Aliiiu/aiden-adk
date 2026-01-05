@@ -10,7 +10,6 @@ type AgentRunner = Awaited<
 >["runner"];
 
 export async function getApiAgentRunner(): Promise<AgentRunner> {
-	console.log("🔄 Creating new API agent session...");
 	const builder = await getSharedAgentBuilder();
 
 	const initialState = {
@@ -29,5 +28,6 @@ export async function getApiAgentRunner(): Promise<AgentRunner> {
 			appName: "api-server",
 		})
 		.build();
+
 	return runner;
 }
