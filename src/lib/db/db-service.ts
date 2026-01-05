@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import { prisma } from "../lib/db";
+import { prisma } from "../db";
 
 export interface CreateChatParams {
 	userAddress: string;
@@ -198,4 +198,4 @@ export class DbService {
 	}
 }
 
-export const telegramDb = new DbService();
+export const dbService = new DbService();

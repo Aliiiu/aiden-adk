@@ -1,6 +1,6 @@
 import type { Context } from "telegraf";
 import { env } from "../env";
-import { telegramDb } from "./db-service";
+import { dbService } from "../lib/db/db-service";
 import { getAgentRunner } from "./telegram-agent-runner";
 import { mapLanguageToCode } from "./utils/language-mapper";
 
@@ -46,9 +46,9 @@ export async function processQuery(ctx: Context, query: string): Promise<void> {
 					const platformChannelId = String(ctx.chat.id);
 					const userAddress = `telegram_${ctx.from.id}`;
 
-					const bot = await telegramDb.getOrCreateBot(platformChannelId);
+					const bot = await dbService.getOrCreateBot(platformChannelId);
 
-					await telegramDb.createMessage({
+					await dbService.createMessage({
 						chatId: null,
 						botId: bot.id,
 						userAddress,

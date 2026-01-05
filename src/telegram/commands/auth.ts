@@ -1,5 +1,5 @@
 import type { Context } from "telegraf";
-import { telegramDb } from "../db-service";
+import { dbService } from "../../lib/db/db-service";
 import { getMessageText, shortenApiKey } from "./utils";
 
 export async function handleAuth(ctx: Context): Promise<void> {
@@ -12,7 +12,7 @@ export async function handleAuth(ctx: Context): Promise<void> {
 	console.log("[auth] apiKey provided:", apiKey ? "YES" : "NO");
 
 	try {
-		const bot = await telegramDb.getOrCreateBot(platformChannelId);
+		const bot = await dbService.getOrCreateBot(platformChannelId);
 		console.log("[auth] Bot retrieved:", {
 			botId: bot.id,
 			platformChannelId: bot.platformChannelId,
@@ -31,7 +31,7 @@ export async function handleAuth(ctx: Context): Promise<void> {
 		}
 
 		console.log("[auth] Updating bot with API key...");
-		const updatedBot = await telegramDb.updateBotApiKeyAndTeam(bot.id, apiKey);
+		const updatedBot = await dbService.updateBotApiKeyAndTeam(bot.id, apiKey);
 
 		console.log("[auth] Bot updated:", {
 			botId: updatedBot.id,

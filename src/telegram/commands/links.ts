@@ -1,5 +1,5 @@
 import type { Context } from "telegraf";
-import { telegramDb } from "../db-service";
+import { dbService } from "../../lib/db/db-service";
 import { getMessageText, type TokenLink, validateURL } from "./utils";
 
 export async function handleLink(ctx: Context): Promise<void> {
@@ -24,14 +24,14 @@ export async function handleLink(ctx: Context): Promise<void> {
 
 	try {
 		const platformChannelId = String(ctx.chat?.id);
-		const bot = await telegramDb.getOrCreateBot(platformChannelId);
+		const bot = await dbService.getOrCreateBot(platformChannelId);
 
 		if (!bot.teamId) {
 			await ctx.reply("❌ Team not configured for this bot.");
 			return;
 		}
 
-		const links = (await telegramDb.getTeamLinks(bot.teamId)) as TokenLink[];
+		const links = (await dbService.getTeamLinks(bot.teamId)) as TokenLink[];
 		const existingLink = links.find((link) => link.id === tokenInfo.id);
 
 		if (existingLink) {
@@ -52,7 +52,7 @@ export async function handleLink(ctx: Context): Promise<void> {
 			});
 		}
 
-		await telegramDb.updateTeamLinks(bot.teamId, links);
+		await dbService.updateTeamLinks(bot.teamId, links);
 		await ctx.reply(
 			`✅ Subscription successfully updated for ${tokenInfo.name}. 🚀`,
 		);
@@ -87,14 +87,14 @@ export async function handleUnlink(ctx: Context): Promise<void> {
 
 	try {
 		const platformChannelId = String(ctx.chat?.id);
-		const bot = await telegramDb.getOrCreateBot(platformChannelId);
+		const bot = await dbService.getOrCreateBot(platformChannelId);
 
 		if (!bot.teamId) {
 			await ctx.reply("❌ Team not configured for this bot.");
 			return;
 		}
 
-		const links = (await telegramDb.getTeamLinks(bot.teamId)) as TokenLink[];
+		const links = (await dbService.getTeamLinks(bot.teamId)) as TokenLink[];
 		const linkIndex = links.findIndex((link) => link.id === linkId);
 
 		if (linkIndex === -1) {
@@ -106,7 +106,7 @@ export async function handleUnlink(ctx: Context): Promise<void> {
 
 		if (indices.length === 0) {
 			links.splice(linkIndex, 1);
-			await telegramDb.updateTeamLinks(bot.teamId, links);
+			await dbService.updateTeamLinks(bot.teamId, links);
 			await ctx.reply(
 				`🚀 Subscription successfully removed for ${linkId} link.`,
 			);
@@ -128,7 +128,7 @@ export async function handleUnlink(ctx: Context): Promise<void> {
 				links.splice(linkIndex, 1);
 			}
 
-			await telegramDb.updateTeamLinks(bot.teamId, links);
+			await dbService.updateTeamLinks(bot.teamId, links);
 
 			let message = `🚀 Subscription successfully removed for ${linkId} link`;
 			if (successfullyRemoved.length > 0) {
@@ -149,14 +149,14 @@ export async function handleUnlink(ctx: Context): Promise<void> {
 export async function handleList(ctx: Context): Promise<void> {
 	try {
 		const platformChannelId = String(ctx.chat?.id);
-		const bot = await telegramDb.getOrCreateBot(platformChannelId);
+		const bot = await dbService.getOrCreateBot(platformChannelId);
 
 		if (!bot.teamId) {
 			await ctx.reply("❌ Team not configured for this bot.");
 			return;
 		}
 
-		const links = (await telegramDb.getTeamLinks(bot.teamId)) as TokenLink[];
+		const links = (await dbService.getTeamLinks(bot.teamId)) as TokenLink[];
 
 		if (links.length === 0) {
 			await ctx.reply(

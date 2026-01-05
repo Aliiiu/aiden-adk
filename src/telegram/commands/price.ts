@@ -2,7 +2,7 @@ import dedent from "dedent";
 import type { Context } from "telegraf";
 import { z } from "zod";
 import { env } from "../../env";
-import { telegramDb } from "../db-service";
+import { dbService } from "../../lib/db/db-service";
 import { mapLanguageToCode } from "../utils/language-mapper";
 import { getMessageText } from "./utils";
 
@@ -71,12 +71,12 @@ export async function handlePrice(ctx: Context): Promise<void> {
 	if (env.DATABASE_URL) {
 		try {
 			const platformChannelId = String(ctx.chat?.id);
-			const bot = await telegramDb.getOrCreateBot(platformChannelId);
+			const bot = await dbService.getOrCreateBot(platformChannelId);
 
 			const userAddress = `telegram_${ctx.from?.id}`;
 
 			if (bot.teamId) {
-				await telegramDb.createMessage({
+				await dbService.createMessage({
 					chatId: null,
 					botId: bot.id,
 					userAddress,
@@ -130,13 +130,13 @@ async function getTokenDetails(
 	}
 
 	try {
-		const bot = await telegramDb.getOrCreateBot(platformChannelId);
+		const bot = await dbService.getOrCreateBot(platformChannelId);
 
 		if (!bot.teamId) {
 			return { id: null, tokenName: null };
 		}
 
-		const links = (await telegramDb.getTeamLinks(bot.teamId)) as TokenLink[];
+		const links = (await dbService.getTeamLinks(bot.teamId)) as TokenLink[];
 
 		const trackedToken = getPreferredToken(links);
 
