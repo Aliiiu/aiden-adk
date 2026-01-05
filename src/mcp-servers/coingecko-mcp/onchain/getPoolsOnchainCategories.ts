@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetPoolsOnchainCategoriesInputSchema = z.object({
 	category: z.string().describe("Category slug (e.g., 'meme')"),

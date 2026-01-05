@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetNftsMarketChartInputSchema = z.object({
 	id: z.string().describe("NFT collection ID"),

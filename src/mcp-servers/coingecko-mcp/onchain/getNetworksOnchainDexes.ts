@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetNetworksOnchainDexesInputSchema = z.object({
 	network: z.string().describe("Network identifier (e.g., 'eth')"),

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 const GlobalMarketStatsSchema = z.object({
 	active_cryptocurrencies: z.number().optional(),

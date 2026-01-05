@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetCoinDetailsInputSchema = z.object({
 	id: z.string().describe("Coin ID (use getCoinsList to discover IDs)"),

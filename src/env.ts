@@ -13,10 +13,16 @@ export const envSchema = z.object({
 	IQ_GATEWAY_KEY: z.string(),
 	GOOGLE_GENERATIVE_AI_API_KEY: z.string(),
 	LOG_LEVEL: z.string().optional(),
-	// Langfuse Telemetry Configuration
 	LANGFUSE_PUBLIC_KEY: z.string().optional(),
 	LANGFUSE_SECRET_KEY: z.string().optional(),
 	LANGFUSE_BASEURL: z.string().optional(),
+	TELEGRAM_BOT_TOKEN: z.string().optional(),
+	TELEGRAM_MODE: z.enum(["polling", "webhook"]).default("polling"),
+	DATABASE_URL: z.string(),
+	API_ENABLED: z.coerce.boolean().default(false),
+	API_PORT: z.coerce.number().default(3000),
+	TELEGRAM_WEBHOOK_URL: z.string().optional(),
+	TELEGRAM_PORT: z.number().optional(),
 });
 
 /**

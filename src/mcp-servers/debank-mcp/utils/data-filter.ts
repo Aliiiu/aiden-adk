@@ -154,7 +154,7 @@ export class LLMDataFilter {
 				filteredData = { result: filteredData };
 			}
 
-			logger.info(`Successfully filtered data`);
+			logger.info("Successfully filtered data");
 			return JSON.stringify(filteredData);
 		} catch (error) {
 			logger.error("Error filtering data:", error);

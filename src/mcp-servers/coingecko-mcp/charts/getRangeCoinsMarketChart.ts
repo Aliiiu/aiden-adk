@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetRangeCoinsMarketChartInputSchema = z.object({
 	id: z.string().describe("Coin identifier (e.g., 'bitcoin')"),

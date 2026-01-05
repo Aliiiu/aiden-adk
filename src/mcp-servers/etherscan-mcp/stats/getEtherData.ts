@@ -1,6 +1,6 @@
 import z from "zod";
-import { getChainsDescription } from "../enums/chains.js";
-import { callEtherscanApi } from "../shared.js";
+import { getChainsDescription } from "../enums/chains";
+import { callEtherscanApi } from "../shared";
 
 export const GetEtherDataInputSchema = z.object({
 	action: z

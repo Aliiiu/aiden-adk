@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { FastMCP } from "fastmcp";
-import { createChildLogger } from "../../lib/utils/logger.js";
-import { debankTools } from "./tools.js";
+import { createChildLogger } from "../../lib/utils/logger";
+import { debankTools } from "./tools";
 
 const logger = createChildLogger("DeBank MCP");
 

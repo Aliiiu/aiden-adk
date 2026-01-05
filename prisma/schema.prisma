@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AnswerSource {
+  id        Int     @id @default(autoincrement())
+  folderId  String?
+  url       String?
+  title     String
+  messageId Int
+  Message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+}
+
+model Chat {
+  id          String    @id @default(uuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userAddress String?
+  title       String
+  deleted     Boolean   @default(false)
+  pinned      Boolean   @default(false)
+  teamId      Int?
+  Team        Team?     @relation(fields: [teamId], references: [id])
+  Messages    Message[]
+}
+
+model Message {
+  id            Int            @id @default(autoincrement())
+  userAddress   String?
+  createdAt     DateTime       @default(now())
+  query         String
+  debugOptions  Json
+  answer        String
+  language      String
+  cacheExpires  DateTime
+  rating        Int?
+  duration      Int?
+  metadata      Json?
+  chatId        String?
+  botId         String?
+  AnswerSources AnswerSource[]
+  Bot           Bot?           @relation(fields: [botId], references: [id])
+  Chat          Chat?          @relation(fields: [chatId], references: [id])
+}
+
+model Bot {
+  id                String    @id @default(uuid())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  platformChannelId String    @unique
+  metadata          Json?
+  ownerApiKey       String?
+  platform          String?
+  chatType          ChatType?
+  token             Json?
+  teamId            Int?
+  Team              Team?     @relation(fields: [teamId], references: [id])
+  Messages          Message[]
+}
+
+model Team {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  apiKeys            String[] @default([])
+  customInstructions String?
+  links              Json[]
+  settings           Json[]
+  logs               Json?
+  Bots               Bot[]
+  Chats              Chat[]
+}
+
+enum ChatType {
+  PRIVATE
+  GROUP
+}

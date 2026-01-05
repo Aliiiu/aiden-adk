@@ -15,11 +15,11 @@
  *   1 - One or more functions missing params or examples
  */
 
-import type { FunctionMetadata } from "../src/lib/function-index/builder.js";
+import type { FunctionMetadata } from "../src/lib/function-index/builder";
 import {
 	buildFunctionIndex,
 	FALLBACK_PARAMETERS_TEXT,
-} from "../src/lib/function-index/builder.js";
+} from "../src/lib/function-index/builder";
 
 interface ModuleStats {
 	total: number;
@@ -142,7 +142,7 @@ function displayFailedFunctions(
 		}
 		console.log();
 	} else {
-		console.log(`✅ All functions pass!\n`);
+		console.log("✅ All functions pass!\n");
 	}
 }
 
@@ -155,7 +155,7 @@ function calculatePercentage(value: number, total: number): number {
 
 function displayOverallStats(stats: TestStats): void {
 	console.log(`${"━".repeat(80)}`);
-	console.log(`  OVERALL STATISTICS`);
+	console.log("  OVERALL STATISTICS");
 	console.log(`${"━".repeat(80)}\n`);
 	console.log(`  Total functions: ${stats.total}`);
 	console.log(
@@ -168,7 +168,7 @@ function displayOverallStats(stats: TestStats): void {
 
 function displayModuleBreakdown(stats: TestStats): void {
 	console.log(`\n${"━".repeat(80)}`);
-	console.log(`  MODULE BREAKDOWN`);
+	console.log("  MODULE BREAKDOWN");
 	console.log(`${"━".repeat(80)}\n`);
 
 	for (const [module, moduleStats] of stats.byModule.entries()) {
@@ -199,7 +199,7 @@ function runTest(): void {
 	const { documents } = buildFunctionIndex();
 
 	console.log(`${"━".repeat(80)}`);
-	console.log(`  PARAMETER EXTRACTION TEST RESULTS`);
+	console.log("  PARAMETER EXTRACTION TEST RESULTS");
 	console.log(`${"━".repeat(80)}\n`);
 
 	const { stats, failedFunctions } = analyzeFunctions(documents);
@@ -209,7 +209,7 @@ function runTest(): void {
 	displayModuleBreakdown(stats);
 
 	console.log(`${"━".repeat(80)}`);
-	console.log(`  ✨ Test complete\n`);
+	console.log("  ✨ Test complete\n");
 
 	process.exit(failedFunctions.length > 0 ? 1 : 0);
 }

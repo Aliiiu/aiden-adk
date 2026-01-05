@@ -1,8 +1,8 @@
 import { type BaseTool, createTool } from "@iqai/adk";
 import dedent from "dedent";
 import { z } from "zod";
-import { createChildLogger } from "../utils/index.js";
-import { createModule, executeInSandbox } from "./sandbox.js";
+import { createChildLogger } from "../utils/index";
+import { createModule, executeInSandbox } from "./sandbox";
 
 const logger = createChildLogger("Code Execution Tool");
 
@@ -188,19 +188,19 @@ export function createCodeExecutionTool(
  * (CoinGecko, DeBank, DefiLlama, IQAI, Etherscan)
  */
 export async function createMCPCodeExecutionTool(): Promise<BaseTool> {
-	const coingeckoModule = await import(
-		"../../mcp-servers/coingecko-mcp/index.js"
-	);
-	const debankModule = await import(
-		"../../mcp-servers/debank-mcp/wrappers/index.js"
-	);
-	const defillamaModule = await import(
-		"../../mcp-servers/defillama-mcp/wrappers/index.js"
-	);
-	const iqaiModule = await import("../../mcp-servers/iqai/wrappers/index.js");
-	const etherscanModule = await import(
-		"../../mcp-servers/etherscan-mcp/index.js"
-	);
+	const [
+		coingeckoModule,
+		debankModule,
+		defillamaModule,
+		iqaiModule,
+		etherscanModule,
+	] = await Promise.all([
+		import("../../mcp-servers/coingecko-mcp/index"),
+		import("../../mcp-servers/debank-mcp/wrappers/index"),
+		import("../../mcp-servers/defillama-mcp/wrappers/index"),
+		import("../../mcp-servers/iqai/wrappers/index"),
+		import("../../mcp-servers/etherscan-mcp/index"),
+	]);
 
 	return createCodeExecutionTool({
 		availableModules: {

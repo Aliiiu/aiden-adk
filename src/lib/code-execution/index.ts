@@ -10,10 +10,10 @@ export {
 	executeInSandbox,
 	type SandboxConfig,
 	type SandboxResult,
-} from "./sandbox.js";
+} from "./sandbox";
 
 export {
 	type CodeExecutionToolConfig,
 	createCodeExecutionTool,
 	createMCPCodeExecutionTool,
-} from "./tool.js";
+} from "./tool";

@@ -1,9 +1,4 @@
-/**
- * Shared utilities for DefiLlama MCP wrappers
- */
-
-import { createChildLogger } from "../../lib/utils/index.js";
-// import { autoResolveEntities } from "./tools.js"; // Disabled - now handled explicitly by agent
+import { createChildLogger } from "../../lib/utils/index";
 import {
 	blockchainService,
 	dexService,
@@ -13,14 +8,14 @@ import {
 	protocolService,
 	stablecoinService,
 	yieldService,
-} from "./services/index.js";
+} from "./services/index";
 
 const logger = createChildLogger("DefiLlama MCP Shared");
 
 /**
  * Map of service names to their instances
  */
-const serviceMap = {
+export const serviceMap = {
 	blockchain: blockchainService,
 	dex: dexService,
 	fees: feesService,
@@ -34,21 +29,14 @@ const serviceMap = {
 type ServiceName = keyof typeof serviceMap;
 
 /**
- * Execute a DefiLlama service method by name
- * Returns raw JSON data for use in sandbox code execution
- *
- * NOTE: Parameter resolution is now handled explicitly by the agent using
- * discovery endpoints (getProtocols, getChains) and JQTS filtering.
- * Auto-resolution has been disabled for transparency.
+ * Execute a service method by name using strings
  */
 export async function executeServiceMethod(
-	serviceName: ServiceName,
+	serviceName: string,
 	methodName: string,
-	params: Record<string, any>,
-): Promise<any> {
-	// Auto-resolution disabled - agent now handles parameter discovery explicitly
-	// await autoResolveEntities(params);
-	const service = serviceMap[serviceName];
+	params?: Record<string, unknown>,
+): Promise<unknown> {
+	const service = serviceMap[serviceName as ServiceName];
 
 	if (!service) {
 		throw new Error(
@@ -56,14 +44,21 @@ export async function executeServiceMethod(
 		);
 	}
 
-	const method = (service as any)[methodName];
-	if (!method || typeof method !== "function") {
+	const method = service[methodName as keyof typeof service];
+
+	if (typeof method !== "function") {
 		throw new Error(
 			`Method '${methodName}' not found on service '${serviceName}'`,
 		);
 	}
 
-	service.setRawOutputMode(true);
+	// Call setRawOutputMode if it exists
+	if (
+		"setRawOutputMode" in service &&
+		typeof service.setRawOutputMode === "function"
+	) {
+		service.setRawOutputMode(true);
+	}
 
 	logger.debug(
 		`Executing ${serviceName}.${methodName}`,
@@ -71,9 +66,9 @@ export async function executeServiceMethod(
 	);
 
 	try {
-		logger.debug(`Method called with ${JSON.stringify(params)}`);
-		const result = await method.call(service, params);
-
+		const result = await (
+			method as (params?: Record<string, unknown>) => Promise<unknown>
+		).call(service, params);
 		logger.debug(`Method ${serviceName}.${methodName} completed successfully`);
 		return result;
 	} catch (error) {

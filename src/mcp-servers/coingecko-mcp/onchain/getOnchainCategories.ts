@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 const VolumeChangeSchema = z.object({
 	h1: z.string().nullable().optional(),

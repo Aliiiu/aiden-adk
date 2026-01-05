@@ -1,5 +1,5 @@
 import z from "zod";
-import { callIqAiApi } from "../../make-iq-ai-request.js";
+import { callIqAiApi } from "../../make-iq-ai-request";
 
 export const GetAgentLogsInputSchema = z.object({
 	agentTokenContract: z

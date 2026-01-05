@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const GetTimeframePoolsNetworksOnchainOhlcvInputSchema = z.object({
 	network: z.string().describe("Network identifier"),

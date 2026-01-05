@@ -13,144 +13,134 @@
  */
 
 import jsonata from "jsonata";
-import type { GetChainInput } from "./chains/getChain.js";
-import type { GetGasPricesInput } from "./chains/getGasPrices.js";
-import type { GetAllProtocolsOfSupportedChainsInput } from "./protocols/getAllProtocolsOfSupportedChains.js";
-import type { GetPoolInformationInput } from "./protocols/getPoolInformation.js";
-import type { GetProtocolInformationInput } from "./protocols/getProtocolInformation.js";
-import type { GetTopHoldersOfProtocolInput } from "./protocols/getTopHoldersOfProtocol.js";
-import type { GetListTokenInformationInput } from "./tokens/getListTokenInformation.js";
-import type { GetTokenHistoryPriceInput } from "./tokens/getTokenHistoryPrice.js";
-import type { GetTokenInformationInput } from "./tokens/getTokenInformation.js";
-import type { GetTopHoldersOfTokenInput } from "./tokens/getTopHoldersOfToken.js";
-import type { ExplainTransactionInput } from "./transactions/explainTransaction.js";
-import type { PreExecTransactionInput } from "./transactions/preExecTransaction.js";
-import type { GetUserAllComplexProtocolListInput } from "./users/getUserAllComplexProtocolList.js";
-import type { GetUserAllTokenListInput } from "./users/getUserAllTokenList.js";
-import type { GetUserChainBalanceInput } from "./users/getUserChainBalance.js";
-import type { GetUserComplexProtocolListInput } from "./users/getUserComplexProtocolList.js";
-import type { GetUserHistoryListInput } from "./users/getUserHistoryList.js";
-import type { GetUserNftListInput } from "./users/getUserNftList.js";
-import type { GetUserTokenListInput } from "./users/getUserTokenList.js";
-import type { GetUserTotalBalanceInput } from "./users/getUserTotalBalance.js";
+import type { GetChainInput } from "./chains/getChain";
+import type { GetGasPricesInput } from "./chains/getGasPrices";
+import type { GetAllProtocolsOfSupportedChainsInput } from "./protocols/getAllProtocolsOfSupportedChains";
+import type { GetPoolInformationInput } from "./protocols/getPoolInformation";
+import type { GetProtocolInformationInput } from "./protocols/getProtocolInformation";
+import type { GetTopHoldersOfProtocolInput } from "./protocols/getTopHoldersOfProtocol";
+import type { GetListTokenInformationInput } from "./tokens/getListTokenInformation";
+import type { GetTokenHistoryPriceInput } from "./tokens/getTokenHistoryPrice";
+import type { GetTokenInformationInput } from "./tokens/getTokenInformation";
+import type { GetTopHoldersOfTokenInput } from "./tokens/getTopHoldersOfToken";
+import type { ExplainTransactionInput } from "./transactions/explainTransaction";
+import type { PreExecTransactionInput } from "./transactions/preExecTransaction";
+import type { GetUserAllComplexProtocolListInput } from "./users/getUserAllComplexProtocolList";
+import type { GetUserAllTokenListInput } from "./users/getUserAllTokenList";
+import type { GetUserChainBalanceInput } from "./users/getUserChainBalance";
+import type { GetUserComplexProtocolListInput } from "./users/getUserComplexProtocolList";
+import type { GetUserHistoryListInput } from "./users/getUserHistoryList";
+import type { GetUserNftListInput } from "./users/getUserNftList";
+import type { GetUserTokenListInput } from "./users/getUserTokenList";
+import type { GetUserTotalBalanceInput } from "./users/getUserTotalBalance";
 
 // Export jsonata for parameter discovery and filtering
 export { jsonata };
 
 // Re-export shared utilities for advanced usage
-export { executeServiceMethod } from "../shared.js";
+export { executeServiceMethod } from "../shared";
 // Chains
-export { getChain } from "./chains/getChain.js";
-export { getGasPrices } from "./chains/getGasPrices.js";
-export { getSupportedChainList } from "./chains/getSupportedChainList.js";
+export { getChain } from "./chains/getChain";
+export { getGasPrices } from "./chains/getGasPrices";
+export { getSupportedChainList } from "./chains/getSupportedChainList";
 // Protocols
-export { getAllProtocolsOfSupportedChains } from "./protocols/getAllProtocolsOfSupportedChains.js";
-export { getPoolInformation } from "./protocols/getPoolInformation.js";
-export { getProtocolInformation } from "./protocols/getProtocolInformation.js";
-export { getTopHoldersOfProtocol } from "./protocols/getTopHoldersOfProtocol.js";
+export { getAllProtocolsOfSupportedChains } from "./protocols/getAllProtocolsOfSupportedChains";
+export { getPoolInformation } from "./protocols/getPoolInformation";
+export { getProtocolInformation } from "./protocols/getProtocolInformation";
+export { getTopHoldersOfProtocol } from "./protocols/getTopHoldersOfProtocol";
 // Tokens
-export { getListTokenInformation } from "./tokens/getListTokenInformation.js";
-export { getTokenHistoryPrice } from "./tokens/getTokenHistoryPrice.js";
-export { getTokenInformation } from "./tokens/getTokenInformation.js";
-export { getTopHoldersOfToken } from "./tokens/getTopHoldersOfToken.js";
+export { getListTokenInformation } from "./tokens/getListTokenInformation";
+export { getTokenHistoryPrice } from "./tokens/getTokenHistoryPrice";
+export { getTokenInformation } from "./tokens/getTokenInformation";
+export { getTopHoldersOfToken } from "./tokens/getTopHoldersOfToken";
 // Transactions
-export { explainTransaction } from "./transactions/explainTransaction.js";
-export { preExecTransaction } from "./transactions/preExecTransaction.js";
+export { explainTransaction } from "./transactions/explainTransaction";
+export { preExecTransaction } from "./transactions/preExecTransaction";
 // Users
-export { getUserAllComplexProtocolList } from "./users/getUserAllComplexProtocolList.js";
-export { getUserAllTokenList } from "./users/getUserAllTokenList.js";
-export { getUserChainBalance } from "./users/getUserChainBalance.js";
-export { getUserComplexProtocolList } from "./users/getUserComplexProtocolList.js";
-export { getUserHistoryList } from "./users/getUserHistoryList.js";
-export { getUserNftList } from "./users/getUserNftList.js";
-export { getUserTokenList } from "./users/getUserTokenList.js";
-export { getUserTotalBalance } from "./users/getUserTotalBalance.js";
+export { getUserAllComplexProtocolList } from "./users/getUserAllComplexProtocolList";
+export { getUserAllTokenList } from "./users/getUserAllTokenList";
+export { getUserChainBalance } from "./users/getUserChainBalance";
+export { getUserComplexProtocolList } from "./users/getUserComplexProtocolList";
+export { getUserHistoryList } from "./users/getUserHistoryList";
+export { getUserNftList } from "./users/getUserNftList";
+export { getUserTokenList } from "./users/getUserTokenList";
+export { getUserTotalBalance } from "./users/getUserTotalBalance";
 
 // Default export with all functions grouped
 export default {
 	// Chains
 	getSupportedChainList: async () =>
-		(await import("./chains/getSupportedChainList.js")).getSupportedChainList(),
+		(await import("./chains/getSupportedChainList")).getSupportedChainList(),
 	getChain: async (params: GetChainInput) =>
-		(await import("./chains/getChain.js")).getChain(params),
+		(await import("./chains/getChain")).getChain(params),
 	getGasPrices: async (params: GetGasPricesInput) =>
-		(await import("./chains/getGasPrices.js")).getGasPrices(params),
+		(await import("./chains/getGasPrices")).getGasPrices(params),
 
 	// Protocols
 	getAllProtocolsOfSupportedChains: async (
 		params?: GetAllProtocolsOfSupportedChainsInput,
 	) =>
 		(
-			await import("./protocols/getAllProtocolsOfSupportedChains.js")
+			await import("./protocols/getAllProtocolsOfSupportedChains")
 		).getAllProtocolsOfSupportedChains(params),
 	getProtocolInformation: async (params: GetProtocolInformationInput) =>
-		(
-			await import("./protocols/getProtocolInformation.js")
-		).getProtocolInformation(params),
-	getTopHoldersOfProtocol: async (params: GetTopHoldersOfProtocolInput) =>
-		(
-			await import("./protocols/getTopHoldersOfProtocol.js")
-		).getTopHoldersOfProtocol(params),
-	getPoolInformation: async (params: GetPoolInformationInput) =>
-		(await import("./protocols/getPoolInformation.js")).getPoolInformation(
+		(await import("./protocols/getProtocolInformation")).getProtocolInformation(
 			params,
 		),
+	getTopHoldersOfProtocol: async (params: GetTopHoldersOfProtocolInput) =>
+		(
+			await import("./protocols/getTopHoldersOfProtocol")
+		).getTopHoldersOfProtocol(params),
+	getPoolInformation: async (params: GetPoolInformationInput) =>
+		(await import("./protocols/getPoolInformation")).getPoolInformation(params),
 
 	// Tokens
 	getTokenInformation: async (params: GetTokenInformationInput) =>
-		(await import("./tokens/getTokenInformation.js")).getTokenInformation(
+		(await import("./tokens/getTokenInformation")).getTokenInformation(params),
+	getListTokenInformation: async (params: GetListTokenInformationInput) =>
+		(await import("./tokens/getListTokenInformation")).getListTokenInformation(
 			params,
 		),
-	getListTokenInformation: async (params: GetListTokenInformationInput) =>
-		(
-			await import("./tokens/getListTokenInformation.js")
-		).getListTokenInformation(params),
 	getTopHoldersOfToken: async (params: GetTopHoldersOfTokenInput) =>
-		(await import("./tokens/getTopHoldersOfToken.js")).getTopHoldersOfToken(
+		(await import("./tokens/getTopHoldersOfToken")).getTopHoldersOfToken(
 			params,
 		),
 	getTokenHistoryPrice: async (params: GetTokenHistoryPriceInput) =>
-		(await import("./tokens/getTokenHistoryPrice.js")).getTokenHistoryPrice(
+		(await import("./tokens/getTokenHistoryPrice")).getTokenHistoryPrice(
 			params,
 		),
 
 	// Users
 	getUserTotalBalance: async (params: GetUserTotalBalanceInput) =>
-		(await import("./users/getUserTotalBalance.js")).getUserTotalBalance(
-			params,
-		),
+		(await import("./users/getUserTotalBalance")).getUserTotalBalance(params),
 	getUserChainBalance: async (params: GetUserChainBalanceInput) =>
-		(await import("./users/getUserChainBalance.js")).getUserChainBalance(
-			params,
-		),
+		(await import("./users/getUserChainBalance")).getUserChainBalance(params),
 	getUserTokenList: async (params: GetUserTokenListInput) =>
-		(await import("./users/getUserTokenList.js")).getUserTokenList(params),
+		(await import("./users/getUserTokenList")).getUserTokenList(params),
 	getUserAllTokenList: async (params: GetUserAllTokenListInput) =>
-		(await import("./users/getUserAllTokenList.js")).getUserAllTokenList(
-			params,
-		),
+		(await import("./users/getUserAllTokenList")).getUserAllTokenList(params),
 	getUserComplexProtocolList: async (params: GetUserComplexProtocolListInput) =>
 		(
-			await import("./users/getUserComplexProtocolList.js")
+			await import("./users/getUserComplexProtocolList")
 		).getUserComplexProtocolList(params),
 	getUserAllComplexProtocolList: async (
 		params: GetUserAllComplexProtocolListInput,
 	) =>
 		(
-			await import("./users/getUserAllComplexProtocolList.js")
+			await import("./users/getUserAllComplexProtocolList")
 		).getUserAllComplexProtocolList(params),
 	getUserHistoryList: async (params: GetUserHistoryListInput) =>
-		(await import("./users/getUserHistoryList.js")).getUserHistoryList(params),
+		(await import("./users/getUserHistoryList")).getUserHistoryList(params),
 	getUserNftList: async (params: GetUserNftListInput) =>
-		(await import("./users/getUserNftList.js")).getUserNftList(params),
+		(await import("./users/getUserNftList")).getUserNftList(params),
 
 	// Transactions
 	preExecTransaction: async (params: PreExecTransactionInput) =>
-		(await import("./transactions/preExecTransaction.js")).preExecTransaction(
+		(await import("./transactions/preExecTransaction")).preExecTransaction(
 			params,
 		),
 	explainTransaction: async (params: ExplainTransactionInput) =>
-		(await import("./transactions/explainTransaction.js")).explainTransaction(
+		(await import("./transactions/explainTransaction")).explainTransaction(
 			params,
 		),
 };

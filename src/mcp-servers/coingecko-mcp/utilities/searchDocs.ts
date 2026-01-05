@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { executeTool } from "../shared.js";
+import { executeTool } from "../shared";
 
 export const SearchDocsInputSchema = z.object({
 	query: z.string().describe("Search query string"),

@@ -1,5 +1,5 @@
 import z from "zod";
-import { callIqAiApi } from "../../../iqai/make-iq-ai-request.js";
+import { callIqAiApi } from "../../../iqai/make-iq-ai-request";
 
 export const GetTopAgentsInputSchema = z.object({
 	sort: z

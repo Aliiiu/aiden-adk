@@ -1,8 +1,8 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
-import { env } from "../../../env.js";
-import { createChildLogger } from "../../../lib/utils/index.js";
-import { isNotFoundResponse } from "../utils/validators.js";
+import { env } from "../../../env";
+import { createChildLogger } from "../../../lib/utils/index";
+import { isNotFoundResponse } from "../utils/validators";
 
 const logger = createChildLogger("DeFillama Entity Resolver");
 

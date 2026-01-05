@@ -1,17 +1,17 @@
 import endent from "endent";
-import { createChildLogger } from "../../lib/utils/index.js";
-import { bridgeIds } from "./enums/bridgeIds.js";
-import { chains } from "./enums/chains.js";
-import { options } from "./enums/options.js";
-import { protocols } from "./enums/protocols.js";
-import { stablecoins } from "./enums/stablecoinIds.js";
-import { createResolver } from "./resolvers/base-resolver.js";
+import { createChildLogger } from "../../lib/utils/index";
+import { bridgeIds } from "./enums/bridgeIds";
+import { chains } from "./enums/chains";
+import { options } from "./enums/options";
+import { protocols } from "./enums/protocols";
+import { stablecoins } from "./enums/stablecoinIds";
+import { createResolver } from "./resolvers/base-resolver";
 import {
 	sanitizeChainName,
 	sanitizeNumericString,
 	sanitizeSlug,
-} from "./utils/sanitizers.js";
-import { needsResolution } from "./utils/validators.js";
+} from "./utils/sanitizers";
+import { needsResolution } from "./utils/validators";
 
 const logger = createChildLogger("DefiLlama Entity Resolver");
 
