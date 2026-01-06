@@ -257,7 +257,7 @@ function buildGatewayUrl(apiUrl: string): string {
 }
 
 async function fetchCoinGeckoMarkets(apiUrl: string): Promise<CoinGeckoData[]> {
-	const response: globalThis.Response = await fetch(buildGatewayUrl(apiUrl), {
+	const response = await fetch(buildGatewayUrl(apiUrl), {
 		headers: {
 			"x-api-key": env.IQ_GATEWAY_KEY,
 		},
@@ -290,7 +290,7 @@ async function fetchCoinGeckoMarketsRetry(
 	identifier: string,
 ): Promise<CoinGeckoData[]> {
 	const apiUrl = buildCoinGeckoApiUrl(identifier, true);
-	const response: globalThis.Response = await fetch(buildGatewayUrl(apiUrl), {
+	const response = await fetch(buildGatewayUrl(apiUrl), {
 		headers: {
 			"x-api-key": env.IQ_GATEWAY_KEY,
 		},
