@@ -1,8 +1,8 @@
 import { initializeTelemetry, shutdownTelemetry } from "@iqai/adk";
 import { config } from "dotenv";
 import type { Telegraf } from "telegraf";
-import { startApiServer } from "./api/server";
 import { env } from "./env";
+import { startApiServer } from "./server";
 import { createTelegramBot } from "./telegram/bot-factory";
 
 interface ServiceConfig {
